@@ -9,8 +9,6 @@
 
 namespace pimsim {
 
-#define LOG(msg)
-
 MacroGroupController::MacroGroupController(const std::string &name, const pimsim::PimUnitConfig &config,
                                            const pimsim::SimConfig &sim_config, pimsim::Core *core, pimsim::Clock *clk,
                                            sc_core::sc_event &next_sub_ins,
@@ -168,7 +166,5 @@ void MacroGroupController::processShiftAdderSubmodule() {
         shift_adder_socket_.finish();
     }
 }
-
-#undef LOG
 
 }  // namespace pimsim

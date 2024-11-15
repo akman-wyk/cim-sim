@@ -121,7 +121,9 @@ void Macro::processIPUAndIssue() {
                                          .compartment_num = activation_compartment_num,
                                          .bit_sparse = payload.bit_sparse,
                                          .activation_element_col_cnt = activation_element_col_cnt_,
-                                         .activation_element_col_mask = activation_element_col_mask_};
+                                         .activation_element_col_mask = activation_element_col_mask_,
+                                         .total_activation_group_cnt = payload.total_activation_group_cnt,
+                                         .total_activation_macro_cnt = payload.total_activation_macro_cnt};
             MacroSubmodulePayload submodule_payload{.sub_ins_info = sub_ins_info};
 
             for (int batch = 0; batch < batch_cnt; batch++) {
@@ -132,7 +134,8 @@ void Macro::processIPUAndIssue() {
 
                 double dynamic_power_mW = config_.ipu.dynamic_power_mW;
                 double latency = config_.ipu.latency_cycle * period_ns_;
-                ipu_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW);
+                ipu_energy_counter_.addDynamicEnergyPJ(latency,
+                                                       dynamic_power_mW * sub_ins_info.total_activation_group_cnt);
                 wait(latency, SC_NS);
 
                 waitAndStartNextSubmodule(submodule_payload, sram_socket_);
@@ -155,7 +158,8 @@ void Macro::processSRAMSubmodule() {
         double dynamic_power_mW = config_.sram.read_dynamic_power_per_bit_mW * macro_size_.bit_width_per_row * 1 *
                                   macro_size_.element_cnt_per_compartment * macro_size_.compartment_cnt_per_macro;
         double latency = config_.sram.read_latency_cycle * period_ns_;
-        sram_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW);
+        sram_energy_counter_.addDynamicEnergyPJ(latency,
+                                                dynamic_power_mW * payload.sub_ins_info.total_activation_macro_cnt);
         wait(latency, SC_NS);
 
         waitAndStartNextSubmodule(payload, post_process_socket_);
@@ -180,14 +184,17 @@ void Macro::processPostProcessSubmodule() {
                                      BYTE_TO_BIT;
                 double meta_read_dynamic_power_mW = config_.bit_sparse_config.reg_buffer_dynamic_power_mW_per_unit *
                                                     IntDivCeil(meta_size_byte, config_.bit_sparse_config.unit_byte);
-                meta_buffer_energy_counter_.addDynamicEnergyPJ(period_ns_, meta_read_dynamic_power_mW);
+                meta_buffer_energy_counter_.addDynamicEnergyPJ(
+                    period_ns_, meta_read_dynamic_power_mW * payload.sub_ins_info.total_activation_macro_cnt);
             }
 
             double dynamic_power_mW = config_.bit_sparse_config.dynamic_power_mW *
                                       payload.sub_ins_info.activation_element_col_cnt *
                                       payload.sub_ins_info.compartment_num;
             double latency = config_.bit_sparse_config.latency_cycle * period_ns_;
-            post_process_energy_counter_.addDynamicEnergyPJ(latency == 0.0 ? period_ns_ : latency, dynamic_power_mW);
+            post_process_energy_counter_.addDynamicEnergyPJ(
+                latency == 0.0 ? period_ns_ : latency,
+                dynamic_power_mW * payload.sub_ins_info.total_activation_macro_cnt);
             wait(latency, SC_NS);
         }
 
@@ -210,7 +217,9 @@ void Macro::processAdderTreeSubmodule1() {
         double latency = period_ns_;
         for (int i = 0; i < macro_size_.element_cnt_per_compartment; i++) {
             if (getMaskBit(payload.sub_ins_info.activation_element_col_mask, i) != 0) {
-                adder_tree_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW, sc_core::sc_time_stamp(), i);
+                adder_tree_energy_counter_.addDynamicEnergyPJ(
+                    latency, dynamic_power_mW * payload.sub_ins_info.total_activation_macro_cnt,
+                    sc_core::sc_time_stamp(), i);
             }
         }
         wait(latency, SC_NS);
@@ -234,7 +243,9 @@ void Macro::processAdderTreeSubmodule2() {
         double latency = period_ns_;
         for (int i = 0; i < macro_size_.element_cnt_per_compartment; i++) {
             if (getMaskBit(payload.sub_ins_info.activation_element_col_mask, i) != 0) {
-                adder_tree_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW, sc_core::sc_time_stamp(), i);
+                adder_tree_energy_counter_.addDynamicEnergyPJ(
+                    latency, dynamic_power_mW * payload.sub_ins_info.total_activation_macro_cnt,
+                    sc_core::sc_time_stamp(), i);
             }
         }
         wait(latency, SC_NS);
@@ -257,7 +268,8 @@ void Macro::processShiftAdderSubmodule() {
         double dynamic_power_mW =
             config_.shift_adder.dynamic_power_mW * payload.sub_ins_info.activation_element_col_cnt;
         double latency = config_.shift_adder.latency_cycle * period_ns_;
-        shift_adder_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW);
+        shift_adder_energy_counter_.addDynamicEnergyPJ(
+            latency, dynamic_power_mW * payload.sub_ins_info.total_activation_macro_cnt);
         wait(latency, SC_NS);
 
         if (payload.batch_info.last_batch) {
@@ -266,7 +278,8 @@ void Macro::processShiftAdderSubmodule() {
             }
             dynamic_power_mW = config_.result_adder.dynamic_power_mW * payload.sub_ins_info.activation_element_col_cnt;
             latency = config_.result_adder.latency_cycle * period_ns_;
-            result_adder_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW);
+            result_adder_energy_counter_.addDynamicEnergyPJ(
+                latency, dynamic_power_mW * payload.sub_ins_info.total_activation_macro_cnt);
         }
 
         if (pim_ins_info.last_ins && pim_ins_info.last_sub_ins && payload.batch_info.last_batch && finish_run_func_) {
@@ -291,7 +304,7 @@ std::pair<int, int> Macro::getBatchCountAndActivationCompartmentCount(const Macr
             }
         }
     } else {
-        batch_num = activation_compartment_num == 0 ? 0 : payload.input_bit_width;
+        batch_num = payload.input_bit_width;
     }
 
     return {batch_num, activation_compartment_num};

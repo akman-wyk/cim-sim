@@ -24,6 +24,9 @@ struct MacroPayload {
     bool bit_sparse{false};
 
     std::vector<unsigned long long> inputs{};
+
+    int total_activation_group_cnt;
+    int total_activation_macro_cnt;
 };
 
 struct MacroSubInsInfo {
@@ -33,6 +36,10 @@ struct MacroSubInsInfo {
 
     int activation_element_col_cnt{0};
     std::vector<unsigned char> activation_element_col_mask{};
+
+    int total_activation_group_cnt;
+    int total_activation_macro_cnt;
+
 };
 
 struct MacroBatchInfo {
@@ -59,6 +66,10 @@ struct MacroGroupPayload {
 
     // inputs
     std::vector<std::vector<unsigned long long>> macro_inputs{};
+
+    // control
+    int total_activation_group_cnt;
+    int total_activation_macro_cnt;
 };
 
 struct MacroGroupControllerPayload {

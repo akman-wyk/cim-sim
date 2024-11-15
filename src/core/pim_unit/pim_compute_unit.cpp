@@ -34,8 +34,8 @@ PimComputeUnit::PimComputeUnit(const char *name, const pimsim::PimUnitConfig &co
     SC_METHOD(finishRun)
     sensitive << finish_run_trigger_;
 
-    int group_cnt = config_.macro_total_cnt / config_.macro_group_size;
-    for (int group_id = 0; group_id < group_cnt; group_id++) {
+    config_group_cnt_ = config_.macro_total_cnt / config_.macro_group_size;
+    for (int group_id = 0; group_id < 1; group_id++) {
         auto macro_name = fmt::format("MacroGroup_{}", group_id);
         auto macro_group = new MacroGroup{macro_name.c_str(), config_, sim_config, core, clk};
         macro_group->setFinishInsFunc([this](int ins_id) {
@@ -185,9 +185,9 @@ void PimComputeUnit::processSubInsReadData(const pimsim::PimComputeSubInsPayload
         read_bit_sparse_meta_socket_.payload = {
             .ins = payload.ins,
             .addr_byte = payload.bit_sparse_meta_addr_byte,
-            .size_byte = config_.bit_sparse_config.mask_bit_width *
-                         macro_size_.element_cnt_per_compartment * macro_size_.compartment_cnt_per_macro *
-                         sub_ins_payload.group_max_activation_macro_cnt / BYTE_TO_BIT};
+            .size_byte = config_.bit_sparse_config.mask_bit_width * macro_size_.element_cnt_per_compartment *
+                         macro_size_.compartment_cnt_per_macro * sub_ins_payload.group_max_activation_macro_cnt /
+                         BYTE_TO_BIT};
         read_bit_sparse_meta_socket_.start_exec.notify();
     }
 
@@ -206,15 +206,20 @@ void PimComputeUnit::processSubInsCompute(const PimComputeSubInsPayload &sub_ins
         return payload.input_addr_byte + payload.group_input_step_byte * group_id;
     };
     int group_cnt = std::min(payload.activation_group_num, static_cast<int>(macro_group_list_.size()));
+    int total_activation_group_cnt = std::min(payload.activation_group_num, config_group_cnt_);
+    int total_activation_macro_cnt = total_activation_group_cnt * config_.macro_group_size;
     for (int group_id = 0; group_id < group_cnt; group_id++) {
         MacroGroupPayload group_payload{.pim_ins_info = sub_ins_payload.pim_ins_info,
                                         .last_group = group_id == group_cnt - 1,
                                         .row = payload.row,
                                         .input_bit_width = payload.input_bit_width,
-                                        .bit_sparse = config_.bit_sparse && payload.bit_sparse};
-        group_payload.macro_inputs =
-            getMacroGroupInputs(group_id, get_address_byte(group_id), size_byte, sub_ins_payload);
-
+                                        .bit_sparse = config_.bit_sparse && payload.bit_sparse,
+                                        .total_activation_group_cnt = total_activation_group_cnt,
+                                        .total_activation_macro_cnt = total_activation_macro_cnt};
+        for (int i = 0; i < total_activation_group_cnt; i++) {
+            group_payload.macro_inputs =
+                getMacroGroupInputs(group_id, get_address_byte(group_id), size_byte, sub_ins_payload);
+        }
         auto *macro_group = macro_group_list_[group_id];
         macro_group->waitUntilFinishIfBusy();
         macro_group->startExecute(std::move(group_payload));
@@ -235,6 +240,10 @@ std::vector<std::vector<unsigned long long>> PimComputeUnit::getMacroGroupInputs
     const auto &payload = sub_ins_payload.ins_payload;
 
     auto read_data = local_memory_socket_.readData(payload.ins, addr_byte, size_byte);
+    if (data_mode_ == +DataMode::not_real_data) {
+        return {};
+    }
+
     std::vector<unsigned long long> input_data;
     if (payload.input_bit_width == BYTE_TO_BIT) {
         input_data.resize(read_data.size());

@@ -120,7 +120,7 @@
   "sim_config": {
     "period_ns": 5.0,
     "sim_mode": "run_one_round",
-    "data_mode": "real_data",
+    "data_mode": "not_real_data",
     "sim_time_ms": 1.0
   }
 }

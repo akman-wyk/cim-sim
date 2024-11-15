@@ -70,6 +70,7 @@ public:
 private:
     const PimUnitConfig& config_;
     const PimMacroSizeConfig& macro_size_;
+    int config_group_cnt_;
 
     std::vector<MacroGroup*> macro_group_list_;
 

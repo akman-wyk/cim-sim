@@ -10,15 +10,14 @@
     {"class_code": 2, "type": 3, "opcode": 0, "rd": 2, "imm": 16},
     {"class_code": 2, "type": 3, "opcode": 0, "rd": 3, "imm": 0},
 
-    {"class_code": 0, "type": 1, "rs1": 0, "rs2": 0, "group_broadcast": 1},
     {"class_code": 0, "type": 0, "rs1": 1, "rs2": 2, "rs3": 3, "value_sparse": 0, "bit_sparse": 0, "group": 1},
 
-    {"class_code": 2, "type": 3, "opcode": 1, "rd": 4, "imm": 3},
+    {"class_code": 2, "type": 3, "opcode": 1, "rd": 4, "imm": 4},
     {"class_code": 2, "type": 3, "opcode": 0, "rd": 1, "imm": 1040},
     {"class_code": 2, "type": 3, "opcode": 0, "rd": 3, "imm": 1},
     {"class_code": 0, "type": 0, "rs1": 1, "rs2": 2, "rs3": 3, "value_sparse": 0, "bit_sparse": 0, "group": 1},
 
-    {"class_code": 2, "type": 3, "opcode": 1, "rd": 4, "imm": 2},
+    {"class_code": 2, "type": 3, "opcode": 1, "rd": 4, "imm": 4},
     {"class_code": 2, "type": 3, "opcode": 0, "rd": 1, "imm": 1056},
     {"class_code": 2, "type": 3, "opcode": 0, "rd": 3, "imm": 2},
     {"class_code": 0, "type": 0, "rs1": 1, "rs2": 2, "rs3": 3, "value_sparse": 0, "bit_sparse": 0, "group": 1},
@@ -29,7 +28,7 @@
     {"class_code": 0, "type": 0, "rs1": 1, "rs2": 2, "rs3": 3, "value_sparse": 0, "bit_sparse": 0, "group": 1}
   ],
   "expected": {
-    "time_ns": 235,
-    "energy_pj": 187105
+    "time_ns": 225,
+    "energy_pj": 372560
   }
 }

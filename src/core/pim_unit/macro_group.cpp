@@ -20,7 +20,7 @@ MacroGroup::MacroGroup(const char *name, const pimsim::PimUnitConfig &config, co
     SC_THREAD(processIssue)
     SC_THREAD(processResultAdderSubmodule)
 
-    for (int i = 0; i < config_.macro_group_size; i++) {
+    for (int i = 0; i < 1; i++) {
         auto macro_name = fmt::format("{}_macro_{}", getName(), i);
         bool independent_ipu = config_.value_sparse || i == 0;
         macro_list_.push_back(
@@ -88,7 +88,9 @@ void MacroGroup::processIssue() {
             MacroPayload macro_payload{.pim_ins_info = pim_ins_info,
                                        .row = payload.row,
                                        .input_bit_width = payload.input_bit_width,
-                                       .bit_sparse = payload.bit_sparse};
+                                       .bit_sparse = payload.bit_sparse,
+                                       .total_activation_group_cnt = payload.total_activation_group_cnt,
+                                       .total_activation_macro_cnt = payload.total_activation_macro_cnt};
             if (macro_id < payload.macro_inputs.size()) {
                 macro_payload.inputs.swap(payload.macro_inputs[macro_id]);
             }
