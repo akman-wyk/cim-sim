@@ -62,7 +62,11 @@ void SIMDUnit::processIssue() {
         const auto& payload = simd_fsm_out_.read();
         const auto [instruction, functor] = getSIMDInstructionAndFunctor(payload);
         if (instruction == nullptr || functor == nullptr) {
-            throw std::runtime_error(fmt::format("Invalid SIMD instruction: \n{}", payload.toString()));
+            if (instruction == nullptr) {
+                throw std::runtime_error(fmt::format("No match inst, Invalid SIMD instruction: \n{}", payload.toString()));
+            } else {
+                throw std::runtime_error(fmt::format("No match functor, Invalid SIMD instruction: \n{}", payload.toString()));
+            }
         }
 
         // Decode instruction
@@ -218,15 +222,14 @@ std::pair<const SIMDInstructionConfig*, const SIMDFunctorConfig*> SIMDUnit::getS
                 functor_found != functor_config_map_.end()) {
                 if (auto* functor_config = functor_found->second;
                     payload.input_cnt == functor_config->input_cnt &&
-                    payload.inputs_bit_width == functor_config->data_bit_width.inputs &&
-                    payload.output_bit_width == functor_config->data_bit_width.output) {
+                    payload.inputs_bit_width == functor_config->data_bit_width.inputs) {
                     return {ins_config, functor_config};
                 }
             }
         }
     }
 
-    return {nullptr, nullptr};
+    return {ins_config, nullptr};
 }
 
 std::pair<SIMDInstructionInfo, DataConflictPayload> SIMDUnit::decodeAndGetInfo(const SIMDInstructionConfig* instruction,

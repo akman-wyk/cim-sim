@@ -177,30 +177,34 @@ void Reporter::report(std::ostream& os, bool detail) {
     os << fmt::format("  - {:<20}{}\n", "OP_count:", OP_count_);
 
     if (detail) {
-        auto energy_report_items = energy_reporter_.getEnergyReportItem(module_name_, total_energy_, latency_ * 1e6, 0);
-        energy_report_items.insert(
-            energy_report_items.begin(),
-            EnergyReportItem{"module", "total energy", "static energy", "dynamic energy", "activity time"});
-
-        unsigned int name_width = 0, total_width = 0, static_width = 0, dynamic_width = 0, activity_width = 0;
-        for (const auto& [name, total_energy, static_energy, dynamic_energy, activity_time] : energy_report_items) {
-            name_width = MAX(name_width, name.length());
-            total_width = MAX(total_width, total_energy.length());
-            static_width = MAX(static_width, static_energy.length());
-            dynamic_width = MAX(dynamic_width, dynamic_energy.length());
-            activity_width = MAX(activity_width, activity_time.length());
-        }
-
         os << "Energy report form:\n";
-        for (const auto& [name, total_energy, static_energy, dynamic_energy, activity_time] : energy_report_items) {
-            os << fmt::format("    {:<{}}", name, name_width);
-            os << fmt::format("    {:<{}}", total_energy, total_width);
-            os << fmt::format("    {:<{}}", static_energy, static_width);
-            os << fmt::format("    {:<{}}", dynamic_energy, dynamic_width);
-            os << fmt::format("    {:<{}}\n", activity_time, activity_width);
-        }
+        reportEnergyForm(os);
     }
 }
+
+void Reporter::reportEnergyForm(std::ostream& os) {
+    auto energy_report_items = energy_reporter_.getEnergyReportItem(module_name_, total_energy_, latency_ * 1e6, 0);
+    energy_report_items.insert(
+        energy_report_items.begin(),
+        EnergyReportItem{"module", "total energy", "static energy", "dynamic energy", "activity time"});
+
+    unsigned int name_width = 0, total_width = 0, static_width = 0, dynamic_width = 0, activity_width = 0;
+    for (const auto& [name, total_energy, static_energy, dynamic_energy, activity_time] : energy_report_items) {
+        name_width = MAX(name_width, name.length());
+        total_width = MAX(total_width, total_energy.length());
+        static_width = MAX(static_width, static_energy.length());
+        dynamic_width = MAX(dynamic_width, dynamic_energy.length());
+        activity_width = MAX(activity_width, activity_time.length());
+    }
+    for (const auto& [name, total_energy, static_energy, dynamic_energy, activity_time] : energy_report_items) {
+        os << fmt::format("    {:<{}}", name, name_width);
+        os << fmt::format("    {:<{}}", total_energy, total_width);
+        os << fmt::format("    {:<{}}", static_energy, static_width);
+        os << fmt::format("    {:<{}}", dynamic_energy, dynamic_width);
+        os << fmt::format("    {:<{}}\n", activity_time, activity_width);
+    }
+}
+
 
 double Reporter::getAveragePowerMW() const {
     return average_power_;

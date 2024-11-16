@@ -84,6 +84,8 @@ public:
 
     void report(std::ostream& os, bool detail = true);
 
+    void reportEnergyForm(std::ostream& os);
+
     [[nodiscard]] double getAveragePowerMW() const;
     [[nodiscard]] double getTotalEnergyPJ() const;
     [[nodiscard]] double getLatencyNs() const;

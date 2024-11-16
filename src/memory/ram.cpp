@@ -6,6 +6,7 @@
 
 #include "../../packages/fmt/include/fmt/core.h"
 #include "../util/util.h"
+#include "core/core.h"
 
 namespace pimsim {
 
@@ -21,7 +22,8 @@ RAM::RAM(const char *name, const pimsim::RAMConfig &config, const pimsim::SimCon
 
 sc_core::sc_time RAM::accessAndGetDelay(pimsim::MemoryAccessPayload &payload) {
     if (payload.address_byte < 0 || payload.address_byte + payload.size_byte > config_.size_byte) {
-        std::cerr << fmt::format("Invalid memory access with ins NO.'{}': address overflow", payload.ins.pc)
+        std::cerr << fmt::format("Core id: {}, Invalid memory access with ins NO.'{}': address {} overflow, size: {}, config size: {}", 
+                                core_->getCoreId(), payload.ins.pc, payload.address_byte, payload.size_byte, config_.size_byte)
                   << std::endl;
         return {0.0, sc_core::SC_NS};
     }

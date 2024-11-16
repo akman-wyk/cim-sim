@@ -13,9 +13,11 @@ class Chip : public BaseModule {
 public:
     Chip(const char* name, const Config& config, const std::vector<std::vector<Instruction>>& core_ins_list);
 
-    Reporter report(std::ostream& os);
+    Reporter report(std::ostream& os, bool report_every_core_energy);
 
     EnergyReporter getEnergyReporter() override;
+
+    EnergyReporter getCoresEnergyReporter();
 
 private:
     void processFinishRun();

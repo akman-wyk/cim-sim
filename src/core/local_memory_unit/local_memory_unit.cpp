@@ -67,7 +67,7 @@ void LocalMemoryUnit::write_data(const pimsim::InstructionPayload &ins, int addr
         double latency = pim_config_.sram.write_latency_cycle * period_ns_ * process_times;
 
         pim_load_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW);
-        wait(latency);
+        wait(latency, SC_NS);
     } else {
         auto local_memory = getLocalMemoryByAddress(address_byte);
         if (local_memory == nullptr) {
@@ -96,6 +96,7 @@ EnergyReporter LocalMemoryUnit::getEnergyReporter() {
     for (auto &local_memory : local_memory_list_) {
         local_memory_unit_reporter.addSubModule(local_memory->getName(), local_memory->getEnergyReporter());
     }
+    local_memory_unit_reporter.addSubModule("PimLoad", EnergyReporter{pim_load_energy_counter_});
     return std::move(local_memory_unit_reporter);
 }
 

@@ -16,29 +16,45 @@ Chip::Chip(const char* name, const Config& config, const std::vector<std::vector
     , network_("Network", config.chip_config.network_config, config.sim_config) {
     for (int core_id = 0; core_id < config.chip_config.core_cnt; core_id++) {
         std::string core_name = fmt::format("Core_{}", core_id);
-        auto core = std::make_shared<Core>(core_id, core_name.c_str(), config, &clk_,
-                                                       core_ins_list[core_id], [this]() { this->processFinishRun(); });
+        auto core = std::make_shared<Core>(core_id, core_name.c_str(), config, &clk_, core_ins_list[core_id],
+                                           [this]() { this->processFinishRun(); });
         core->bindNetwork(&network_);
         core_list_.emplace_back(std::move(core));
     }
     global_memory_.bindNetwork(&network_);
 }
 
-Reporter Chip::report(std::ostream& os) {
+Reporter Chip::report(std::ostream& os, bool report_every_core_energy) {
     EnergyCounter::setRunningTimeNS(running_time_);
     Reporter reporter{running_time_.to_seconds() * 1000, getName(), getEnergyReporter(), 0};
     reporter.report(os);
+
+    if (report_every_core_energy) {
+        Reporter cores_reporter{running_time_.to_seconds() * 1000, "Cores", getCoresEnergyReporter(), 0};
+        os << "\nEvery core energy form:\n";
+        cores_reporter.reportEnergyForm(os);
+    }
+
     return std::move(reporter);
 }
 
 EnergyReporter Chip::getEnergyReporter() {
-    EnergyReporter energy_reporter;
+    EnergyReporter energy_reporter, core_total_energy_reporter;
     for (auto& core : core_list_) {
-        energy_reporter.addSubModule(core->getName(), core->getEnergyReporter());
+        core_total_energy_reporter.accumulate(core->getEnergyReporter(), true);
     }
+    energy_reporter.addSubModule("Core Overview", core_total_energy_reporter);
     energy_reporter.addSubModule("GlobalMemory", global_memory_.getEnergyReporter());
     energy_reporter.addSubModule("Network", network_.getEnergyReporter());
     return std::move(energy_reporter);
+}
+
+EnergyReporter Chip::getCoresEnergyReporter() {
+    EnergyReporter core_list_energy_reporter;
+    for (auto& core : core_list_) {
+        core_list_energy_reporter.addSubModule(core->getName(), core->getEnergyReporter());
+    }
+    return std::move(core_list_energy_reporter);
 }
 
 void Chip::processFinishRun() {

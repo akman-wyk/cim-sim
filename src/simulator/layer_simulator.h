@@ -20,19 +20,18 @@ namespace pimsim {
 
 class LayerSimulator {
 public:
-    LayerSimulator(std::string config_file, std::string instruction_file, std::string global_image_file,
-                   std::string expected_ins_stat_file, std::string expected_reg_file, std::string actual_reg_file,
-                   bool check);
+    LayerSimulator(std::string config_file, std::string instruction_file, bool check);
 
     void run();
 
-    void report(std::ostream& os, const std::string& report_json_file);
+    void report(std::ostream& os, const std::string& report_json_file, bool report_every_core_energy);
 
     // [[nodiscard]] bool checkInsStat() const;
     // [[nodiscard]] bool checkReg() const;
 
 private:
-    [[nodiscard]] std::vector<std::vector<Instruction>> getCoreInstructionList(const nlohmann::ordered_json& instruction_json) const;
+    [[nodiscard]] std::vector<std::vector<Instruction>> getCoreInstructionList(
+        const nlohmann::ordered_json& instruction_json) const;
 
 private:
     std::shared_ptr<Chip> chip_;
@@ -40,10 +39,10 @@ private:
     Config config_;
     std::string config_file_;
     std::string instruction_file_;
-    std::string global_image_file_;
-    std::string expected_ins_stat_file_;
-    std::string expected_reg_file_;
-    std::string actual_reg_file_;
+    // std::string global_image_file_;
+    // std::string expected_ins_stat_file_;
+    // std::string expected_reg_file_;
+    // std::string actual_reg_file_;
     bool check_;
 };
 

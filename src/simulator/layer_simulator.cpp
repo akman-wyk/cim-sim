@@ -13,15 +13,13 @@ namespace pimsim {
 
 const std::string GLOBAL_MEMORY_NAME = "global";
 
-LayerSimulator::LayerSimulator(std::string config_file, std::string instruction_file, std::string global_image_file,
-                               std::string expected_ins_stat_file, std::string expected_reg_file,
-                               std::string actual_reg_file, bool check)
+LayerSimulator::LayerSimulator(std::string config_file, std::string instruction_file, bool check)
     : config_file_(std::move(config_file))
     , instruction_file_(std::move(instruction_file))
-    , global_image_file_(std::move(global_image_file))
-    , expected_ins_stat_file_(std::move(expected_ins_stat_file))
-    , expected_reg_file_(std::move(expected_reg_file))
-    , actual_reg_file_(std::move(actual_reg_file))
+    // , global_image_file_(std::move(global_image_file))
+    // , expected_ins_stat_file_(std::move(expected_ins_stat_file))
+    // , expected_reg_file_(std::move(expected_reg_file))
+    // , actual_reg_file_(std::move(actual_reg_file))
     , check_(check) {}
 
 void LayerSimulator::run() {
@@ -32,12 +30,12 @@ void LayerSimulator::run() {
     nlohmann::ordered_json instruction_json = nlohmann::ordered_json::parse(instruction_if);
     config_ = config_json.get<Config>();
 
-    for (auto& local_memory_config : config_.chip_config.core_config.local_memory_unit_config.local_memory_list) {
-        if (local_memory_config.name == GLOBAL_MEMORY_NAME) {
-            local_memory_config.ram_config.has_image = true;
-            local_memory_config.ram_config.image_file = global_image_file_;
-        }
-    }
+    // for (auto& local_memory_config : config_.chip_config.core_config.local_memory_unit_config.local_memory_list) {
+    //     if (local_memory_config.name == GLOBAL_MEMORY_NAME) {
+    //         local_memory_config.ram_config.has_image = true;
+    //         local_memory_config.ram_config.image_file = global_image_file_;
+    //     }
+    // }
     if (!config_.checkValid()) {
         std::cout << "Invalid config" << std::endl;
         return;
@@ -62,7 +60,7 @@ void LayerSimulator::run() {
     std::cout << "Simulation Finish" << std::endl;
 }
 
-void LayerSimulator::report(std::ostream& os, const std::string& report_json_file) {
+void LayerSimulator::report(std::ostream& os, const std::string& report_json_file, bool report_every_core_energy) {
     os << "|*************** Simulation Report ***************|\n";
     os << "Basic Information:\n";
 
@@ -75,7 +73,7 @@ void LayerSimulator::report(std::ostream& os, const std::string& report_json_fil
     }
     os << fmt::format(sub_line, "data mode:", config_.sim_config.data_mode._to_string());
 
-    auto reporter = chip_->report(os);
+    auto reporter = chip_->report(os, report_every_core_energy);
 
     if (!report_json_file.empty()) {
         nlohmann::json report_json = reporter;
@@ -119,25 +117,27 @@ std::vector<std::vector<Instruction>> LayerSimulator::getCoreInstructionList(
 struct PimArguments {
     std::string config_file;
     std::string instruction_file;
-    std::string global_image_file;
-    std::string expected_ins_stat_file;
-    std::string expected_reg_file;
-    std::string actual_reg_file;
+    // std::string global_image_file;
+    // std::string expected_ins_stat_file;
+    // std::string expected_reg_file;
+    // std::string actual_reg_file;
     bool check;
 
     bool report_result;
     std::string simulation_report_file;
     std::string report_json_file;
+
+    bool list_every_core_energy;
 };
 
 PimArguments parsePimArguments(int argc, char* argv[]) {
     argparse::ArgumentParser parser("ChipTest");
     parser.add_argument("config").help("config file");
     parser.add_argument("inst").help("instruction file");
-    parser.add_argument("global").help("global image file");
-    parser.add_argument("stat").help("expected ins stat file");
-    parser.add_argument("reg").help("expected reg file");
-    parser.add_argument("actual_reg").help("actual reg file");
+    // parser.add_argument("global").help("global image file");
+    // parser.add_argument("stat").help("expected ins stat file");
+    // parser.add_argument("reg").help("expected reg file");
+    // parser.add_argument("actual_reg").help("actual reg file");
     parser.add_argument("-c", "--check")
         .help("whether to check reg and ins stat")
         .default_value(false)
@@ -148,6 +148,10 @@ PimArguments parsePimArguments(int argc, char* argv[]) {
         .implicit_value(true);
     parser.add_argument("-s", "--sim_report").help("simulation report file").default_value("");
     parser.add_argument("-j", "--report_json").help("report json file").default_value("");
+    parser.add_argument("-l", "--list_cores")
+        .help("whether to list every core energy")
+        .default_value(false)
+        .implicit_value(true);
 
     try {
         parser.parse_args(argc, argv);
@@ -161,14 +165,15 @@ PimArguments parsePimArguments(int argc, char* argv[]) {
     std::string report_json_file = parser.is_used("--report_json") ? parser.get("--report_json") : "";
     return PimArguments{.config_file = parser.get("config"),
                         .instruction_file = parser.get("inst"),
-                        .global_image_file = parser.get("global"),
-                        .expected_ins_stat_file = parser.get("stat"),
-                        .expected_reg_file = parser.get("reg"),
-                        .actual_reg_file = parser.get("actual_reg"),
+                        // .global_image_file = parser.get("global"),
+                        // .expected_ins_stat_file = parser.get("stat"),
+                        // .expected_reg_file = parser.get("reg"),
+                        // .actual_reg_file = parser.get("actual_reg"),
                         .check = parser.get<bool>("--check"),
                         .report_result = parser.get<bool>("--report"),
                         .simulation_report_file = simulation_report_file,
-                        .report_json_file = report_json_file};
+                        .report_json_file = report_json_file,
+                        .list_every_core_energy = parser.get<bool>("--list_cores")};
 }
 
 int sc_main(int argc, char* argv[]) {
@@ -176,25 +181,24 @@ int sc_main(int argc, char* argv[]) {
 
     auto args = parsePimArguments(argc, argv);
 
-    pimsim::LayerSimulator layer_simulator{args.config_file,
-                                           args.instruction_file,
-                                           args.global_image_file,
-                                           args.expected_ins_stat_file,
-                                           args.expected_reg_file,
-                                           args.actual_reg_file,
+    pimsim::LayerSimulator layer_simulator{args.config_file, args.instruction_file,
+                                           // args.global_image_file,
+                                           // args.expected_ins_stat_file,
+                                           // args.expected_reg_file,
+                                           // args.actual_reg_file,
                                            args.check};
     layer_simulator.run();
 
     if (!args.simulation_report_file.empty()) {
         std::ofstream os;
         os.open(args.simulation_report_file);
-        layer_simulator.report(os, args.report_json_file);
+        layer_simulator.report(os, args.report_json_file, args.list_every_core_energy);
         os.close();
     } else if (args.report_result) {
-        layer_simulator.report(std::cout, args.report_json_file);
+        layer_simulator.report(std::cout, args.report_json_file, args.list_every_core_energy);
     } else {
         std::stringstream ss;
-        layer_simulator.report(ss, args.report_json_file);
+        layer_simulator.report(ss, args.report_json_file, args.list_every_core_energy);
     }
 
     // if (!layer_simulator.checkInsStat()) {

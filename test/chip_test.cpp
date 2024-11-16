@@ -61,7 +61,7 @@ int sc_main(int argc, char* argv[]) {
 
     std::ofstream ofs;
     ofs.open(report_file);
-    auto reporter = chip.report(ofs);
+    auto reporter = chip.report(ofs, true);
     ofs.close();
 
     if (DoubleEqual(reporter.getLatencyNs(), test_info.expected.time_ns) &&
