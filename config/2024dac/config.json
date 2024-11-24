@@ -1,6 +1,6 @@
 {
   "chip_config": {
-    "core_cnt": 4,
+    "core_cnt": 64,
     "core_config": {
       "simd_unit_config": {
         "pipeline": true,
@@ -189,8 +189,8 @@
         ]
       },
       "pim_unit_config": {
-        "macro_total_cnt": 256,
-        "macro_group_size": 16,
+        "macro_total_cnt": 128,
+        "macro_group_size": 8,
         "macro_size": {
           "compartment_cnt_per_macro": 32,
           "element_cnt_per_compartment": 8,
@@ -199,7 +199,7 @@
         },
         "address_space": {
           "offset_byte": 0,
-          "size_byte": 1048576
+          "size_byte": 524288
         },
         "ipu": {
           "latency_cycle": 1,
@@ -238,7 +238,7 @@
             "name": "weight_memory",
             "type": "ram",
             "addressing": {
-              "offset_byte": 1048576,
+              "offset_byte": 524288,
               "size_byte": 262144
             },
             "hardware_config": {
@@ -255,7 +255,7 @@
             "name": "input_memory",
             "type": "ram",
             "addressing": {
-              "offset_byte": 1310720,
+              "offset_byte": 786432,
               "size_byte": 262144
             },
             "hardware_config": {
@@ -272,7 +272,7 @@
             "name": "output_memory",
             "type": "ram",
             "addressing": {
-              "offset_byte": 1572864,
+              "offset_byte": 1048576,
               "size_byte": 262144
             },
             "hardware_config": {
@@ -289,7 +289,7 @@
             "name": "pim_input_reg_buffer",
             "type": "reg_buffer",
             "addressing": {
-              "offset_byte": 1835008,
+              "offset_byte": 1310720,
               "size_byte": 1024
             },
             "hardware_config": {
@@ -318,14 +318,14 @@
         "read_dynamic_power_mW": 0.0
       },
       "addressing": {
-        "offset_byte": 1840256,
+        "offset_byte": 1315968,
         "size_byte": 33554432
       },
       "global_memory_switch_id": -1
     },
     "network_config": {
       "bus_width_byte": 16,
-      "network_config_file_path": "/mnt/d/Dropbox/Dropbox/Workspace/code/pim-sim/config/2024dac/flit16dim8.json"
+      "network_config_file_path": "../config/2024dac/flit16dim8.json"
     }
   },
   "sim_config": {
