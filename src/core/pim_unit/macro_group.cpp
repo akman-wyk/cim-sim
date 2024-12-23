@@ -11,7 +11,7 @@
 namespace pimsim {
 
 MacroGroup::MacroGroup(const char *name, const pimsim::PimUnitConfig &config, const pimsim::SimConfig &sim_config,
-                       pimsim::Core *core, pimsim::Clock *clk)
+                       pimsim::Core *core, pimsim::Clock *clk, bool macro_simulation)
     : BaseModule(name, sim_config, core, clk)
     , config_(config)
     , macro_size_(config.macro_size)
@@ -20,7 +20,7 @@ MacroGroup::MacroGroup(const char *name, const pimsim::PimUnitConfig &config, co
     SC_THREAD(processIssue)
     SC_THREAD(processResultAdderSubmodule)
 
-    for (int i = 0; i < 1; i++) {
+    for (int i = 0; i < (macro_simulation ? 1 : config_.macro_group_size); i++) {
         auto macro_name = fmt::format("{}_macro_{}", getName(), i);
         bool independent_ipu = config_.value_sparse || i == 0;
         macro_list_.push_back(
@@ -89,8 +89,8 @@ void MacroGroup::processIssue() {
                                        .row = payload.row,
                                        .input_bit_width = payload.input_bit_width,
                                        .bit_sparse = payload.bit_sparse,
-                                       .total_activation_group_cnt = payload.total_activation_group_cnt,
-                                       .total_activation_macro_cnt = payload.total_activation_macro_cnt};
+                                       .simulated_group_cnt = payload.simulated_group_cnt,
+                                       .simulated_macro_cnt = payload.simulated_macro_cnt};
             if (macro_id < payload.macro_inputs.size()) {
                 macro_payload.inputs.swap(payload.macro_inputs[macro_id]);
             }

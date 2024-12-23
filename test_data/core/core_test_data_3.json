@@ -22,7 +22,7 @@
     {"class_code": 6, "type": 0, "rs1": 0, "rs2": 1, "rd": 2, "offset": 0, "offset_mask": 0}
   ],
   "expected": {
-    "time_ns": 120,
+    "time_ns": 105,
     "energy_pj": 562
   }
 }

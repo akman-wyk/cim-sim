@@ -2,32 +2,9 @@
   "chip_config": {
     "core_cnt": 1,
     "core_config": {
-      "control_unit_config": {
-        "controller_static_power_mW": 0.0,
-        "controller_dynamic_power_mW": 0.0,
-        "fetch_static_power_mW": 0.0,
-        "fetch_dynamic_power_mW": 0.0,
-        "decode_static_power_mW": 0.0,
-        "decode_dynamic_power_mW": 0.0
-      },
-      "register_unit_config": {
-        "static_power_mW": 0.0,
-        "dynamic_power_mW": 0.0,
-        "special_register_binding": []
-      },
-      "scalar_unit_config": {
-        "default_functor_static_power_mW": 0.0,
-        "default_functor_dynamic_power_mW": 0.0,
-        "functor_list": []
-      },
-      "simd_unit_config": {
-        "pipeline": true,
-        "functor_list": [],
-        "instruction_list": []
-      },
       "pim_unit_config": {
-        "macro_total_cnt": 1,
-        "macro_group_size": 1,
+        "macro_total_cnt": 8,
+        "macro_group_size": 2,
         "macro_size": {
           "compartment_cnt_per_macro": 16,
           "element_cnt_per_compartment": 16,
@@ -65,7 +42,7 @@
           "static_power_mW": 1.0,
           "dynamic_power_mW": 1.0
         },
-        "value_sparse": true,
+        "value_sparse": false,
         "value_sparse_config": {
           "mask_bit_width": 1,
           "latency_cycle": 1,
@@ -73,7 +50,7 @@
           "dynamic_power_mW": 1.0,
           "output_macro_group_cnt": 1
         },
-        "bit_sparse": true,
+        "bit_sparse": false,
         "bit_sparse_config": {
           "mask_bit_width": 3,
           "latency_cycle": 0,
@@ -86,7 +63,45 @@
         "input_bit_sparse": false
       },
       "local_memory_unit_config": {
-        "local_memory_list": []
+        "local_memory_list": [
+          {
+            "name": "pim input reg buffer",
+            "type": "reg_buffer",
+            "addressing": {
+              "offset_byte": 1024,
+              "size_byte": 1024
+            },
+            "hardware_config": {
+              "size_byte": 512,
+              "read_max_width_byte": 128,
+              "write_max_width_byte": 128,
+              "rw_min_unit_byte": 128,
+              "static_power_mW": 1.0,
+              "rw_dynamic_power_per_unit_mW": 1,
+              "has_image": true,
+              "image_file": "/mnt/d/Dropbox/Dropbox/Workspace/code/pim-sim/test_data/pim_compute/base_input_buffer_image.bin"
+            }
+          },
+          {
+            "name": "local memory",
+            "type": "ram",
+            "addressing": {
+              "offset_byte": 4096,
+              "size_byte": 1024
+            },
+            "hardware_config": {
+              "size_byte": 1024,
+              "width_byte": 128,
+              "write_latency_cycle": 1,
+              "read_latency_cycle": 1,
+              "static_power_mW": 0.0,
+              "write_dynamic_power_mW": 0.0,
+              "read_dynamic_power_mW": 0.0,
+              "has_image": true,
+              "image_file": "/mnt/d/Dropbox/Dropbox/Workspace/code/pim-sim/test_data/core/act_col_mask_image.bin"
+            }
+          }
+        ]
       },
       "transfer_unit_config": {
         "pipeline": true
@@ -105,7 +120,7 @@
   "sim_config": {
     "period_ns": 5.0,
     "sim_mode": "run_one_round",
-    "data_mode": "real_data",
+    "data_mode": "not_real_data",
     "sim_time_ms": 1.0
   }
 }

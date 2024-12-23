@@ -25,8 +25,8 @@ struct MacroPayload {
 
     std::vector<unsigned long long> inputs{};
 
-    int total_activation_group_cnt;
-    int total_activation_macro_cnt;
+    int simulated_group_cnt{1};
+    int simulated_macro_cnt{1};
 };
 
 struct MacroSubInsInfo {
@@ -37,8 +37,8 @@ struct MacroSubInsInfo {
     int activation_element_col_cnt{0};
     std::vector<unsigned char> activation_element_col_mask{};
 
-    int total_activation_group_cnt;
-    int total_activation_macro_cnt;
+    int simulated_group_cnt{1};
+    int simulated_macro_cnt{1};
 
 };
 
@@ -68,8 +68,8 @@ struct MacroGroupPayload {
     std::vector<std::vector<unsigned long long>> macro_inputs{};
 
     // control
-    int total_activation_group_cnt;
-    int total_activation_macro_cnt;
+    int simulated_group_cnt{1};
+    int simulated_macro_cnt{1};
 };
 
 struct MacroGroupControllerPayload {

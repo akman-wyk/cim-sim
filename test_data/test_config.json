@@ -277,6 +277,12 @@
           "config_file": "config/test/Core_Transfer_test_config.json",
           "instruction_file": "test_data/core/core_test_data_13.json",
           "report_file": "report/Core_test_report.txt"
+        },
+        {
+          "comments": "Test for Pim Compute instructions with macro simulation config",
+          "config_file": "config/test/macro_simulation_test_config.json",
+          "instruction_file": "test_data/core/core_test_data_14.json",
+          "report_file": "report/Core_test_report.txt"
         }
       ]
     },
