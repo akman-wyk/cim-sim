@@ -10,6 +10,9 @@
 
 namespace pimsim {
 
+#define PIMMemoryId   -1
+#define ErrorMemoryId -10
+
 LocalMemoryUnit::LocalMemoryUnit(const char *name, const pimsim::LocalMemoryUnitConfig &config,
                                  const pimsim::SimConfig &sim_config, const PimUnitConfig &pim_config,
                                  pimsim::Core *core, pimsim::Clock *clk)
@@ -53,9 +56,10 @@ std::vector<uint8_t> LocalMemoryUnit::read_data(const pimsim::InstructionPayload
 void LocalMemoryUnit::write_data(const pimsim::InstructionPayload &ins, int address_byte, int size_byte,
                                  std::vector<uint8_t> data, sc_core::sc_event &finish_access) {
     if (address_byte >= pim_config_.address_space.offset_byte &&
-        address_byte + size_byte < pim_config_.address_space.end()) {
+        address_byte + size_byte <= pim_config_.address_space.end()) {
         // calculate config
-        int macro_bit_width = pim_config_.macro_size.bit_width_per_row * pim_config_.macro_size.element_cnt_per_compartment;
+        int macro_bit_width =
+            pim_config_.macro_size.bit_width_per_row * pim_config_.macro_size.element_cnt_per_compartment;
         int pim_bit_width = pim_config_.sram.as_mode == +PimSRAMAddressSpaceContinuousMode::intergroup
                                 ? macro_bit_width * pim_config_.macro_total_cnt
                                 : macro_bit_width * pim_config_.macro_group_size;
@@ -101,20 +105,39 @@ EnergyReporter LocalMemoryUnit::getEnergyReporter() {
 }
 
 int LocalMemoryUnit::getLocalMemoryIdByAddress(int address_byte) const {
+    if (address_byte >= pim_config_.address_space.offset_byte && address_byte < pim_config_.address_space.end()) {
+        return PIMMemoryId;
+    }
     for (int i = 0; i < local_memory_list_.size(); i++) {
         auto &local_memory = local_memory_list_[i];
         if (local_memory->getAddressSpaceBegin() <= address_byte && address_byte < local_memory->getAddressSpaceEnd()) {
             return i;
         }
     }
-    return -1;
+    return ErrorMemoryId;
 }
 
 int LocalMemoryUnit::getMemoryDataWidthById(int memory_id, MemoryAccessType access_type) const {
+    if (memory_id == PIMMemoryId) {
+        int macro_bit_width =
+            pim_config_.macro_size.bit_width_per_row * pim_config_.macro_size.element_cnt_per_compartment;
+        int pim_bit_width = pim_config_.sram.as_mode == +PimSRAMAddressSpaceContinuousMode::intergroup
+                                ? macro_bit_width * pim_config_.macro_total_cnt
+                                : macro_bit_width * pim_config_.macro_group_size;
+        int pim_byte_width = IntDivCeil(pim_bit_width, BYTE_TO_BIT);
+        return pim_byte_width;
+    }
     return local_memory_list_[memory_id]->getMemoryDataWidthByte(access_type);
 }
 
 int LocalMemoryUnit::getMemorySizeById(int memory_id) const {
+    if (memory_id == PIMMemoryId) {
+        int pim_bit_size = pim_config_.macro_size.bit_width_per_row * pim_config_.macro_size.row_cnt_per_element *
+                           pim_config_.macro_size.element_cnt_per_compartment *
+                           pim_config_.macro_size.compartment_cnt_per_macro * pim_config_.macro_total_cnt;
+        int pim_byte_size = IntDivCeil(pim_bit_size, BYTE_TO_BIT);
+        return pim_byte_size;
+    }
     return local_memory_list_[memory_id]->getMemorySizeByte();
 }
 

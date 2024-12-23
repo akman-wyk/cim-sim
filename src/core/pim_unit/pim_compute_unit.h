@@ -62,7 +62,7 @@ private:
     std::vector<std::vector<unsigned long long>> getMacroGroupInputs(int group_id, int addr_byte, int size_byte,
                                                                      const PimComputeSubInsPayload& sub_ins_payload);
 
-    DataConflictPayload getDataConflictInfo(const PimComputeInsPayload& payload);
+    DataConflictPayload getDataConflictInfo(const PimComputeInsPayload& payload) const;
 
 public:
     ExecuteUnitResponseIOPorts<PimComputeInsPayload> ports_;
@@ -70,7 +70,8 @@ public:
 private:
     const PimUnitConfig& config_;
     const PimMacroSizeConfig& macro_size_;
-    int config_group_cnt_;
+    int group_cnt_;
+    bool macro_simulation; // whether to user one actual macro to simulate all logic macros in one core
 
     std::vector<MacroGroup*> macro_group_list_;
 

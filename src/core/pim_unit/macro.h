@@ -42,7 +42,7 @@ private:
     [[noreturn]] void processAdderTreeSubmodule2();
     [[noreturn]] void processShiftAdderSubmodule();
 
-    std::pair<int, int> getBatchCountAndActivationCompartmentCount(const MacroPayload& payload);
+    std::pair<int, int> getBatchCountAndActivationCompartmentCount(const MacroPayload& payload) const;
 
 private:
     const PimUnitConfig& config_;

@@ -16,7 +16,8 @@ class MacroGroup : public BaseModule {
 public:
     SC_HAS_PROCESS(MacroGroup);
 
-    MacroGroup(const char* name, const PimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    MacroGroup(const char* name, const PimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk,
+               bool macro_simulation = false);
 
     void startExecute(MacroGroupPayload payload);
     void waitUntilFinishIfBusy();

@@ -36,7 +36,7 @@ public:
         : BaseModule(name, config.sim_config, nullptr, clk)
         , test_unit_config_(test_unit_config)
         , local_memory_unit_("LocalMemoryUnit", config.chip_config.core_config.local_memory_unit_config,
-                             config.sim_config, nullptr, clk)
+                             config.sim_config, config.chip_config.core_config.pim_unit_config, nullptr, clk)
         , test_unit_(test_unit_name, test_unit_config, config.sim_config, nullptr, clk)
         , unit_stall_handler_(decode_new_ins_trigger_) {
         test_unit_.ports_.bind(signals_);

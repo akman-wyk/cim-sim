@@ -15,6 +15,8 @@ PimComputeUnit::PimComputeUnit(const char *name, const pimsim::PimUnitConfig &co
     : BaseModule(name, sim_config, core, clk)
     , config_(config)
     , macro_size_(config.macro_size)
+    , macro_simulation(sim_config.data_mode == +DataMode::not_real_data && !config_.bit_sparse &&
+                       !config_.input_bit_sparse && !config_.value_sparse)
     , fsm_("PimComputeFSM", clk) {
     fsm_.input_.bind(fsm_in_);
     fsm_.enable_.bind(ports_.id_ex_enable_port_);
@@ -34,10 +36,10 @@ PimComputeUnit::PimComputeUnit(const char *name, const pimsim::PimUnitConfig &co
     SC_METHOD(finishRun)
     sensitive << finish_run_trigger_;
 
-    config_group_cnt_ = config_.macro_total_cnt / config_.macro_group_size;
-    for (int group_id = 0; group_id < 1; group_id++) {
+    group_cnt_ = config_.macro_total_cnt / config_.macro_group_size;
+    for (int group_id = 0; group_id < (macro_simulation ? 1 : group_cnt_); group_id++) {
         auto macro_name = fmt::format("MacroGroup_{}", group_id);
-        auto macro_group = new MacroGroup{macro_name.c_str(), config_, sim_config, core, clk};
+        auto macro_group = new MacroGroup{macro_name.c_str(), config_, sim_config, core, clk, macro_simulation};
         macro_group->setFinishInsFunc([this](int ins_id) {
             finish_ins_ = true;
             finish_ins_id_ = ins_id;
@@ -180,7 +182,7 @@ void PimComputeUnit::processSubInsReadData(const pimsim::PimComputeSubInsPayload
     // read bit sparse meta data
     if (config_.bit_sparse && payload.bit_sparse) {
         // TODO: 如果需要读取多次的话，尚存在一些问题
-        int group_cnt = std::min(payload.activation_group_num, static_cast<int>(macro_group_list_.size()));
+        // int group_cnt = std::min(payload.activation_group_num, static_cast<int>(macro_group_list_.size()));
         read_bit_sparse_meta_socket_.payload = {
             .ins = payload.ins,
             .addr_byte = payload.bit_sparse_meta_addr_byte,
@@ -205,16 +207,16 @@ void PimComputeUnit::processSubInsCompute(const PimComputeSubInsPayload &sub_ins
         return payload.input_addr_byte + payload.group_input_step_byte * group_id;
     };
     int group_cnt = std::min(payload.activation_group_num, static_cast<int>(macro_group_list_.size()));
-    int total_activation_group_cnt = std::min(payload.activation_group_num, config_group_cnt_);
-    int total_activation_macro_cnt = total_activation_group_cnt * config_.macro_group_size;
+    int total_activation_group_cnt = macro_simulation ? std::min(payload.activation_group_num, group_cnt_) : 1;
+    int total_activation_macro_cnt = macro_simulation ? total_activation_group_cnt * config_.macro_group_size : 1;
     for (int group_id = 0; group_id < group_cnt; group_id++) {
         MacroGroupPayload group_payload{.pim_ins_info = sub_ins_payload.pim_ins_info,
                                         .last_group = group_id == group_cnt - 1,
                                         .row = payload.row,
                                         .input_bit_width = payload.input_bit_width,
                                         .bit_sparse = config_.bit_sparse && payload.bit_sparse,
-                                        .total_activation_group_cnt = total_activation_group_cnt,
-                                        .total_activation_macro_cnt = total_activation_macro_cnt};
+                                        .simulated_group_cnt = total_activation_group_cnt,
+                                        .simulated_macro_cnt = total_activation_macro_cnt};
         for (int i = 0; i < total_activation_group_cnt; i++) {
             group_payload.macro_inputs =
                 getMacroGroupInputs(group_id, get_address_byte(group_id), size_byte, sub_ins_payload);
@@ -310,7 +312,7 @@ void PimComputeUnit::finishRun() {
     ports_.finish_run_port_.write(finish_run_);
 }
 
-DataConflictPayload PimComputeUnit::getDataConflictInfo(const pimsim::PimComputeInsPayload &payload) {
+DataConflictPayload PimComputeUnit::getDataConflictInfo(const pimsim::PimComputeInsPayload &payload) const {
     DataConflictPayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::pim_compute};
     conflict_payload.use_pim_unit = true;
 

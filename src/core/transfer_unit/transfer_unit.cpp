@@ -188,7 +188,7 @@ std::pair<TransferInstructionInfo, DataConflictPayload> TransferUnit::decodeAndG
         int dst_memory_id = local_memory_socket_.getLocalMemoryIdByAddress(payload.dst_address_byte);
 
         int data_width_byte =
-            std::min(local_memory_socket_.getMemoryDataWidthById(src_memory_id, MemoryAccessType::read),
+            std::max(local_memory_socket_.getMemoryDataWidthById(src_memory_id, MemoryAccessType::read),
                      local_memory_socket_.getMemoryDataWidthById(dst_memory_id, MemoryAccessType::write));
         bool use_pipeline = config_.pipeline && (src_memory_id != dst_memory_id);
 
