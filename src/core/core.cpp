@@ -27,13 +27,14 @@ Core::Core(int core_id, const char *name, const Config &config, Clock *clk, std:
     , transfer_unit_("TransferUnit", core_config_.transfer_unit_config, config.sim_config, this, clk, core_id,
                      config.chip_config.global_memory_config.global_memory_switch_id)
 
+    , cim_unit_("CimUnit", core_config_.pim_unit_config, config.sim_config, this, clk)
     , pim_compute_unit_("PimComputeUnit", core_config_.pim_unit_config, config.sim_config, this, clk)
     , pim_load_unit_("PimLoadUnit", core_config_.pim_unit_config, config.sim_config, this, clk)
     , pim_output_unit_("PimOutputUnit", core_config_.pim_unit_config, config.sim_config, this, clk)
     , pim_set_unit_("PimSetUnit", core_config_.pim_unit_config, config.sim_config, this, clk)
     , pim_transfer_unit_("PimTransferUnit", core_config_.pim_unit_config, config.sim_config, this, clk)
-    , local_memory_unit_("LocalMemoryUnit", core_config_.local_memory_unit_config, config.sim_config,
-                         core_config_.pim_unit_config, this, clk)
+
+    , local_memory_unit_("LocalMemoryUnit", core_config_.local_memory_unit_config, config.sim_config, this, clk)
     , reg_unit_("RegUnit", core_config_.register_unit_config, config.sim_config, this, clk)
     , core_switch_("CoreSwitch", config.sim_config, this, clk, core_id)
 
@@ -79,6 +80,7 @@ Core::Core(int core_id, const char *name, const Config &config, Clock *clk, std:
 
     pim_compute_unit_.ports_.bind(pim_compute_signals_);
     pim_compute_unit_.bindLocalMemoryUnit(&local_memory_unit_);
+    pim_compute_unit_.bindCimUnit(&cim_unit_);
     pim_compute_unit_.setEndPC(end_pc);
 
     pim_load_unit_.ports_.bind(pim_load_signals_);
@@ -91,7 +93,7 @@ Core::Core(int core_id, const char *name, const Config &config, Clock *clk, std:
 
     pim_set_unit_.ports_.bind(pim_set_signals_);
     pim_set_unit_.bindLocalMemoryUnit(&local_memory_unit_);
-    pim_set_unit_.bindPimComputeUnit(&pim_compute_unit_);
+    pim_set_unit_.bindCimUnit(&cim_unit_);
     pim_set_unit_.setEndPC(end_pc);
 
     pim_transfer_unit_.ports_.bind(pim_transfer_signals_);
@@ -101,6 +103,8 @@ Core::Core(int core_id, const char *name, const Config &config, Clock *clk, std:
     reg_unit_.write_req_port_.bind(write_req_signal_);
     reg_unit_.read_req_port_.bind(read_req_signal_);
     reg_unit_.read_rsp_port_.bind(read_rsp_signal_);
+
+    local_memory_unit_.bindCimUnit(&cim_unit_);
 
     // bind stall handler
     scalar_stall_handler_.bind(scalar_signals_, scalar_conflict_, &cur_ins_conflict_info_);

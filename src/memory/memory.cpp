@@ -11,16 +11,29 @@ namespace pimsim {
 
 Memory::Memory(const char *name, const RAMConfig &ram_config, const AddressSpaceConfig &addressing,
                const SimConfig &sim_config, Core *core, Clock *clk)
-    : BaseModule(name, sim_config, core, clk), addressing_(addressing) {
-    hardware_ = std::make_shared<RAM>(name, ram_config, sim_config, core, clk);
+    : BaseModule(name, sim_config, core, clk), is_mount(false), addressing_(addressing) {
+    hardware_ = new RAM(name, ram_config, sim_config, core, clk);
     SC_THREAD(process);
 }
 
 Memory::Memory(const char *name, const RegBufferConfig &reg_buffer_config, const AddressSpaceConfig &addressing,
                const SimConfig &sim_config, Core *core, Clock *clk)
-    : BaseModule(name, sim_config, core, clk), addressing_(addressing) {
-    hardware_ = std::make_shared<RegBuffer>(name, reg_buffer_config, sim_config, core, clk);
+    : BaseModule(name, sim_config, core, clk), is_mount(false), addressing_(addressing) {
+    hardware_ = new RegBuffer(name, reg_buffer_config, sim_config, core, clk);
     SC_THREAD(process);
+}
+
+Memory::Memory(const char *name, MemoryHardware *memory_hardware, const AddressSpaceConfig &addressing,
+               const SimConfig &sim_config, Core *core, Clock *clk)
+    : BaseModule(name, sim_config, core, clk), is_mount(true), addressing_(addressing) {
+    hardware_ = memory_hardware;
+    SC_THREAD(process);
+}
+
+Memory::~Memory() {
+    if (!is_mount) {
+        delete hardware_;
+    }
 }
 
 void Memory::access(std::shared_ptr<MemoryAccessPayload> payload) {
@@ -42,6 +55,10 @@ int Memory::getMemoryDataWidthByte(MemoryAccessType access_type) const {
 
 int Memory::getMemorySizeByte() const {
     return hardware_->getMemorySizeByte();
+}
+
+bool Memory::isMount() const {
+    return is_mount;
 }
 
 EnergyReporter Memory::getEnergyReporter() {

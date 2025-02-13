@@ -3,6 +3,7 @@
 //
 
 #include "core/payload/payload.h"
+#include "core/pim_unit/cim_unit.h"
 #include "core/pim_unit/pim_compute_unit.h"
 #include "core/pim_unit/pim_set_unit.h"
 #include "execute_unit_test.h"
@@ -42,10 +43,8 @@ public:
     PimSetUnitTestModule(const char* name, const char* test_unit_name, const PimUnitConfig& test_unit_config,
                          const Config& config, Clock* clk, std::vector<PimSetTestInstruction> codes)
         : TestBaseModule(name, test_unit_name, test_unit_config, config, clk, std::move(codes))
-        , pim_compute_unit_("PimComputeUnit", config.chip_config.core_config.pim_unit_config, config.sim_config,
-                            nullptr, clk) {
-        pim_compute_unit_.ports_.bind(pim_compute_signals_);
-        test_unit_.bindPimComputeUnit(&pim_compute_unit_);
+        , cim_unit_("CimUnit", config.chip_config.core_config.pim_unit_config, config.sim_config, nullptr, clk) {
+        test_unit_.bindCimUnit(&cim_unit_);
     }
 
     EnergyReporter getEnergyReporter() override {
@@ -56,21 +55,21 @@ public:
 
     bool checkTestResult(const pimsim::PimSetTestExpectedInfo& expected) override {
         for (int group_id = 0; group_id < expected.groups_activation_element_col_cnt.size(); group_id++) {
-            if (pim_compute_unit_.getMacroGroupActivationElementColumnCount(group_id) !=
+            if (cim_unit_.getMacroGroupActivationElementColumnCount(group_id) !=
                 expected.groups_activation_element_col_cnt[group_id]) {
                 std::cout << fmt::format("activation element col cnt error, group id: {}, expected: {}, actual: {}",
                                          group_id, expected.groups_activation_element_col_cnt[group_id],
-                                         pim_compute_unit_.getMacroGroupActivationElementColumnCount(group_id))
+                                         cim_unit_.getMacroGroupActivationElementColumnCount(group_id))
                           << std::endl;
                 return false;
             }
         }
         for (int group_id = 0; group_id < expected.groups_activation_macro_cnt.size(); group_id++) {
-            if (pim_compute_unit_.getMacroGroupActivationMacroCount(group_id) !=
+            if (cim_unit_.getMacroGroupActivationMacroCount(group_id) !=
                 expected.groups_activation_macro_cnt[group_id]) {
                 std::cout << fmt::format("activation macro cnt error, group id: {}, expected: {}, actual: {}", group_id,
                                          expected.groups_activation_macro_cnt[group_id],
-                                         pim_compute_unit_.getMacroGroupActivationMacroCount(group_id))
+                                         cim_unit_.getMacroGroupActivationMacroCount(group_id))
                           << std::endl;
                 return false;
             }
@@ -87,8 +86,7 @@ private:
     }
 
 private:
-    PimComputeUnit pim_compute_unit_;
-    ExecuteUnitSignalPorts<PimComputeInsPayload> pim_compute_signals_;
+    CimUnit cim_unit_;
 };
 
 }  // namespace pimsim

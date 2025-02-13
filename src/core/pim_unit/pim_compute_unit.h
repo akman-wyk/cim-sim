@@ -9,10 +9,11 @@
 #include "base_component/fsm.h"
 #include "base_component/memory_socket.h"
 #include "base_component/submodule_socket.h"
+#include "cim_unit.h"
 #include "config/config.h"
+#include "core/payload/execute_unit_payload.h"
 #include "core/payload/payload.h"
 #include "macro_group.h"
-#include "core/payload/execute_unit_payload.h"
 
 namespace pimsim {
 
@@ -36,14 +37,9 @@ public:
     PimComputeUnit(const char* name, const PimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
     void bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit);
+    void bindCimUnit(CimUnit* cim_unit);
 
     EnergyReporter getEnergyReporter() override;
-
-    void setMacroGroupActivationElementColumn(const std::vector<unsigned char>& mask, bool group_broadcast,
-                                              int group_id);
-
-    int getMacroGroupActivationElementColumnCount(int group_id) const;
-    int getMacroGroupActivationMacroCount(int group_id) const;
 
 private:
     void checkPimComputeInst();
@@ -70,10 +66,8 @@ public:
 private:
     const PimUnitConfig& config_;
     const PimMacroSizeConfig& macro_size_;
-    int group_cnt_;
-    bool macro_simulation; // whether to user one actual macro to simulate all logic macros in one core
 
-    std::vector<MacroGroup*> macro_group_list_;
+    CimUnit* cim_unit_{nullptr};
 
     sc_core::sc_event next_sub_ins_;
     SubmoduleSocket<PimComputeSubInsPayload> process_sub_ins_socket_;

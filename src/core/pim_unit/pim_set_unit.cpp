@@ -35,9 +35,10 @@ void PimSetUnit::bindLocalMemoryUnit(pimsim::LocalMemoryUnit *local_memory_unit)
     local_memory_socket_.bindLocalMemoryUnit(local_memory_unit);
 }
 
-void PimSetUnit::bindPimComputeUnit(pimsim::PimComputeUnit *pim_compute_unit) {
-    pim_compute_unit_ = pim_compute_unit;
+void PimSetUnit::bindCimUnit(CimUnit *cim_unit) {
+    cim_unit_ = cim_unit;
 }
+
 
 void PimSetUnit::checkPimSetInst() {
     if (const auto &payload = ports_.id_ex_payload_port_.read(); payload.ins.valid()) {
@@ -86,8 +87,8 @@ void PimSetUnit::processExecute() {
         finish_ins_id_ = payload.ins.ins_id;
         finish_ins_trigger_.notify(SC_ZERO_TIME);
 
-        if (pim_compute_unit_ != nullptr) {
-            pim_compute_unit_->setMacroGroupActivationElementColumn(mask_byte_data, payload.group_broadcast,
+        if (cim_unit_ != nullptr) {
+            cim_unit_->setMacroGroupActivationElementColumn(mask_byte_data, payload.group_broadcast,
                                                                     payload.group_id);
         }
 

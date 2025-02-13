@@ -8,6 +8,7 @@
 
 #include "base_component/base_module.h"
 #include "core/payload/payload.h"
+#include "core/pim_unit/cim_unit.h"
 #include "memory/memory.h"
 
 namespace pimsim {
@@ -16,8 +17,8 @@ class LocalMemoryUnit : public BaseModule {
 public:
     SC_HAS_PROCESS(LocalMemoryUnit);
 
-    LocalMemoryUnit(const char* name, const LocalMemoryUnitConfig& config, const SimConfig& sim_config,
-                    const PimUnitConfig& pim_config, Core* core, Clock* clk);
+    LocalMemoryUnit(const char* name, const LocalMemoryUnitConfig& config, const SimConfig& sim_config, Core* core,
+                    Clock* clk);
 
     std::vector<uint8_t> read_data(const InstructionPayload& ins, int address_byte, int size_byte,
                                    sc_core::sc_event& finish_access);
@@ -27,10 +28,10 @@ public:
 
     EnergyReporter getEnergyReporter() override;
 
+    void bindCimUnit(CimUnit* cim_unit);
+
     int getLocalMemoryIdByAddress(int address_byte) const;
-
     int getMemoryDataWidthById(int memory_id, MemoryAccessType access_type) const;
-
     int getMemorySizeById(int memory_id) const;
 
 private:
@@ -38,7 +39,7 @@ private:
 
 private:
     const LocalMemoryUnitConfig& config_;
-    const PimUnitConfig& pim_config_;
+    const SimConfig& sim_config_;
 
     std::vector<std::shared_ptr<Memory>> local_memory_list_;
 

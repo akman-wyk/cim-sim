@@ -10,10 +10,9 @@
 #include "config/config.h"
 #include "core/payload/execute_unit_payload.h"
 #include "core/payload/payload.h"
+#include "cim_unit.h"
 
 namespace pimsim {
-
-class PimComputeUnit;
 
 class PimSetUnit : public BaseModule {
 public:
@@ -23,7 +22,7 @@ public:
 
     void bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit);
 
-    void bindPimComputeUnit(PimComputeUnit* pim_compute_unit);
+    void bindCimUnit(CimUnit* cim_unit);
 
 private:
     void checkPimSetInst();
@@ -48,7 +47,7 @@ private:
     sc_core::sc_signal<FSMPayload<PimSetInsPayload>> fsm_in_;
 
     MemorySocket local_memory_socket_;
-    PimComputeUnit* pim_compute_unit_{nullptr};
+    CimUnit* cim_unit_{};
 
     sc_core::sc_event finish_ins_trigger_;
     int finish_ins_id_{-1};

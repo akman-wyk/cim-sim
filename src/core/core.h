@@ -9,6 +9,7 @@
 #include "base_component/base_module.h"
 #include "base_component/stall_handler.h"
 #include "core/payload/execute_unit_payload.h"
+#include "core/pim_unit/cim_unit.h"
 #include "core/pim_unit/pim_compute_unit.h"
 #include "core/pim_unit/pim_load_unit.h"
 #include "core/pim_unit/pim_output_unit.h"
@@ -78,6 +79,8 @@ private:
     ScalarInsPayload scalar_payload_;
     SIMDInsPayload simd_payload_;
     TransferInsPayload transfer_payload_;
+
+    CimUnit cim_unit_;
     PimComputeInsPayload pim_compute_payload_;
     PimLoadInsPayload pim_load_payload_;
     PimOutputInsPayload pim_output_payload_;
@@ -89,6 +92,7 @@ private:
     ScalarUnit scalar_unit_;
     SIMDUnit simd_unit_;
     TransferUnit transfer_unit_;
+
     PimComputeUnit pim_compute_unit_;
     PimLoadUnit pim_load_unit_;
     PimOutputUnit pim_output_unit_;
