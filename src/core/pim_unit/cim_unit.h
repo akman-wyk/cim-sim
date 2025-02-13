@@ -1,0 +1,61 @@
+//
+// Created by wyk on 2025/2/13.
+//
+
+#pragma once
+
+#include <functional>
+
+#include "base_component/energy_counter.h"
+#include "config/config.h"
+#include "macro_group.h"
+#include "memory/memory_hardware.h"
+
+namespace pimsim {
+
+class CimUnit : public MemoryHardware {
+public:
+    SC_HAS_PROCESS(CimUnit);
+
+    CimUnit(const char* name, const PimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+
+    EnergyReporter getEnergyReporter() override;
+
+    // As a local memory
+    sc_core::sc_time accessAndGetDelay(MemoryAccessPayload& payload) override;
+    int getMemoryDataWidthByte(MemoryAccessType access_type) const override;
+    int getMemorySizeByte() const override;
+    const AddressSpaceConfig& getAddressSpaceConfig() const;
+
+    // As a cim compute unit
+    int getConfigMacroGroupCount() const;
+    int getActualMacroGroupCount() const;
+    bool isMacroSimulation() const;
+
+    void setMacroGroupActivationElementColumn(const std::vector<unsigned char>& mask, bool group_broadcast,
+                                              int group_id);
+    int getMacroGroupActivationElementColumnCount(int group_id) const;
+    int getMacroGroupActivationMacroCount(int group_id) const;
+    int getMacroGroupMaxActivationMacroCount() const;
+
+    void runMacroGroup(int group_id, MacroGroupPayload group_payload);
+
+    void bindCimComputeUnitFinishFunc(const std::function<void(int)>& finish_ins_func,
+                                      const std::function<void()>& finish_run_func);
+
+private:
+    const PimUnitConfig& config_;
+    const PimMacroSizeConfig& macro_size_;
+    const int cim_byte_size_;
+    const int cim_bit_width_;
+    const int cim_byte_width_;
+
+    int config_group_cnt_;
+    bool macro_simulation_;  // whether to user one actual macro to simulate all logic macros in one core
+    std::vector<MacroGroup*> macro_group_list_;
+
+    EnergyCounter sram_read_energy_counter_;
+    EnergyCounter sram_write_energy_counter_;
+};
+
+}  // namespace pimsim

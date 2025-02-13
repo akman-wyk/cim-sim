@@ -25,8 +25,8 @@ BETTER_ENUM(SIMDInputType, int,  // NOLINT(*-no-recursion, *-explicit-constructo
             vector = 0, scalar = 1, other = 2)
 DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(SIMDInputType)
 
-BETTER_ENUM(PimSRAMAddressSpaceContinuousMode, int,  // NOLINT(*-no-recursion, *-explicit-constructor)
+BETTER_ENUM(CimASMode, int,  // NOLINT(*-no-recursion, *-explicit-constructor)
             intergroup = 1, intragroup = 2, other = 3)
-DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(PimSRAMAddressSpaceContinuousMode)
+DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(CimASMode)
 
 }  // namespace pimsim

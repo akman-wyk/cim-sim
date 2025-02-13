@@ -99,6 +99,8 @@ add_library(pim-simulator STATIC ""
         src/chip/chip.cpp
         src/chip/chip.h
         src/util/log.cpp
+        src/core/pim_unit/cim_unit.cpp
+        src/core/pim_unit/cim_unit.h
 )
 set_target_properties(pim-simulator PROPERTIES OUTPUT_NAME "pim-simulator")
 target_include_directories(pim-simulator PRIVATE

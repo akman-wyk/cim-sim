@@ -219,7 +219,7 @@
           "report_file": "report/Core_test_report.txt"
         },
         {
-          "comments": "Test for Pim Load instructions",
+          "comments": "Test for Pim Set instructions",
           "config_file": "config/test/pim_set_unit_test_config.json",
           "instruction_file": "test_data/core/core_test_data_4.json",
           "report_file": "report/Core_test_report.txt"

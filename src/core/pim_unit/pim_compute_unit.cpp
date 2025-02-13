@@ -15,8 +15,6 @@ PimComputeUnit::PimComputeUnit(const char *name, const pimsim::PimUnitConfig &co
     : BaseModule(name, sim_config, core, clk)
     , config_(config)
     , macro_size_(config.macro_size)
-    , macro_simulation(sim_config.data_mode == +DataMode::not_real_data && !config_.bit_sparse &&
-                       !config_.input_bit_sparse && !config_.value_sparse)
     , fsm_("PimComputeFSM", clk) {
     fsm_.input_.bind(fsm_in_);
     fsm_.enable_.bind(ports_.id_ex_enable_port_);
@@ -36,22 +34,6 @@ PimComputeUnit::PimComputeUnit(const char *name, const pimsim::PimUnitConfig &co
     SC_METHOD(finishRun)
     sensitive << finish_run_trigger_;
 
-    group_cnt_ = config_.macro_total_cnt / config_.macro_group_size;
-    for (int group_id = 0; group_id < (macro_simulation ? 1 : group_cnt_); group_id++) {
-        auto macro_name = fmt::format("MacroGroup_{}", group_id);
-        auto macro_group = new MacroGroup{macro_name.c_str(), config_, sim_config, core, clk, macro_simulation};
-        macro_group->setFinishInsFunc([this](int ins_id) {
-            finish_ins_ = true;
-            finish_ins_id_ = ins_id;
-            finish_ins_trigger_.notify(SC_ZERO_TIME);
-        });
-        macro_group->setFinishRunFunc([this]() {
-            finish_run_ = true;
-            finish_run_trigger_.notify(SC_ZERO_TIME);
-        });
-        macro_group_list_.emplace_back(macro_group);
-    }
-
     if (config_.value_sparse) {
         value_sparse_network_energy_counter_.setStaticPowerMW(config_.value_sparse_config.static_power_mW);
     }
@@ -64,6 +46,20 @@ void PimComputeUnit::bindLocalMemoryUnit(pimsim::LocalMemoryUnit *local_memory_u
     local_memory_socket_.bindLocalMemoryUnit(local_memory_unit);
 }
 
+void PimComputeUnit::bindCimUnit(CimUnit *cim_unit) {
+    cim_unit_ = cim_unit;
+    cim_unit_->bindCimComputeUnitFinishFunc(
+        [this](int ins_id) {
+            finish_ins_ = true;
+            finish_ins_id_ = ins_id;
+            finish_ins_trigger_.notify(SC_ZERO_TIME);
+        },
+        [this]() {
+            finish_run_ = true;
+            finish_run_trigger_.notify(SC_ZERO_TIME);
+        });
+}
+
 EnergyReporter PimComputeUnit::getEnergyReporter() {
     EnergyReporter pim_compute_reporter;
     if (config_.value_sparse) {
@@ -73,35 +69,8 @@ EnergyReporter PimComputeUnit::getEnergyReporter() {
     if (config_.bit_sparse) {
         pim_compute_reporter.addSubModule("meta buffer", EnergyReporter{meta_buffer_energy_counter_});
     }
-    for (auto *macro_group : macro_group_list_) {
-        pim_compute_reporter.accumulate(macro_group->getEnergyReporter(), true);
-    }
+    pim_compute_reporter.accumulate(cim_unit_->getEnergyReporter(), true);
     return std::move(pim_compute_reporter);
-}
-
-void PimComputeUnit::setMacroGroupActivationElementColumn(const std::vector<unsigned char> &mask, bool group_broadcast,
-                                                          int group_id) {
-    if (group_broadcast) {
-        for (auto *macro_group : macro_group_list_) {
-            macro_group->setMacrosActivationElementColumn(mask);
-        }
-    } else if (0 <= group_id && group_id < macro_group_list_.size()) {
-        macro_group_list_[group_id]->setMacrosActivationElementColumn(mask);
-    }
-}
-
-int PimComputeUnit::getMacroGroupActivationElementColumnCount(int group_id) const {
-    if (group_id < 0 || group_id >= macro_group_list_.size()) {
-        return 0;
-    }
-    return macro_group_list_[group_id]->getActivationElementColumnCount();
-}
-
-int PimComputeUnit::getMacroGroupActivationMacroCount(int group_id) const {
-    if (group_id < 0 || group_id >= macro_group_list_.size()) {
-        return 0;
-    }
-    return macro_group_list_[group_id]->getActivationMacroCount();
 }
 
 void PimComputeUnit::checkPimComputeInst() {
@@ -130,9 +99,7 @@ void PimComputeUnit::processIssue() {
                              .last_sub_ins = true,
                              .ins_id = payload.ins.ins_id},
             .ins_payload = payload,
-            .group_max_activation_macro_cnt = std::transform_reduce(
-                macro_group_list_.begin(), macro_group_list_.end(), 0, [](int a, int b) { return std::max(a, b); },
-                [](const MacroGroup *macro_group) { return macro_group->getActivationMacroCount(); })};
+            .group_max_activation_macro_cnt = cim_unit_->getMacroGroupMaxActivationMacroCount()};
         process_sub_ins_socket_.start_exec.notify();
 
         if (!process_sub_ins_socket_.payload.pim_ins_info.last_sub_ins) {
@@ -206,9 +173,12 @@ void PimComputeUnit::processSubInsCompute(const PimComputeSubInsPayload &sub_ins
     auto get_address_byte = [&](int group_id) {
         return payload.input_addr_byte + payload.group_input_step_byte * group_id;
     };
-    int group_cnt = std::min(payload.activation_group_num, static_cast<int>(macro_group_list_.size()));
-    int total_activation_group_cnt = macro_simulation ? std::min(payload.activation_group_num, group_cnt_) : 1;
-    int total_activation_macro_cnt = macro_simulation ? total_activation_group_cnt * config_.macro_group_size : 1;
+    int group_cnt = std::min(payload.activation_group_num, static_cast<int>(cim_unit_->getActualMacroGroupCount()));
+    int total_activation_group_cnt = cim_unit_->isMacroSimulation()
+                                         ? std::min(payload.activation_group_num, cim_unit_->getConfigMacroGroupCount())
+                                         : 1;
+    int total_activation_macro_cnt =
+        cim_unit_->isMacroSimulation() ? total_activation_group_cnt * config_.macro_group_size : 1;
     for (int group_id = 0; group_id < group_cnt; group_id++) {
         MacroGroupPayload group_payload{.pim_ins_info = sub_ins_payload.pim_ins_info,
                                         .last_group = group_id == group_cnt - 1,
@@ -221,9 +191,7 @@ void PimComputeUnit::processSubInsCompute(const PimComputeSubInsPayload &sub_ins
             group_payload.macro_inputs =
                 getMacroGroupInputs(group_id, get_address_byte(group_id), size_byte, sub_ins_payload);
         }
-        auto *macro_group = macro_group_list_[group_id];
-        macro_group->waitUntilFinishIfBusy();
-        macro_group->startExecute(std::move(group_payload));
+        cim_unit_->runMacroGroup(group_id, std::move(group_payload));
 
         if (config_.value_sparse && payload.value_sparse &&
             (group_id + 1) % config_.value_sparse_config.output_macro_group_cnt == 0) {
@@ -255,7 +223,7 @@ std::vector<std::vector<unsigned long long>> PimComputeUnit::getMacroGroupInputs
     std::vector<std::vector<unsigned long long>> macro_group_inputs;
     if (config_.value_sparse && payload.value_sparse) {
         const auto &mask_byte_data = read_value_sparse_mask_socket_.payload.data;
-        for (int macro_id = 0; macro_id < macro_group_list_[group_id]->getActivationMacroCount(); macro_id++) {
+        for (int macro_id = 0; macro_id < cim_unit_->getMacroGroupActivationMacroCount(group_id); macro_id++) {
             std::vector<unsigned long long> macro_input;
             macro_input.reserve(macro_size_.compartment_cnt_per_macro);
             for (int i = 0; i < payload.input_len; i++) {
@@ -269,7 +237,7 @@ std::vector<std::vector<unsigned long long>> PimComputeUnit::getMacroGroupInputs
             macro_group_inputs.push_back(std::move(macro_input));
         }
     } else {
-        for (int i = 0; i < macro_group_list_[group_id]->getActivationMacroCount(); i++) {
+        for (int i = 0; i < cim_unit_->getMacroGroupActivationMacroCount(group_id); i++) {
             macro_group_inputs.push_back(input_data);
         }
     }

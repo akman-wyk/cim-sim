@@ -167,7 +167,7 @@ struct PimSRAMConfig {
      *      write-data-width = macro-width * macro-group-size.
      * And write-unit is always macro-width, which means the minimum write data unit width.
      */
-    PimSRAMAddressSpaceContinuousMode as_mode{PimSRAMAddressSpaceContinuousMode::intergroup};
+    CimASMode as_mode{CimASMode::intergroup};
 
     int write_latency_cycle{1};
     int read_latency_cycle{1};

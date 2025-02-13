@@ -88,7 +88,7 @@ void PimLoadUnit::processExecute() {
 
         // calculate config
         int macro_bit_width = macro_size_.bit_width_per_row * macro_size_.element_cnt_per_compartment;
-        int pim_bit_width = config_.sram.as_mode == +PimSRAMAddressSpaceContinuousMode::intergroup
+        int pim_bit_width = config_.sram.as_mode == +CimASMode::intergroup
                                 ? macro_bit_width * config_.macro_total_cnt
                                 : macro_bit_width * config_.macro_group_size;
         int weight_bit_size = payload.size_byte * BYTE_TO_BIT;

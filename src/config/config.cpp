@@ -365,7 +365,7 @@ bool PimModuleConfig::checkValid(const std::string& module_name) const {
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimModuleConfig, latency_cycle, static_power_mW, dynamic_power_mW)
 
 bool PimSRAMConfig::checkValid() const {
-    if (as_mode == +PimSRAMAddressSpaceContinuousMode::other) {
+    if (as_mode == +CimASMode::other) {
         std::cerr << "PimSRAMConfig not valid, 'as_mode' must be 'intergroup' or 'intragroup'" << std::endl;
         return false;
     }

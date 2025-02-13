@@ -16,6 +16,6 @@ DEFINE_ENUM_FROM_TO_JSON_FUNCTION(LocalMemoryType, ram, reg_buffer, other)
 
 DEFINE_ENUM_FROM_TO_JSON_FUNCTION(SIMDInputType, vector, scalar, other)
 
-DEFINE_ENUM_FROM_TO_JSON_FUNCTION(PimSRAMAddressSpaceContinuousMode, intergroup, intragroup, other)
+DEFINE_ENUM_FROM_TO_JSON_FUNCTION(CimASMode, intergroup, intragroup, other)
 
 }  // namespace pimsim

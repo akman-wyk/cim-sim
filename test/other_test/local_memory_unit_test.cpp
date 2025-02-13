@@ -18,7 +18,7 @@ public:
     TestModule(const char* name, const Config& config)
         : sc_core::sc_module(name)
         , local_memory_unit_("local_memory_unit", config.chip_config.core_config.local_memory_unit_config,
-                             config.sim_config, config.chip_config.core_config.pim_unit_config, nullptr, nullptr) {
+                             config.sim_config, nullptr, nullptr) {
         SC_THREAD(process1)
         SC_THREAD(process2)
     }
