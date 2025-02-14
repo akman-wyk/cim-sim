@@ -11,10 +11,7 @@
 #include "core/payload/execute_unit_payload.h"
 #include "core/pim_unit/cim_unit.h"
 #include "core/pim_unit/pim_compute_unit.h"
-#include "core/pim_unit/pim_load_unit.h"
-#include "core/pim_unit/pim_output_unit.h"
-#include "core/pim_unit/pim_set_unit.h"
-#include "core/pim_unit/pim_transfer_unit.h"
+#include "core/pim_unit/pim_control_unit.h"
 #include "core/reg_unit/reg_unit.h"
 #include "core/scalar_unit/scalar_unit.h"
 #include "core/simd_unit/simd_unit.h"
@@ -54,9 +51,7 @@ private:
     void decodeSIMDIns(const Instruction& ins, const InstructionPayload& ins_payload);
     void decodeTransferIns(const Instruction& ins, const InstructionPayload& ins_payload);
     void decodePimComputeIns(const Instruction& ins, const InstructionPayload& ins_payload);
-    void decodePimOutputIns(const Instruction& ins, const InstructionPayload& ins_payload);
-    void decodePimSetIns(const Instruction& ins, const InstructionPayload& ins_payload);
-    void decodePimTransferIns(const Instruction& ins, const InstructionPayload& ins_payload);
+    void decodePimControlIns(const Instruction& ins, const InstructionPayload& ins_payload);
     int decodeControlInsAndGetPCIncrement(const Instruction& ins, const InstructionPayload& ins_payload);
 
 private:
@@ -79,13 +74,8 @@ private:
     ScalarInsPayload scalar_payload_;
     SIMDInsPayload simd_payload_;
     TransferInsPayload transfer_payload_;
-
-    CimUnit cim_unit_;
     PimComputeInsPayload pim_compute_payload_;
-    PimLoadInsPayload pim_load_payload_;
-    PimOutputInsPayload pim_output_payload_;
-    PimSetInsPayload pim_set_payload_;
-    PimTransferInsPayload pim_transfer_payload_;
+    PimControlInsPayload pim_control_payload_;
 
     // modules
     // execute units
@@ -93,11 +83,9 @@ private:
     SIMDUnit simd_unit_;
     TransferUnit transfer_unit_;
 
+    CimUnit cim_unit_;
     PimComputeUnit pim_compute_unit_;
-    PimLoadUnit pim_load_unit_;
-    PimOutputUnit pim_output_unit_;
-    PimSetUnit pim_set_unit_;
-    PimTransferUnit pim_transfer_unit_;
+    PimControlUnit pim_control_unit_;
     // other modules
     LocalMemoryUnit local_memory_unit_;
     RegUnit reg_unit_;
@@ -108,10 +96,7 @@ private:
     ExecuteUnitSignalPorts<SIMDInsPayload> simd_signals_;
     ExecuteUnitSignalPorts<TransferInsPayload> transfer_signals_;
     ExecuteUnitSignalPorts<PimComputeInsPayload> pim_compute_signals_;
-    ExecuteUnitSignalPorts<PimLoadInsPayload> pim_load_signals_;
-    ExecuteUnitSignalPorts<PimOutputInsPayload> pim_output_signals_;
-    ExecuteUnitSignalPorts<PimSetInsPayload> pim_set_signals_;
-    ExecuteUnitSignalPorts<PimTransferInsPayload> pim_transfer_signals_;
+    ExecuteUnitSignalPorts<PimControlInsPayload> pim_control_signals_;
 
     sc_core::sc_signal<RegUnitReadRequest> read_req_signal_;
     sc_core::sc_signal<RegUnitReadResponse> read_rsp_signal_;
@@ -119,9 +104,9 @@ private:
 
     // stall
     StallHandler scalar_stall_handler_, simd_stall_handler_, transfer_stall_handler_, pim_compute_stall_handler_,
-        pim_load_stall_handler_, pim_output_stall_handler_, pim_set_stall_handler_, pim_transfer_stall_handler_;
+        pim_control_stall_handler_;
     sc_core::sc_signal<bool> scalar_conflict_, simd_conflict_, transfer_conflict_, pim_compute_conflict_,
-        pim_load_conflict_, pim_output_conflict_, pim_set_conflict_, pim_transfer_conflict_;
+        pim_control_conflict_;
     sc_core::sc_signal<bool> id_stall_;
 
     // finish run

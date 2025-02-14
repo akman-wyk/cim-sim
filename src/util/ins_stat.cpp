@@ -16,7 +16,7 @@ DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(SIMDInsStat, total, ins_count)
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(TransferInsStat, total)
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimInsStat, total, pim_compute, pim_set, pim_output, pim_transfer)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimInsStat, total, pim_compute, pim_set, pim_output)
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(ControlInsStat, total, branch, jump)
 
@@ -29,7 +29,7 @@ DEFINE_PIM_PAYLOAD_EQUAL_OPERATOR(SIMDInsStat, total)
 
 DEFINE_PIM_PAYLOAD_EQUAL_OPERATOR(TransferInsStat, total)
 
-DEFINE_PIM_PAYLOAD_EQUAL_OPERATOR(PimInsStat, total, pim_compute, pim_set, pim_output, pim_transfer)
+DEFINE_PIM_PAYLOAD_EQUAL_OPERATOR(PimInsStat, total, pim_compute, pim_set, pim_output)
 
 DEFINE_PIM_PAYLOAD_EQUAL_OPERATOR(ControlInsStat, total, branch, jump)
 
@@ -88,8 +88,6 @@ void PimInsStat::addInsCount(int type) {
         pim_set++;
     } else if (type == PIMInstType::output) {
         pim_output++;
-    } else {
-        pim_transfer++;
     }
 }
 

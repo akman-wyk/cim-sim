@@ -42,8 +42,6 @@ private:
     const SimConfig& sim_config_;
 
     std::vector<std::shared_ptr<Memory>> local_memory_list_;
-
-    EnergyCounter pim_load_energy_counter_;
 };
 
 }  // namespace pimsim

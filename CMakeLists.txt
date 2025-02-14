@@ -70,14 +70,8 @@ add_library(pim-simulator STATIC ""
         src/core/pim_unit/macro_group_controller.h
         src/core/pim_unit/pim_compute_unit.cpp
         src/core/pim_unit/pim_compute_unit.h
-        src/core/pim_unit/pim_output_unit.cpp
-        src/core/pim_unit/pim_output_unit.h
-        src/core/pim_unit/pim_transfer_unit.cpp
-        src/core/pim_unit/pim_transfer_unit.h
-        src/core/pim_unit/pim_set_unit.cpp
-        src/core/pim_unit/pim_set_unit.h
-        src/core/pim_unit/pim_load_unit.cpp
-        src/core/pim_unit/pim_load_unit.h
+        src/core/pim_unit/pim_control_unit.cpp
+        src/core/pim_unit/pim_control_unit.h
         src/isa/instruction.h
         src/isa/instruction.cpp
         src/core/core.cpp
@@ -171,38 +165,14 @@ add_dependencies(PimComputeUnitTest pim-simulator)
 target_link_libraries(PimComputeUnitTest PRIVATE pim-simulator)
 target_include_directories(PimComputeUnitTest PRIVATE src)
 
-add_executable(PimOutputUnitTest "" test/execute_unit_test/pim_output_unit_test.cpp
-        test/base/test_payload.cpp
-        test/base/test_payload.h
-        test/execute_unit_test/execute_unit_test.h)
-add_dependencies(PimOutputUnitTest pim-simulator)
-target_link_libraries(PimOutputUnitTest PRIVATE pim-simulator)
-target_include_directories(PimOutputUnitTest PRIVATE src)
-
-add_executable(PimSetUnitTest "" test/execute_unit_test/pim_set_unit_test.cpp
+add_executable(PimControlUnitTest "" test/execute_unit_test/pim_control_unit_test.cpp
         test/base/test_payload.cpp
         test/base/test_payload.h
         test/execute_unit_test/execute_unit_test.h
 )
-add_dependencies(PimSetUnitTest pim-simulator)
-target_link_libraries(PimSetUnitTest PRIVATE pim-simulator)
-target_include_directories(PimSetUnitTest PRIVATE src)
-
-add_executable(PimTransferUnitTest "" test/execute_unit_test/pim_transfer_unit_test.cpp
-        test/base/test_payload.cpp
-        test/base/test_payload.h
-        test/execute_unit_test/execute_unit_test.h)
-add_dependencies(PimTransferUnitTest pim-simulator)
-target_link_libraries(PimTransferUnitTest PRIVATE pim-simulator)
-target_include_directories(PimTransferUnitTest PRIVATE src)
-
-add_executable(PimLoadUnitTest "" test/execute_unit_test/pim_load_unit_test.cpp
-        test/base/test_payload.cpp
-        test/base/test_payload.h
-        test/execute_unit_test/execute_unit_test.h)
-add_dependencies(PimLoadUnitTest pim-simulator)
-target_link_libraries(PimLoadUnitTest PRIVATE pim-simulator)
-target_include_directories(PimLoadUnitTest PRIVATE src)
+add_dependencies(PimControlUnitTest pim-simulator)
+target_link_libraries(PimControlUnitTest PRIVATE pim-simulator)
+target_include_directories(PimControlUnitTest PRIVATE src)
 
 add_executable(CoreTest "" test/core_test.cpp
         test/base/test_payload.cpp

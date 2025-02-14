@@ -80,7 +80,7 @@
               "write_dynamic_power_mW": 1.0,
               "read_dynamic_power_mW": 1.0,
               "has_image": true,
-              "image_file": "/mnt/d/Dropbox/Dropbox/Workspace/code/pim-sim/test_data/pim_transfer/local_memory_image.bin"
+              "image_file": "/mnt/d/Dropbox/Dropbox/Workspace/code/pim-sim/test_data/pim_control/local_memory_image_2.bin"
             }
           },
           {
@@ -88,50 +88,15 @@
             "type": "reg_buffer",
             "addressing": {
               "offset_byte": 3072,
-              "size_byte": 1024
+              "size_byte": 4096
             },
             "hardware_config": {
-              "size_byte": 1024,
+              "size_byte": 4096,
               "read_max_width_byte": 128,
-              "write_max_width_byte": 1024,
+              "write_max_width_byte": 4096,
               "rw_min_unit_byte": 4,
               "static_power_mW": 1.0,
               "rw_dynamic_power_per_unit_mW": 0.1
-            }
-          },
-          {
-            "name": "pim output reg to output memory buffer",
-            "type": "reg_buffer",
-            "addressing": {
-              "offset_byte": 4096,
-              "size_byte": 1024
-            },
-            "hardware_config": {
-              "size_byte": 128,
-              "read_max_width_byte": 128,
-              "write_max_width_byte": 128,
-              "rw_min_unit_byte": 4,
-              "static_power_mW": 1.0,
-              "rw_dynamic_power_per_unit_mW": 0.1
-            }
-          },
-          {
-            "name": "output memory",
-            "type": "ram",
-            "addressing": {
-              "offset_byte": 5120,
-              "size_byte": 1024
-            },
-            "hardware_config": {
-              "size_byte": 1024,
-              "width_byte": 128,
-              "write_latency_cycle": 1,
-              "read_latency_cycle": 1,
-              "static_power_mW": 1.0,
-              "write_dynamic_power_mW": 1.0,
-              "read_dynamic_power_mW": 1.0,
-              "has_image": false,
-              "image_file": ""
             }
           }
         ]

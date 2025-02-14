@@ -5,9 +5,10 @@
         "ins": {
           "pc": 1
         },
+        "op": "set_activation",
         "group_broadcast": true,
         "group_id": 0,
-        "mask_addr_byte": 2112
+        "mask_addr_byte": 2048
       }
     }
   ],
@@ -15,6 +16,6 @@
     "time_ns": 15,
     "energy_pj": 5,
     "groups_activation_macro_cnt": [16, 16, 16, 16],
-    "groups_activation_element_col_cnt": [192, 192, 192, 192]
+    "groups_activation_element_col_cnt": [256, 256, 256, 256]
   }
 }
