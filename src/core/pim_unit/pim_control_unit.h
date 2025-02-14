@@ -14,37 +14,46 @@
 
 namespace pimsim {
 
-class PimSetUnit : public BaseModule {
+class PimControlUnit : public BaseModule {
 public:
-    SC_HAS_PROCESS(PimSetUnit);
+    SC_HAS_PROCESS(PimControlUnit);
 
-    PimSetUnit(const char* name, const PimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    PimControlUnit(const char* name, const PimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
     void bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit);
 
     void bindCimUnit(CimUnit* cim_unit);
 
+    EnergyReporter getEnergyReporter() override;
+
 private:
-    void checkPimSetInst();
+    void checkPimControlInst();
 
     [[noreturn]] void processIssue();
     [[noreturn]] void processExecute();
 
+    void processSetActivation(const PimControlInsPayload& payload);
+    void processOnlyOutput(const PimControlInsPayload& payload);
+    void processOutputSum(const PimControlInsPayload& payload);
+    void processOutputSumMove(const PimControlInsPayload& payload);
+
     void finishInstruction();
     void finishRun();
 
+    DataConflictPayload getDataConflictInfo(const PimControlInsPayload& payload) const;
+
 public:
-    ExecuteUnitResponseIOPorts<PimSetInsPayload> ports_;
+    ExecuteUnitResponseIOPorts<PimControlInsPayload> ports_;
 
 private:
     const PimUnitConfig& config_;
     const PimMacroSizeConfig& macro_size_;
 
-    SubmoduleSocket<PimSetInsPayload> execute_socket_;
+    SubmoduleSocket<PimControlInsPayload> execute_socket_;
 
-    FSM<PimSetInsPayload> fsm_;
-    sc_core::sc_signal<PimSetInsPayload> fsm_out_;
-    sc_core::sc_signal<FSMPayload<PimSetInsPayload>> fsm_in_;
+    FSM<PimControlInsPayload> fsm_;
+    sc_core::sc_signal<PimControlInsPayload> fsm_out_;
+    sc_core::sc_signal<FSMPayload<PimControlInsPayload>> fsm_in_;
 
     MemorySocket local_memory_socket_;
     CimUnit* cim_unit_{};
@@ -55,6 +64,8 @@ private:
 
     sc_core::sc_event finish_run_trigger_;
     bool finish_run_{false};
+
+    EnergyCounter result_adder_energy_counter_;
 };
 
 }  // namespace pimsim

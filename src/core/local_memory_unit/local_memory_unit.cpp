@@ -81,7 +81,6 @@ EnergyReporter LocalMemoryUnit::getEnergyReporter() {
             local_memory_unit_reporter.addSubModule(local_memory->getName(), local_memory->getEnergyReporter());
         }
     }
-    local_memory_unit_reporter.addSubModule("PimLoad", EnergyReporter{pim_load_energy_counter_});
     return std::move(local_memory_unit_reporter);
 }
 

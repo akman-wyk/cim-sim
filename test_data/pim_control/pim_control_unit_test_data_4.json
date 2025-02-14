@@ -5,6 +5,7 @@
         "ins": {
           "pc": 1
         },
+        "op": "set_activation",
         "group_broadcast": false,
         "group_id": 0,
         "mask_addr_byte": 2144

@@ -29,10 +29,7 @@ Core::Core(int core_id, const char *name, const Config &config, Clock *clk, std:
 
     , cim_unit_("CimUnit", core_config_.pim_unit_config, config.sim_config, this, clk)
     , pim_compute_unit_("PimComputeUnit", core_config_.pim_unit_config, config.sim_config, this, clk)
-    , pim_load_unit_("PimLoadUnit", core_config_.pim_unit_config, config.sim_config, this, clk)
-    , pim_output_unit_("PimOutputUnit", core_config_.pim_unit_config, config.sim_config, this, clk)
-    , pim_set_unit_("PimSetUnit", core_config_.pim_unit_config, config.sim_config, this, clk)
-    , pim_transfer_unit_("PimTransferUnit", core_config_.pim_unit_config, config.sim_config, this, clk)
+    , pim_control_unit_("PimControlUnit", core_config_.pim_unit_config, config.sim_config, this, clk)
 
     , local_memory_unit_("LocalMemoryUnit", core_config_.local_memory_unit_config, config.sim_config, this, clk)
     , reg_unit_("RegUnit", core_config_.register_unit_config, config.sim_config, this, clk)
@@ -42,25 +39,21 @@ Core::Core(int core_id, const char *name, const Config &config, Clock *clk, std:
     , simd_stall_handler_(decode_new_ins_trigger_)
     , transfer_stall_handler_(decode_new_ins_trigger_)
     , pim_compute_stall_handler_(decode_new_ins_trigger_)
-    , pim_load_stall_handler_(decode_new_ins_trigger_)
-    , pim_output_stall_handler_(decode_new_ins_trigger_)
-    , pim_set_stall_handler_(decode_new_ins_trigger_)
-    , pim_transfer_stall_handler_(decode_new_ins_trigger_)
+    , pim_control_stall_handler_(decode_new_ins_trigger_)
 
     , finish_run_call_(std::move(finish_run_call)) {
     SC_THREAD(issue)
 
     SC_METHOD(processStall)
-    sensitive << scalar_conflict_ << simd_conflict_ << transfer_conflict_ << pim_compute_conflict_ << pim_load_conflict_
-              << pim_output_conflict_ << pim_set_conflict_ << pim_transfer_conflict_;
+    sensitive << scalar_conflict_ << simd_conflict_ << transfer_conflict_ << pim_compute_conflict_
+              << pim_control_conflict_;
 
     SC_METHOD(processIdExEnable)
     sensitive << id_stall_;
 
     SC_METHOD(processFinishRun)
     sensitive << scalar_signals_.finish_run_ << simd_signals_.finish_run_ << transfer_signals_.finish_run_
-              << pim_compute_signals_.finish_run_ << pim_load_signals_.finish_run_ << pim_output_signals_.finish_run_
-              << pim_set_signals_.finish_run_ << pim_transfer_signals_.finish_run_;
+              << pim_compute_signals_.finish_run_ << pim_control_signals_.finish_run_;
 
     // bind and set modules
     int end_pc = static_cast<int>(ins_list_.size());
@@ -83,22 +76,10 @@ Core::Core(int core_id, const char *name, const Config &config, Clock *clk, std:
     pim_compute_unit_.bindCimUnit(&cim_unit_);
     pim_compute_unit_.setEndPC(end_pc);
 
-    pim_load_unit_.ports_.bind(pim_load_signals_);
-    pim_load_unit_.bindLocalMemoryUnit(&local_memory_unit_);
-    pim_load_unit_.setEndPC(end_pc);
-
-    pim_output_unit_.ports_.bind(pim_output_signals_);
-    pim_output_unit_.bindLocalMemoryUnit(&local_memory_unit_);
-    pim_output_unit_.setEndPC(end_pc);
-
-    pim_set_unit_.ports_.bind(pim_set_signals_);
-    pim_set_unit_.bindLocalMemoryUnit(&local_memory_unit_);
-    pim_set_unit_.bindCimUnit(&cim_unit_);
-    pim_set_unit_.setEndPC(end_pc);
-
-    pim_transfer_unit_.ports_.bind(pim_transfer_signals_);
-    pim_transfer_unit_.bindLocalMemoryUnit(&local_memory_unit_);
-    pim_transfer_unit_.setEndPC(end_pc);
+    pim_control_unit_.ports_.bind(pim_control_signals_);
+    pim_control_unit_.bindLocalMemoryUnit(&local_memory_unit_);
+    pim_control_unit_.bindCimUnit(&cim_unit_);
+    pim_control_unit_.setEndPC(end_pc);
 
     reg_unit_.write_req_port_.bind(write_req_signal_);
     reg_unit_.read_req_port_.bind(read_req_signal_);
@@ -111,10 +92,7 @@ Core::Core(int core_id, const char *name, const Config &config, Clock *clk, std:
     simd_stall_handler_.bind(simd_signals_, simd_conflict_, &cur_ins_conflict_info_);
     transfer_stall_handler_.bind(transfer_signals_, transfer_conflict_, &cur_ins_conflict_info_);
     pim_compute_stall_handler_.bind(pim_compute_signals_, pim_compute_conflict_, &cur_ins_conflict_info_);
-    pim_load_stall_handler_.bind(pim_load_signals_, pim_load_conflict_, &cur_ins_conflict_info_);
-    pim_output_stall_handler_.bind(pim_output_signals_, pim_output_conflict_, &cur_ins_conflict_info_);
-    pim_set_stall_handler_.bind(pim_set_signals_, pim_set_conflict_, &cur_ins_conflict_info_);
-    pim_transfer_stall_handler_.bind(pim_transfer_signals_, pim_transfer_conflict_, &cur_ins_conflict_info_);
+    pim_control_stall_handler_.bind(pim_control_signals_, pim_control_conflict_, &cur_ins_conflict_info_);
 }
 
 void Core::bindNetwork(Network *network) {
@@ -126,9 +104,7 @@ EnergyReporter Core::getEnergyReporter() {
     reporter.addSubModule("ScalarUnit", EnergyReporter{scalar_unit_.getEnergyReporter()});
     reporter.addSubModule("SIMDUnit", EnergyReporter{simd_unit_.getEnergyReporter()});
     reporter.addSubModule("PimUnit", EnergyReporter{pim_compute_unit_.getEnergyReporter()});
-    reporter.addSubModule("PimLoad", EnergyReporter{pim_load_unit_.getEnergyReporter()});
-    reporter.addSubModule("PimOutput", EnergyReporter{pim_output_unit_.getEnergyReporter()});
-    reporter.addSubModule("PimTransfer", EnergyReporter{pim_transfer_unit_.getEnergyReporter()});
+    reporter.addSubModule("PimUnit", EnergyReporter{pim_control_unit_.getEnergyReporter()});
     reporter.addSubModule("LocalMemoryUnit", EnergyReporter{local_memory_unit_.getEnergyReporter()});
     return std::move(reporter);
 }
@@ -157,10 +133,7 @@ int Core::getCoreId() const {
     SIMDInsPayload simd_nop{};
     TransferInsPayload transfer_nop{};
     PimComputeInsPayload pim_compute_nop{};
-    PimLoadInsPayload pim_load_nop{};
-    PimOutputInsPayload pim_output_nop{};
-    PimSetInsPayload pim_set_nop{};
-    PimTransferInsPayload pim_transfer_nop{};
+    PimControlInsPayload pim_control_nop{};
 
     wait(period_ns_ - 1, SC_NS);
 
@@ -181,10 +154,7 @@ int Core::getCoreId() const {
             simd_signals_.id_ex_payload_.write(simd_payload_);
             transfer_signals_.id_ex_payload_.write(transfer_payload_);
             pim_compute_signals_.id_ex_payload_.write(pim_compute_payload_);
-            pim_load_signals_.id_ex_payload_.write(pim_load_payload_);
-            pim_output_signals_.id_ex_payload_.write(pim_output_payload_);
-            pim_set_signals_.id_ex_payload_.write(pim_set_payload_);
-            pim_transfer_signals_.id_ex_payload_.write(pim_transfer_payload_);
+            pim_control_signals_.id_ex_payload_.write(pim_control_payload_);
 
             ins_index_ += pc_increment;
             cur_ins_conflict_info_ = DataConflictPayload{.ins_id = -1, .unit_type = ExecuteUnitType::none};
@@ -193,10 +163,7 @@ int Core::getCoreId() const {
             simd_signals_.id_ex_payload_.write(simd_nop);
             transfer_signals_.id_ex_payload_.write(transfer_nop);
             pim_compute_signals_.id_ex_payload_.write(pim_compute_nop);
-            pim_load_signals_.id_ex_payload_.write(pim_load_nop);
-            pim_output_signals_.id_ex_payload_.write(pim_output_nop);
-            pim_set_signals_.id_ex_payload_.write(pim_set_nop);
-            pim_transfer_signals_.id_ex_payload_.write(pim_transfer_nop);
+            pim_control_signals_.id_ex_payload_.write(pim_control_nop);
         }
         wait(period_ns_ - 0.1, SC_NS);
     }
@@ -204,8 +171,7 @@ int Core::getCoreId() const {
 
 void Core::processStall() {
     bool stall = scalar_conflict_.read() || simd_conflict_.read() || transfer_conflict_.read() ||
-                 pim_compute_conflict_.read() || pim_load_conflict_.read() || pim_output_conflict_.read() ||
-                 pim_set_conflict_.read() || pim_transfer_conflict_.read();
+                 pim_compute_conflict_.read() || pim_control_conflict_.read();
     id_stall_.write(stall);
 }
 
@@ -214,17 +180,13 @@ void Core::processIdExEnable() {
     simd_signals_.id_ex_enable_.write(!id_stall_.read());
     transfer_signals_.id_ex_enable_.write(!id_stall_.read());
     pim_compute_signals_.id_ex_enable_.write(!id_stall_.read());
-    pim_load_signals_.id_ex_enable_.write(!id_stall_.read());
-    pim_output_signals_.id_ex_enable_.write(!id_stall_.read());
-    pim_set_signals_.id_ex_enable_.write(!id_stall_.read());
-    pim_transfer_signals_.id_ex_enable_.write(!id_stall_.read());
+    pim_control_signals_.id_ex_enable_.write(!id_stall_.read());
 }
 
 void Core::processFinishRun() {
     if (scalar_signals_.finish_run_.read() || simd_signals_.finish_run_.read() ||
         transfer_signals_.finish_run_.read() || pim_compute_signals_.finish_run_.read() ||
-        pim_load_signals_.finish_run_.read() || pim_output_signals_.finish_run_.read() ||
-        pim_set_signals_.finish_run_.read() || pim_transfer_signals_.finish_run_.read()) {
+        pim_control_signals_.finish_run_.read()) {
         LOG(fmt::format("finish run"));
         finish_run_call_();
     }
@@ -235,10 +197,7 @@ int Core::decodeAndGetPCIncrement() {
     simd_payload_.ins.clear();
     transfer_payload_.ins.clear();
     pim_compute_payload_.ins.clear();
-    pim_load_payload_.ins.clear();
-    pim_output_payload_.ins.clear();
-    pim_set_payload_.ins.clear();
-    pim_transfer_payload_.ins.clear();
+    pim_control_payload_.ins.clear();
 
     InstructionPayload ins_payload{.pc = ins_index_ + 1, .ins_id = ins_id_++};
 
@@ -265,12 +224,8 @@ int Core::decodeAndGetPCIncrement() {
     } else if (ins.class_code == InstClass::pim) {
         if (ins.type == PIMInstType::compute) {
             decodePimComputeIns(ins, ins_payload);
-        } else if (ins.type == PIMInstType::set) {
-            decodePimSetIns(ins, ins_payload);
-        } else if (ins.type == PIMInstType::output) {
-            decodePimOutputIns(ins, ins_payload);
-        } else if (ins.type == PIMInstType::transfer) {
-            decodePimTransferIns(ins, ins_payload);
+        } else {
+            decodePimControlIns(ins, ins_payload);
         }
     }
     return 1;
@@ -299,6 +254,7 @@ void Core::decodeScalarIns(const pimsim::Instruction &ins, const pimsim::Instruc
             case ScalarRRInstOpcode::ne: op = ScalarOperator::ne; break;
             case ScalarRRInstOpcode::gt: op = ScalarOperator::gt; break;
             case ScalarRRInstOpcode::lt: op = ScalarOperator::lt; break;
+            default: break;
         }
         scalar_payload_ = ScalarInsPayload{.ins = scalar_ins_payload,
                                            .op = op,
@@ -326,6 +282,7 @@ void Core::decodeScalarIns(const pimsim::Instruction &ins, const pimsim::Instruc
             case ScalarRIInstOpcode::nei: op = ScalarOperator::ne; break;
             case ScalarRIInstOpcode::gti: op = ScalarOperator::gt; break;
             case ScalarRIInstOpcode::lti: op = ScalarOperator::lt; break;
+            default: break;
         }
         scalar_payload_ = ScalarInsPayload{.ins = scalar_ins_payload,
                                            .op = op,
@@ -418,19 +375,6 @@ void Core::decodeTransferIns(const pimsim::Instruction &ins, const pimsim::Instr
         int dst_address_byte = reg_unit_.readRegister(ins.rd, false) + (ins.offset_mask & 0b01) * ins.offset;
         int size_byte = reg_unit_.readRegister(ins.rs2, false);
 
-        const auto &pim_as = core_config_.pim_unit_config.address_space;
-        // if (pim_as.offset_byte <= dst_address_byte && dst_address_byte + size_byte <= pim_as.end()) {
-        //     pim_load_payload_ = PimLoadInsPayload{
-        //         .ins = {.pc = ins_payload.pc, .ins_id = ins_payload.ins_id, .unit_type = ExecuteUnitType::pim_load},
-        //         .src_address_byte = src_address_byte,
-        //         .size_byte = size_byte};
-
-        //     cur_ins_conflict_info_ =
-        //         DataConflictPayload{.ins_id = pim_load_payload_.ins.ins_id, .unit_type = ExecuteUnitType::pim_load};
-        //     cur_ins_conflict_info_.use_pim_unit = true;
-        //     cur_ins_conflict_info_.addReadMemoryId(
-        //         local_memory_unit_.getLocalMemoryIdByAddress(pim_load_payload_.src_address_byte));
-        // } else {
         TransferType type = TransferType::local_trans;
         if (global_memory_addressing_.offset_byte <= src_address_byte &&
             src_address_byte + size_byte <= global_memory_addressing_.end()) {
@@ -524,71 +468,45 @@ void Core::decodePimComputeIns(const pimsim::Instruction &ins, const pimsim::Ins
     }
 }
 
-void Core::decodePimOutputIns(const pimsim::Instruction &ins, const pimsim::InstructionPayload &ins_payload) {
-    InstructionPayload pim_output_ins_payload{
-        .pc = ins_payload.pc, .ins_id = ins_payload.ins_id, .unit_type = ExecuteUnitType::pim_output};
+void Core::decodePimControlIns(const pimsim::Instruction &ins, const pimsim::InstructionPayload &ins_payload) {
+    InstructionPayload pim_control_ins_payload{
+        .pc = ins_payload.pc, .ins_id = ins_payload.ins_id, .unit_type = ExecuteUnitType::pim_control};
 
-    PimOutputType pim_output_type = (ins.outsum_move != 0) ? PimOutputType::output_sum_move
-                                    : (ins.outsum != 0)    ? PimOutputType::output_sum
-                                                           : PimOutputType::only_output;
-    pim_output_payload_ =
-        PimOutputInsPayload{.ins = pim_output_ins_payload,
-                            .activation_group_num = reg_unit_.readRegister(SpecialRegId::activation_group_num, true),
-                            .output_type = pim_output_type,
-                            .output_addr_byte = reg_unit_.readRegister(ins.rd, false),
-                            .output_cnt_per_group = reg_unit_.readRegister(ins.rs1, false),
-                            .output_bit_width = reg_unit_.readRegister(SpecialRegId::pim_output_bit_width, true),
-                            .output_mask_addr_byte = reg_unit_.readRegister(ins.rs2, false)};
+    if (ins.type == PIMInstType::set) {
+        pim_control_payload_ = PimControlInsPayload{.ins = pim_control_ins_payload,
+                                                    .op = PimControlOperator::set_activation,
+                                                    .group_broadcast = (ins.group_broadcast != 0),
+                                                    .group_id = reg_unit_.readRegister(ins.rs1, false),
+                                                    .mask_addr_byte = reg_unit_.readRegister(ins.rs2, false)};
 
-    cur_ins_conflict_info_ =
-        DataConflictPayload{.ins_id = pim_output_payload_.ins.ins_id, .unit_type = ExecuteUnitType::pim_output};
-    cur_ins_conflict_info_.use_pim_unit = true;
-    cur_ins_conflict_info_.addWriteMemoryId(
-        local_memory_unit_.getLocalMemoryIdByAddress(pim_output_payload_.output_addr_byte));
-    if (pim_output_payload_.output_type == +PimOutputType::output_sum) {
+        cur_ins_conflict_info_ =
+            DataConflictPayload{.ins_id = pim_control_payload_.ins.ins_id, .unit_type = ExecuteUnitType::pim_control};
+        cur_ins_conflict_info_.use_pim_unit = true;
         cur_ins_conflict_info_.addReadMemoryId(
-            local_memory_unit_.getLocalMemoryIdByAddress(pim_output_payload_.output_mask_addr_byte));
+            local_memory_unit_.getLocalMemoryIdByAddress(pim_control_payload_.mask_addr_byte));
+    } else {
+        PimControlOperator pim_control_op = (ins.outsum_move != 0) ? PimControlOperator::output_sum_move
+                                            : (ins.outsum != 0)    ? PimControlOperator::output_sum
+                                                                   : PimControlOperator::only_output;
+        pim_control_payload_ = PimControlInsPayload{
+            .ins = pim_control_ins_payload,
+            .op = pim_control_op,
+            .activation_group_num = reg_unit_.readRegister(SpecialRegId::activation_group_num, true),
+            .output_addr_byte = reg_unit_.readRegister(ins.rd, false),
+            .output_cnt_per_group = reg_unit_.readRegister(ins.rs1, false),
+            .output_bit_width = reg_unit_.readRegister(SpecialRegId::pim_output_bit_width, true),
+            .output_mask_addr_byte = reg_unit_.readRegister(ins.rs2, false)};
+
+        cur_ins_conflict_info_ =
+            DataConflictPayload{.ins_id = pim_control_payload_.ins.ins_id, .unit_type = ExecuteUnitType::pim_control};
+        cur_ins_conflict_info_.use_pim_unit = true;
+        cur_ins_conflict_info_.addWriteMemoryId(
+            local_memory_unit_.getLocalMemoryIdByAddress(pim_control_payload_.output_addr_byte));
+        if (pim_control_payload_.op == +PimControlOperator::output_sum) {
+            cur_ins_conflict_info_.addReadMemoryId(
+                local_memory_unit_.getLocalMemoryIdByAddress(pim_control_payload_.output_mask_addr_byte));
+        }
     }
-}
-
-void Core::decodePimSetIns(const pimsim::Instruction &ins, const pimsim::InstructionPayload &ins_payload) {
-    InstructionPayload pim_set_ins_payload{
-        .pc = ins_payload.pc, .ins_id = ins_payload.ins_id, .unit_type = ExecuteUnitType::pim_set};
-
-    pim_set_payload_ = PimSetInsPayload{.ins = pim_set_ins_payload,
-                                        .group_broadcast = (ins.group_broadcast != 0),
-                                        .group_id = reg_unit_.readRegister(ins.rs1, false),
-                                        .mask_addr_byte = reg_unit_.readRegister(ins.rs2, false)};
-
-    cur_ins_conflict_info_ =
-        DataConflictPayload{.ins_id = pim_set_payload_.ins.ins_id, .unit_type = ExecuteUnitType::pim_set};
-    cur_ins_conflict_info_.use_pim_unit = true;
-    cur_ins_conflict_info_.addReadMemoryId(
-        local_memory_unit_.getLocalMemoryIdByAddress(pim_set_payload_.mask_addr_byte));
-}
-
-void Core::decodePimTransferIns(const pimsim::Instruction &ins, const pimsim::InstructionPayload &ins_payload) {
-    InstructionPayload pim_transfer_ins_payload{
-        .pc = ins_payload.pc, .ins_id = ins_payload.ins_id, .unit_type = ExecuteUnitType::pim_transfer};
-
-    pim_transfer_payload_ =
-        PimTransferInsPayload{.ins = pim_transfer_ins_payload,
-                              .output_num = reg_unit_.readRegister(ins.rs2, false),
-                              .output_bit_width = reg_unit_.readRegister(SpecialRegId::pim_output_bit_width, true),
-                              .output_mask_addr_byte = reg_unit_.readRegister(ins.rs3, false),
-                              .src_addr_byte = reg_unit_.readRegister(ins.rs1, false),
-                              .dst_addr_byte = reg_unit_.readRegister(ins.rd, false),
-                              .buffer_addr_byte = reg_unit_.readRegister(ins.rs4, false)};
-
-    cur_ins_conflict_info_ =
-        DataConflictPayload{.ins_id = pim_transfer_payload_.ins.ins_id, .unit_type = ExecuteUnitType::pim_transfer};
-    cur_ins_conflict_info_.addReadMemoryId(
-        {local_memory_unit_.getLocalMemoryIdByAddress(pim_transfer_payload_.src_addr_byte),
-         local_memory_unit_.getLocalMemoryIdByAddress(pim_transfer_payload_.output_mask_addr_byte)});
-    cur_ins_conflict_info_.addWriteMemoryId(
-        local_memory_unit_.getLocalMemoryIdByAddress(pim_transfer_payload_.dst_addr_byte));
-    cur_ins_conflict_info_.addReadWriteMemoryId(
-        local_memory_unit_.getLocalMemoryIdByAddress(pim_transfer_payload_.buffer_addr_byte));
 }
 
 int Core::decodeControlInsAndGetPCIncrement(const pimsim::Instruction &ins, const InstructionPayload &ins_payload) {
@@ -606,6 +524,7 @@ int Core::decodeControlInsAndGetPCIncrement(const pimsim::Instruction &ins, cons
         case ControlInstType::bne: branch = (src_value1 != src_value2); break;
         case ControlInstType::bgt: branch = (src_value1 > src_value2); break;
         case ControlInstType::blt: branch = (src_value1 < src_value2); break;
+        default: break;
     }
     if (branch) {
         return ins.offset;

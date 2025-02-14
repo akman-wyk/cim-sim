@@ -44,7 +44,7 @@ struct TransferInsStat {
 
 struct PimInsStat {
     int total{0};
-    int pim_compute{0}, pim_set{0}, pim_output{0}, pim_transfer{0};
+    int pim_compute{0}, pim_set{0}, pim_output{0};
 
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(PimInsStat);
     bool operator==(const PimInsStat& another) const;

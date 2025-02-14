@@ -12,7 +12,7 @@ BETTER_ENUM(InstClass, int,  // NOLINT(*-explicit-constructor)
             pim = 0b00, simd = 0b01, scalar = 0b10, transfer = 0b110, control = 0b111)
 
 BETTER_ENUM(PIMInstType, int,  // NOLINT(*-explicit-constructor)
-            compute = 0b00, set = 0b01, output = 0b10, transfer = 0b11)
+            compute = 0b00, set = 0b01, output = 0b10)
 
 BETTER_ENUM(ScalarInstType, int,  // NOLINT(*-explicit-constructor)
             RR = 0b00, RI = 0b01, SL = 0b10, Assign = 0b11)
