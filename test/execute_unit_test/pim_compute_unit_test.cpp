@@ -36,6 +36,7 @@ public:
         : TestBaseModule(name, test_unit_name, test_unit_config, config, clk, std::move(codes))
         , cim_unit_("CimUnit", config.chip_config.core_config.pim_unit_config, config.sim_config, nullptr, clk) {
         test_unit_.bindCimUnit(&cim_unit_);
+        local_memory_unit_.bindCimUnit(&cim_unit_);
     }
 
     void setGroupActivationElementColumnMask(const std::vector<unsigned char>& groups_activation_element_col_mask) {
@@ -53,10 +54,9 @@ private:
     DataConflictPayload getInsPayloadConflictInfos(const pimsim::PimComputeInsPayload& ins_payload) override {
         DataConflictPayload conflict_payload{.ins_id = ins_payload.ins.ins_id,
                                              .unit_type = ExecuteUnitType::pim_compute};
-        conflict_payload.use_pim_unit = true;
 
         int input_memory_id = local_memory_unit_.getLocalMemoryIdByAddress(ins_payload.input_addr_byte);
-        conflict_payload.addReadMemoryId(input_memory_id);
+        conflict_payload.addReadMemoryId({input_memory_id, cim_unit_.getLocalMemoryId()});
 
         if (test_unit_config_.value_sparse && ins_payload.value_sparse) {
             int mask_memory_id = local_memory_unit_.getLocalMemoryIdByAddress(ins_payload.value_sparse_mask_addr_byte);

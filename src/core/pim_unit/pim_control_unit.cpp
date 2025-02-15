@@ -13,7 +13,10 @@ namespace pimsim {
 
 PimControlUnit::PimControlUnit(const char *name, const pimsim::PimUnitConfig &config,
                                const pimsim::SimConfig &sim_config, pimsim::Core *core, pimsim::Clock *clk)
-    : BaseModule(name, sim_config, core, clk), config_(config), macro_size_(config.macro_size), fsm_("PimControlFSM", clk) {
+    : BaseModule(name, sim_config, core, clk)
+    , config_(config)
+    , macro_size_(config.macro_size)
+    , fsm_("PimControlFSM", clk) {
     fsm_.input_.bind(fsm_in_);
     fsm_.enable_.bind(ports_.id_ex_enable_port_);
     fsm_.output_.bind(fsm_out_);
@@ -190,14 +193,14 @@ DataConflictPayload PimControlUnit::getDataConflictInfo(const PimControlInsPaylo
     DataConflictPayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::pim_control};
     switch (payload.op) {
         case PimControlOperator::set_activation: {
-            conflict_payload.use_pim_unit = true;
-            conflict_payload.addReadMemoryId(local_memory_socket_.getLocalMemoryIdByAddress(payload.mask_addr_byte));
+            conflict_payload.addReadMemoryId({local_memory_socket_.getLocalMemoryIdByAddress(payload.mask_addr_byte),
+                                              cim_unit_->getLocalMemoryId()});
             break;
         }
         case PimControlOperator::only_output:
         case PimControlOperator::output_sum:
         case PimControlOperator::output_sum_move: {
-            conflict_payload.use_pim_unit = true;
+            conflict_payload.addReadMemoryId(cim_unit_->getLocalMemoryId());
             conflict_payload.addWriteMemoryId(local_memory_socket_.getLocalMemoryIdByAddress(payload.output_addr_byte));
             if (payload.op == +PimControlOperator::output_sum) {
                 conflict_payload.addReadMemoryId(

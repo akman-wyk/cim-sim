@@ -76,40 +76,23 @@ void DataConflictPayload::addReadWriteMemoryId(int memory_id) {
     used_memory_id.insert(memory_id);
 }
 
-bool DataConflictPayload::checkMemoryConflict(const pimsim::DataConflictPayload& ins_conflict_payload,
-                                              const pimsim::DataConflictPayload& unit_conflict_payload,
-                                              bool has_unit_conflict) {
-    if (has_unit_conflict) {
-        return SetsIntersection(unit_conflict_payload.write_memory_id, ins_conflict_payload.read_memory_id);
-    } else {
-        return SetsIntersection(unit_conflict_payload.used_memory_id, ins_conflict_payload.used_memory_id);
-    }
-}
-
-bool DataConflictPayload::checkPimUnitConflict(const pimsim::DataConflictPayload& ins_conflict_payload,
-                                               const pimsim::DataConflictPayload& unit_conflict_payload,
-                                               bool has_unit_conflict) {
-    return !has_unit_conflict && ins_conflict_payload.use_pim_unit && unit_conflict_payload.use_pim_unit;
-}
-
 bool DataConflictPayload::checkDataConflict(const DataConflictPayload& ins_conflict_payload,
                                             const DataConflictPayload& unit_conflict_payload) {
-    bool has_unit_conflict = ins_conflict_payload.unit_type == unit_conflict_payload.unit_type;
-    return checkMemoryConflict(ins_conflict_payload, unit_conflict_payload, has_unit_conflict) ||
-           checkPimUnitConflict(ins_conflict_payload, unit_conflict_payload, has_unit_conflict);
+    if (ins_conflict_payload.unit_type == unit_conflict_payload.unit_type) {
+        return SetsIntersection(unit_conflict_payload.write_memory_id, ins_conflict_payload.read_memory_id);
+    }
+    return SetsIntersection(unit_conflict_payload.used_memory_id, ins_conflict_payload.used_memory_id);
 }
 
 DataConflictPayload& DataConflictPayload::operator+=(const pimsim::DataConflictPayload& other) {
     this->read_memory_id.insert(other.read_memory_id.begin(), other.read_memory_id.end());
     this->write_memory_id.insert(other.write_memory_id.begin(), other.write_memory_id.end());
     this->used_memory_id.insert(other.used_memory_id.begin(), other.used_memory_id.end());
-    this->use_pim_unit = (this->use_pim_unit || other.use_pim_unit);
     this->unit_type = other.unit_type;
     return *this;
 }
 
-DEFINE_PIM_PAYLOAD_FUNCTIONS(DataConflictPayload, ins_id, unit_type, read_memory_id, write_memory_id, used_memory_id,
-                             use_pim_unit)
+DEFINE_PIM_PAYLOAD_FUNCTIONS(DataConflictPayload, ins_id, unit_type, read_memory_id, write_memory_id, used_memory_id)
 
 DEFINE_PIM_PAYLOAD_FUNCTIONS(SIMDInsPayload, ins, input_cnt, opcode, inputs_bit_width, output_bit_width,
                              inputs_address_byte, output_address_byte, len)

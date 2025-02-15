@@ -40,8 +40,11 @@ public:
 
     void runMacroGroup(int group_id, MacroGroupPayload group_payload);
 
-    void bindCimComputeUnitFinishFunc(const std::function<void(int)>& finish_ins_func,
-                                      const std::function<void()>& finish_run_func);
+    // Other Interface
+    void bindCimComputeUnit(const std::function<void(int)>& finish_ins_func,
+                            const std::function<void()>& finish_run_func);
+    void bindLocalMemoryUnit(int local_memory_id);
+    int getLocalMemoryId() const;
 
 private:
     const PimUnitConfig& config_;
@@ -53,6 +56,8 @@ private:
     int config_group_cnt_;
     bool macro_simulation_;  // whether to user one actual macro to simulate all logic macros in one core
     std::vector<MacroGroup*> macro_group_list_;
+
+    int local_memory_id_{-1};
 
     EnergyCounter sram_read_energy_counter_;
     EnergyCounter sram_write_energy_counter_;

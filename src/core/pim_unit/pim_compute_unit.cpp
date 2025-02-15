@@ -48,7 +48,7 @@ void PimComputeUnit::bindLocalMemoryUnit(pimsim::LocalMemoryUnit *local_memory_u
 
 void PimComputeUnit::bindCimUnit(CimUnit *cim_unit) {
     cim_unit_ = cim_unit;
-    cim_unit_->bindCimComputeUnitFinishFunc(
+    cim_unit_->bindCimComputeUnit(
         [this](int ins_id) {
             finish_ins_ = true;
             finish_ins_id_ = ins_id;
@@ -282,10 +282,9 @@ void PimComputeUnit::finishRun() {
 
 DataConflictPayload PimComputeUnit::getDataConflictInfo(const pimsim::PimComputeInsPayload &payload) const {
     DataConflictPayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::pim_compute};
-    conflict_payload.use_pim_unit = true;
 
     int input_memory_id = local_memory_socket_.getLocalMemoryIdByAddress(payload.input_addr_byte);
-    conflict_payload.addReadMemoryId(input_memory_id);
+    conflict_payload.addReadMemoryId({input_memory_id, cim_unit_->getLocalMemoryId()});
 
     if (config_.value_sparse && payload.value_sparse) {
         int mask_memory_id = local_memory_socket_.getLocalMemoryIdByAddress(payload.value_sparse_mask_addr_byte);

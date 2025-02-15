@@ -67,20 +67,12 @@ struct DataConflictPayload {
     std::unordered_set<int> write_memory_id;
     std::unordered_set<int> used_memory_id;
 
-    bool use_pim_unit{false};
-
     DECLARE_PIM_PAYLOAD_FUNCTIONS(DataConflictPayload)
 
     void addReadMemoryId(int memory_id);
     void addReadMemoryId(const std::initializer_list<int>& memory_id_list);
     void addWriteMemoryId(int memory_id);
     void addReadWriteMemoryId(int memory_id);
-
-    static bool checkMemoryConflict(const DataConflictPayload& ins_conflict_payload,
-                                    const DataConflictPayload& unit_conflict_payload, bool has_unit_conflict);
-
-    static bool checkPimUnitConflict(const DataConflictPayload& ins_conflict_payload,
-                                     const DataConflictPayload& unit_conflict_payload, bool has_unit_conflict);
 
     static bool checkDataConflict(const DataConflictPayload& ins_conflict_payload,
                                   const DataConflictPayload& unit_conflict_payload);

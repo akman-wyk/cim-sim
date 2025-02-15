@@ -87,6 +87,7 @@ EnergyReporter LocalMemoryUnit::getEnergyReporter() {
 void LocalMemoryUnit::bindCimUnit(CimUnit *cim_unit) {
     local_memory_list_.emplace_back(
         std::make_shared<Memory>("cim unit", cim_unit, cim_unit->getAddressSpaceConfig(), sim_config_, core_, clk_));
+    cim_unit->bindLocalMemoryUnit(getLocalMemoryIdByAddress(cim_unit->getAddressSpaceConfig().offset_byte));
 }
 
 int LocalMemoryUnit::getLocalMemoryIdByAddress(int address_byte) const {

@@ -55,6 +55,7 @@ public:
         : TestBaseModule(name, test_unit_name, test_unit_config, config, clk, std::move(codes))
         , cim_unit_("CimUnit", config.chip_config.core_config.pim_unit_config, config.sim_config, nullptr, clk) {
         test_unit_.bindCimUnit(&cim_unit_);
+        local_memory_unit_.bindCimUnit(&cim_unit_);
     }
 
     EnergyReporter getEnergyReporter() override {
@@ -90,18 +91,21 @@ public:
 
 private:
     DataConflictPayload getInsPayloadConflictInfos(const pimsim::PimControlInsPayload& ins_payload) override {
-        DataConflictPayload conflict_payload{.ins_id = ins_payload.ins.ins_id, .unit_type = ExecuteUnitType::pim_control};
+        DataConflictPayload conflict_payload{.ins_id = ins_payload.ins.ins_id,
+                                             .unit_type = ExecuteUnitType::pim_control};
         switch (ins_payload.op) {
             case PimControlOperator::set_activation: {
-                conflict_payload.use_pim_unit = true;
-                conflict_payload.addReadMemoryId(local_memory_unit_.getLocalMemoryIdByAddress(ins_payload.mask_addr_byte));
+                conflict_payload.addReadMemoryId(
+                    {local_memory_unit_.getLocalMemoryIdByAddress(ins_payload.mask_addr_byte),
+                     cim_unit_.getLocalMemoryId()});
                 break;
             }
             case PimControlOperator::only_output:
             case PimControlOperator::output_sum:
             case PimControlOperator::output_sum_move: {
-                conflict_payload.use_pim_unit = true;
-                conflict_payload.addWriteMemoryId(local_memory_unit_.getLocalMemoryIdByAddress(ins_payload.output_addr_byte));
+                conflict_payload.addReadMemoryId(cim_unit_.getLocalMemoryId());
+                conflict_payload.addWriteMemoryId(
+                    local_memory_unit_.getLocalMemoryIdByAddress(ins_payload.output_addr_byte));
                 if (ins_payload.op == +PimControlOperator::output_sum) {
                     conflict_payload.addReadMemoryId(
                         local_memory_unit_.getLocalMemoryIdByAddress(ins_payload.output_mask_addr_byte));
@@ -122,7 +126,8 @@ private:
 using namespace pimsim;
 
 int sc_main(int argc, char* argv[]) {
-    auto pim_control_unit_test_module_initializer = [](const Config& config, Clock* clk, PimControlTestInfo& test_info) {
+    auto pim_control_unit_test_module_initializer = [](const Config& config, Clock* clk,
+                                                       PimControlTestInfo& test_info) {
         return new PimControlUnitTestModule{
             "PimControlUnitTestModule", "PimControlUnit", config.chip_config.core_config.pim_unit_config, config, clk,
             std::move(test_info.code)};

@@ -130,12 +130,21 @@ void CimUnit::runMacroGroup(int group_id, MacroGroupPayload group_payload) {
     macro_group->startExecute(std::move(group_payload));
 }
 
-void CimUnit::bindCimComputeUnitFinishFunc(const std::function<void(int)>& finish_ins_func,
+void CimUnit::bindCimComputeUnit(const std::function<void(int)>& finish_ins_func,
                                            const std::function<void()>& finish_run_func) {
     for (auto* macro_group : macro_group_list_) {
         macro_group->setFinishInsFunc(finish_ins_func);
         macro_group->setFinishRunFunc(finish_run_func);
     }
 }
+
+void CimUnit::bindLocalMemoryUnit(int local_memory_id) {
+    local_memory_id_ = local_memory_id;
+}
+
+int CimUnit::getLocalMemoryId() const {
+    return local_memory_id_;
+}
+
 
 }  // namespace pimsim
