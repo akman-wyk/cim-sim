@@ -455,9 +455,9 @@ void Core::decodePimComputeIns(const pimsim::Instruction &ins, const pimsim::Ins
     const auto &pim_unit_config = core_config_.pim_unit_config;
     cur_ins_conflict_info_ =
         DataConflictPayload{.ins_id = pim_compute_payload_.ins.ins_id, .unit_type = ExecuteUnitType::pim_compute};
-    cur_ins_conflict_info_.use_pim_unit = true;
     cur_ins_conflict_info_.addReadMemoryId(
-        local_memory_unit_.getLocalMemoryIdByAddress(pim_compute_payload_.input_addr_byte));
+        {local_memory_unit_.getLocalMemoryIdByAddress(pim_compute_payload_.input_addr_byte),
+         cim_unit_.getLocalMemoryId()});
     if (pim_unit_config.value_sparse && pim_compute_payload_.value_sparse) {
         cur_ins_conflict_info_.addReadMemoryId(
             local_memory_unit_.getLocalMemoryIdByAddress(pim_compute_payload_.value_sparse_mask_addr_byte));
@@ -481,9 +481,9 @@ void Core::decodePimControlIns(const pimsim::Instruction &ins, const pimsim::Ins
 
         cur_ins_conflict_info_ =
             DataConflictPayload{.ins_id = pim_control_payload_.ins.ins_id, .unit_type = ExecuteUnitType::pim_control};
-        cur_ins_conflict_info_.use_pim_unit = true;
         cur_ins_conflict_info_.addReadMemoryId(
-            local_memory_unit_.getLocalMemoryIdByAddress(pim_control_payload_.mask_addr_byte));
+            {local_memory_unit_.getLocalMemoryIdByAddress(pim_control_payload_.mask_addr_byte),
+             cim_unit_.getLocalMemoryId()});
     } else {
         PimControlOperator pim_control_op = (ins.outsum_move != 0) ? PimControlOperator::output_sum_move
                                             : (ins.outsum != 0)    ? PimControlOperator::output_sum
@@ -499,7 +499,7 @@ void Core::decodePimControlIns(const pimsim::Instruction &ins, const pimsim::Ins
 
         cur_ins_conflict_info_ =
             DataConflictPayload{.ins_id = pim_control_payload_.ins.ins_id, .unit_type = ExecuteUnitType::pim_control};
-        cur_ins_conflict_info_.use_pim_unit = true;
+        cur_ins_conflict_info_.addReadMemoryId(cim_unit_.getLocalMemoryId());
         cur_ins_conflict_info_.addWriteMemoryId(
             local_memory_unit_.getLocalMemoryIdByAddress(pim_control_payload_.output_addr_byte));
         if (pim_control_payload_.op == +PimControlOperator::output_sum) {
