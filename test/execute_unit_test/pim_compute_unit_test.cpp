@@ -51,27 +51,6 @@ public:
     }
 
 private:
-    DataConflictPayload getInsPayloadConflictInfos(const pimsim::PimComputeInsPayload& ins_payload) override {
-        DataConflictPayload conflict_payload{.ins_id = ins_payload.ins.ins_id,
-                                             .unit_type = ExecuteUnitType::pim_compute};
-
-        int input_memory_id = local_memory_unit_.getLocalMemoryIdByAddress(ins_payload.input_addr_byte);
-        conflict_payload.addReadMemoryId({input_memory_id, cim_unit_.getLocalMemoryId()});
-
-        if (test_unit_config_.value_sparse && ins_payload.value_sparse) {
-            int mask_memory_id = local_memory_unit_.getLocalMemoryIdByAddress(ins_payload.value_sparse_mask_addr_byte);
-            conflict_payload.addReadMemoryId(mask_memory_id);
-        }
-
-        if (test_unit_config_.bit_sparse && ins_payload.bit_sparse) {
-            int meta_memory_id = local_memory_unit_.getLocalMemoryIdByAddress(ins_payload.bit_sparse_meta_addr_byte);
-            conflict_payload.addReadMemoryId(meta_memory_id);
-        }
-
-        return std::move(conflict_payload);
-    }
-
-private:
     CimUnit cim_unit_;
 };
 

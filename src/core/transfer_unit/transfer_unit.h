@@ -64,6 +64,8 @@ public:
     void bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit);
     void bindSwitch(Switch* switch_);
 
+    DataConflictPayload getDataConflictInfo(const TransferInsPayload& payload) const;
+
 private:
     static void waitAndStartNextSubmodule(TransferSubmodulePayload& cur_payload,
                                           SubmoduleSocket<TransferSubmodulePayload>& next_submodule_socket);

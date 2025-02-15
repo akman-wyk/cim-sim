@@ -26,6 +26,8 @@ public:
 
     EnergyReporter getEnergyReporter() override;
 
+    DataConflictPayload getDataConflictInfo(const PimControlInsPayload& payload) const;
+
 private:
     void checkPimControlInst();
 
@@ -39,8 +41,6 @@ private:
 
     void finishInstruction();
     void finishRun();
-
-    DataConflictPayload getDataConflictInfo(const PimControlInsPayload& payload) const;
 
 public:
     ExecuteUnitResponseIOPorts<PimControlInsPayload> ports_;
