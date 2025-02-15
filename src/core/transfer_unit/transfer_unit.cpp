@@ -183,6 +183,7 @@ void TransferUnit::waitAndStartNextSubmodule(pimsim::TransferSubmodulePayload& c
 
 std::pair<TransferInstructionInfo, DataConflictPayload> TransferUnit::decodeAndGetInfo(
     const TransferInsPayload& payload) const {
+    TransferInstructionInfo ins_info;
     if (payload.type == +TransferType::local_trans) {
         int src_memory_id = local_memory_socket_.getLocalMemoryIdByAddress(payload.src_address_byte);
         int dst_memory_id = local_memory_socket_.getLocalMemoryIdByAddress(payload.dst_address_byte);
@@ -192,35 +193,37 @@ std::pair<TransferInstructionInfo, DataConflictPayload> TransferUnit::decodeAndG
                      local_memory_socket_.getMemoryDataWidthById(dst_memory_id, MemoryAccessType::write));
         bool use_pipeline = config_.pipeline && (src_memory_id != dst_memory_id);
 
-        TransferInstructionInfo ins_info{.ins = payload.ins,
-                                         .type = TransferType::local_trans,
-                                         .src_start_address_byte = payload.src_address_byte,
-                                         .dst_start_address_byte = payload.dst_address_byte,
-                                         .batch_max_data_size_byte = data_width_byte,
-                                         .use_pipeline = use_pipeline};
-        DataConflictPayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::transfer};
-        conflict_payload.addReadMemoryId(src_memory_id);
-        conflict_payload.addWriteMemoryId(dst_memory_id);
-
-        return {ins_info, std::move(conflict_payload)};
+        ins_info = {.ins = payload.ins,
+                    .type = TransferType::local_trans,
+                    .src_start_address_byte = payload.src_address_byte,
+                    .dst_start_address_byte = payload.dst_address_byte,
+                    .batch_max_data_size_byte = data_width_byte,
+                    .use_pipeline = use_pipeline};
     } else {
-        TransferInstructionInfo ins_info{.ins = payload.ins,
-                                         .type = payload.type,
-                                         .src_start_address_byte = payload.src_address_byte,
-                                         .dst_start_address_byte = payload.dst_address_byte,
-                                         .batch_max_data_size_byte = payload.size_byte,
-                                         .src_id = payload.src_id,
-                                         .dst_id = payload.dst_id,
-                                         .transfer_id_tag = payload.transfer_id_tag,
-                                         .use_pipeline = false};
-        DataConflictPayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::transfer};
-        if (payload.type == +TransferType::send || payload.type == +TransferType::global_store) {
-            conflict_payload.addReadMemoryId(local_memory_socket_.getLocalMemoryIdByAddress(payload.src_address_byte));
-        } else {
-            conflict_payload.addWriteMemoryId(local_memory_socket_.getLocalMemoryIdByAddress(payload.dst_address_byte));
-        }
-        return {ins_info, std::move(conflict_payload)};
+        ins_info = {.ins = payload.ins,
+                    .type = payload.type,
+                    .src_start_address_byte = payload.src_address_byte,
+                    .dst_start_address_byte = payload.dst_address_byte,
+                    .batch_max_data_size_byte = payload.size_byte,
+                    .src_id = payload.src_id,
+                    .dst_id = payload.dst_id,
+                    .transfer_id_tag = payload.transfer_id_tag,
+                    .use_pipeline = false};
     }
+    return {ins_info, getDataConflictInfo(payload)};
+}
+
+DataConflictPayload TransferUnit::getDataConflictInfo(const TransferInsPayload& payload) const {
+    DataConflictPayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::transfer};
+    if (payload.type == +TransferType::local_trans || payload.type == +TransferType::send ||
+        payload.type == +TransferType::global_store) {
+        conflict_payload.addReadMemoryId(local_memory_socket_.getLocalMemoryIdByAddress(payload.src_address_byte));
+    }
+    if (payload.type == +TransferType::local_trans || payload.type == +TransferType::receive ||
+        payload.type == +TransferType::global_load) {
+        conflict_payload.addWriteMemoryId(local_memory_socket_.getLocalMemoryIdByAddress(payload.dst_address_byte));
+    }
+    return std::move(conflict_payload);
 }
 
 void TransferUnit::switchReceiveHandler(const std::shared_ptr<NetworkPayload>& payload) {

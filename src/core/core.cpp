@@ -212,20 +212,26 @@ int Core::decodeAndGetPCIncrement() {
 
     ins_stat_.addInsCount(ins.class_code, ins.type, ins.opcode, core_config_);
     if (ins.class_code == InstClass::control) {
+        cur_ins_conflict_info_ = {.ins_id = ins_payload.ins_id, .unit_type = ExecuteUnitType::control};
         return decodeControlInsAndGetPCIncrement(ins, ins_payload);
     }
 
     if (ins.class_code == InstClass::scalar) {
         decodeScalarIns(ins, ins_payload);
+        cur_ins_conflict_info_ = {.ins_id = ins_payload.ins_id, .unit_type = ExecuteUnitType::scalar};
     } else if (ins.class_code == InstClass::simd) {
         decodeSIMDIns(ins, ins_payload);
+        cur_ins_conflict_info_ = simd_unit_.getDataConflictInfo(simd_payload_);
     } else if (ins.class_code == InstClass::transfer) {
         decodeTransferIns(ins, ins_payload);
+        cur_ins_conflict_info_ = transfer_unit_.getDataConflictInfo(transfer_payload_);
     } else if (ins.class_code == InstClass::pim) {
         if (ins.type == PIMInstType::compute) {
             decodePimComputeIns(ins, ins_payload);
+            cur_ins_conflict_info_ = pim_compute_unit_.getDataConflictInfo(pim_compute_payload_);
         } else {
             decodePimControlIns(ins, ins_payload);
+            cur_ins_conflict_info_ = pim_control_unit_.getDataConflictInfo(pim_control_payload_);
         }
     }
     return 1;
@@ -328,9 +334,6 @@ void Core::decodeScalarIns(const pimsim::Instruction &ins, const pimsim::Instruc
             scalar_payload_.write_special_register = false;
         }
     }
-
-    cur_ins_conflict_info_ =
-        DataConflictPayload{.ins_id = scalar_payload_.ins.ins_id, .unit_type = ExecuteUnitType::scalar};
 }
 
 void Core::decodeSIMDIns(const pimsim::Instruction &ins, const pimsim::InstructionPayload &ins_payload) {
@@ -358,15 +361,6 @@ void Core::decodeSIMDIns(const pimsim::Instruction &ins, const pimsim::Instructi
                        .inputs_address_byte = {i1_addr, i2_addr, i3_addr, i4_addr},
                        .output_address_byte = reg_unit_.readRegister(ins.rd, false),
                        .len = reg_unit_.readRegister(ins.rs3, false)};
-
-    cur_ins_conflict_info_ =
-        DataConflictPayload{.ins_id = simd_payload_.ins.ins_id, .unit_type = ExecuteUnitType::simd};
-    for (unsigned int i = 0; i < simd_payload_.input_cnt; i++) {
-        cur_ins_conflict_info_.addReadMemoryId(
-            local_memory_unit_.getLocalMemoryIdByAddress(simd_payload_.inputs_address_byte[i]));
-    }
-    cur_ins_conflict_info_.addWriteMemoryId(
-        local_memory_unit_.getLocalMemoryIdByAddress(simd_payload_.output_address_byte));
 }
 
 void Core::decodeTransferIns(const pimsim::Instruction &ins, const pimsim::InstructionPayload &ins_payload) {
@@ -392,46 +386,26 @@ void Core::decodeTransferIns(const pimsim::Instruction &ins, const pimsim::Instr
             .src_address_byte = src_address_byte,
             .dst_address_byte = dst_address_byte,
             .size_byte = size_byte};
-
-        cur_ins_conflict_info_ =
-            DataConflictPayload{.ins_id = transfer_payload_.ins.ins_id, .unit_type = ExecuteUnitType::transfer};
-        if (type == +TransferType::local_trans || type == +TransferType::global_store) {
-            cur_ins_conflict_info_.addReadMemoryId(local_memory_unit_.getLocalMemoryIdByAddress(src_address_byte));
-        }
-        if (type == +TransferType::local_trans || type == +TransferType::global_load) {
-            cur_ins_conflict_info_.addWriteMemoryId(local_memory_unit_.getLocalMemoryIdByAddress(dst_address_byte));
-        }
-        // }
     } else if (ins.type == +TransferInstType::send) {
-        int src_address_byte = reg_unit_.readRegister(ins.rs1, false);
-
         transfer_payload_ = TransferInsPayload{
             .ins = {.pc = ins_payload.pc, .ins_id = ins_payload.ins_id, .unit_type = ExecuteUnitType::transfer},
             .type = TransferType::send,
-            .src_address_byte = src_address_byte,
+            .src_address_byte = reg_unit_.readRegister(ins.rs1, false),
             .dst_address_byte = reg_unit_.readRegister(ins.rd2, false),
             .size_byte = reg_unit_.readRegister(ins.reg_len, false),
             .src_id = core_id_,
             .dst_id = reg_unit_.readRegister(ins.rd1, false),
             .transfer_id_tag = reg_unit_.readRegister(ins.reg_id, false)};
-        cur_ins_conflict_info_ =
-            DataConflictPayload{.ins_id = transfer_payload_.ins.ins_id, .unit_type = ExecuteUnitType::transfer};
-        cur_ins_conflict_info_.addReadMemoryId(local_memory_unit_.getLocalMemoryIdByAddress(src_address_byte));
     } else if (ins.type == +TransferInstType::receive) {
-        int dst_address_byte = reg_unit_.readRegister(ins.rd, false);
-
         transfer_payload_ = TransferInsPayload{
             .ins = {.pc = ins_payload.pc, .ins_id = ins_payload.ins_id, .unit_type = ExecuteUnitType::transfer},
             .type = TransferType::receive,
             .src_address_byte = reg_unit_.readRegister(ins.rs2, false),
-            .dst_address_byte = dst_address_byte,
+            .dst_address_byte = reg_unit_.readRegister(ins.rd, false),
             .size_byte = reg_unit_.readRegister(ins.reg_len, false),
             .src_id = reg_unit_.readRegister(ins.rs1, false),
             .dst_id = core_id_,
             .transfer_id_tag = reg_unit_.readRegister(ins.reg_id, false)};
-        cur_ins_conflict_info_ =
-            DataConflictPayload{.ins_id = transfer_payload_.ins.ins_id, .unit_type = ExecuteUnitType::transfer};
-        cur_ins_conflict_info_.addWriteMemoryId(local_memory_unit_.getLocalMemoryIdByAddress(dst_address_byte));
     }
 }
 
@@ -451,21 +425,6 @@ void Core::decodePimComputeIns(const pimsim::Instruction &ins, const pimsim::Ins
         .bit_sparse_meta_addr_byte = reg_unit_.readRegister(SpecialRegId::bit_sparse_meta_addr, true),
         .value_sparse = (ins.value_sparse != 0),
         .value_sparse_mask_addr_byte = reg_unit_.readRegister(SpecialRegId::value_sparse_mask_addr, true)};
-
-    const auto &pim_unit_config = core_config_.pim_unit_config;
-    cur_ins_conflict_info_ =
-        DataConflictPayload{.ins_id = pim_compute_payload_.ins.ins_id, .unit_type = ExecuteUnitType::pim_compute};
-    cur_ins_conflict_info_.addReadMemoryId(
-        {local_memory_unit_.getLocalMemoryIdByAddress(pim_compute_payload_.input_addr_byte),
-         cim_unit_.getLocalMemoryId()});
-    if (pim_unit_config.value_sparse && pim_compute_payload_.value_sparse) {
-        cur_ins_conflict_info_.addReadMemoryId(
-            local_memory_unit_.getLocalMemoryIdByAddress(pim_compute_payload_.value_sparse_mask_addr_byte));
-    }
-    if (pim_unit_config.bit_sparse && pim_compute_payload_.bit_sparse) {
-        cur_ins_conflict_info_.addReadMemoryId(
-            local_memory_unit_.getLocalMemoryIdByAddress(pim_compute_payload_.bit_sparse_meta_addr_byte));
-    }
 }
 
 void Core::decodePimControlIns(const pimsim::Instruction &ins, const pimsim::InstructionPayload &ins_payload) {
@@ -478,12 +437,6 @@ void Core::decodePimControlIns(const pimsim::Instruction &ins, const pimsim::Ins
                                                     .group_broadcast = (ins.group_broadcast != 0),
                                                     .group_id = reg_unit_.readRegister(ins.rs1, false),
                                                     .mask_addr_byte = reg_unit_.readRegister(ins.rs2, false)};
-
-        cur_ins_conflict_info_ =
-            DataConflictPayload{.ins_id = pim_control_payload_.ins.ins_id, .unit_type = ExecuteUnitType::pim_control};
-        cur_ins_conflict_info_.addReadMemoryId(
-            {local_memory_unit_.getLocalMemoryIdByAddress(pim_control_payload_.mask_addr_byte),
-             cim_unit_.getLocalMemoryId()});
     } else {
         PimControlOperator pim_control_op = (ins.outsum_move != 0) ? PimControlOperator::output_sum_move
                                             : (ins.outsum != 0)    ? PimControlOperator::output_sum
@@ -496,22 +449,10 @@ void Core::decodePimControlIns(const pimsim::Instruction &ins, const pimsim::Ins
             .output_cnt_per_group = reg_unit_.readRegister(ins.rs1, false),
             .output_bit_width = reg_unit_.readRegister(SpecialRegId::pim_output_bit_width, true),
             .output_mask_addr_byte = reg_unit_.readRegister(ins.rs2, false)};
-
-        cur_ins_conflict_info_ =
-            DataConflictPayload{.ins_id = pim_control_payload_.ins.ins_id, .unit_type = ExecuteUnitType::pim_control};
-        cur_ins_conflict_info_.addReadMemoryId(cim_unit_.getLocalMemoryId());
-        cur_ins_conflict_info_.addWriteMemoryId(
-            local_memory_unit_.getLocalMemoryIdByAddress(pim_control_payload_.output_addr_byte));
-        if (pim_control_payload_.op == +PimControlOperator::output_sum) {
-            cur_ins_conflict_info_.addReadMemoryId(
-                local_memory_unit_.getLocalMemoryIdByAddress(pim_control_payload_.output_mask_addr_byte));
-        }
     }
 }
 
 int Core::decodeControlInsAndGetPCIncrement(const pimsim::Instruction &ins, const InstructionPayload &ins_payload) {
-    cur_ins_conflict_info_ = DataConflictPayload{.ins_id = ins_payload.ins_id, .unit_type = ExecuteUnitType::control};
-
     if (ins.type == ControlInstType::jmp) {
         return ins.offset;
     }

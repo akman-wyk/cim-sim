@@ -65,6 +65,8 @@ public:
 
     void bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit);
 
+    DataConflictPayload getDataConflictInfo(const SIMDInsPayload& payload) const;
+
 private:
     static unsigned int getSIMDInstructionIdentityCode(unsigned int input_cnt, unsigned int opcode);
 

@@ -78,7 +78,7 @@ private:
         while (true) {
             if (cur_ins_conflict_info_.unit_type == +ExecuteUnitType::none && ins_index_ < ins_list_.size()) {
                 ins_list_[ins_index_].payload.ins.ins_id = ins_id++;
-                cur_ins_conflict_info_ = getInsPayloadConflictInfos(ins_list_[ins_index_].payload);
+                cur_ins_conflict_info_ = test_unit_.getDataConflictInfo(ins_list_[ins_index_].payload);
                 decode_new_ins_trigger_.notify();
             }
             wait(0.1, SC_NS);
@@ -116,8 +116,6 @@ private:
             sc_stop();
         }
     }
-
-    virtual DataConflictPayload getInsPayloadConflictInfos(const InsPayload& ins_payload) = 0;
 
 protected:
     // config

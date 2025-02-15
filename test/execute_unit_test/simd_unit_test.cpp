@@ -33,20 +33,6 @@ public:
         reporter.addSubModule(test_unit_.getName(), test_unit_.getEnergyReporter());
         return std::move(reporter);
     }
-
-private:
-    DataConflictPayload getInsPayloadConflictInfos(const pimsim::SIMDInsPayload& ins_payload) override {
-        DataConflictPayload conflict_payload{.ins_id = ins_payload.ins.ins_id, .unit_type = ExecuteUnitType::simd};
-        for (unsigned int i = 0; i < ins_payload.input_cnt; i++) {
-            int read_memory_id = local_memory_unit_.getLocalMemoryIdByAddress(ins_payload.inputs_address_byte[i]);
-            conflict_payload.read_memory_id.insert(read_memory_id);
-            conflict_payload.used_memory_id.insert(read_memory_id);
-        }
-        int write_memory_id = local_memory_unit_.getLocalMemoryIdByAddress(ins_payload.output_address_byte);
-        conflict_payload.write_memory_id.insert(write_memory_id);
-        conflict_payload.used_memory_id.insert(write_memory_id);
-        return std::move(conflict_payload);
-    }
 };
 
 }  // namespace pimsim

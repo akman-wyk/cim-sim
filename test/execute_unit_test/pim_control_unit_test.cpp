@@ -90,34 +90,6 @@ public:
     }
 
 private:
-    DataConflictPayload getInsPayloadConflictInfos(const pimsim::PimControlInsPayload& ins_payload) override {
-        DataConflictPayload conflict_payload{.ins_id = ins_payload.ins.ins_id,
-                                             .unit_type = ExecuteUnitType::pim_control};
-        switch (ins_payload.op) {
-            case PimControlOperator::set_activation: {
-                conflict_payload.addReadMemoryId(
-                    {local_memory_unit_.getLocalMemoryIdByAddress(ins_payload.mask_addr_byte),
-                     cim_unit_.getLocalMemoryId()});
-                break;
-            }
-            case PimControlOperator::only_output:
-            case PimControlOperator::output_sum:
-            case PimControlOperator::output_sum_move: {
-                conflict_payload.addReadMemoryId(cim_unit_.getLocalMemoryId());
-                conflict_payload.addWriteMemoryId(
-                    local_memory_unit_.getLocalMemoryIdByAddress(ins_payload.output_addr_byte));
-                if (ins_payload.op == +PimControlOperator::output_sum) {
-                    conflict_payload.addReadMemoryId(
-                        local_memory_unit_.getLocalMemoryIdByAddress(ins_payload.output_mask_addr_byte));
-                }
-            }
-            default: break;
-        }
-
-        return std::move(conflict_payload);
-    }
-
-private:
     CimUnit cim_unit_;
 };
 

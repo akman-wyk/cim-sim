@@ -41,6 +41,8 @@ public:
 
     EnergyReporter getEnergyReporter() override;
 
+    DataConflictPayload getDataConflictInfo(const PimComputeInsPayload& payload) const;
+
 private:
     void checkPimComputeInst();
 
@@ -57,8 +59,6 @@ private:
 
     std::vector<std::vector<unsigned long long>> getMacroGroupInputs(int group_id, int addr_byte, int size_byte,
                                                                      const PimComputeSubInsPayload& sub_ins_payload);
-
-    DataConflictPayload getDataConflictInfo(const PimComputeInsPayload& payload) const;
 
 public:
     ExecuteUnitResponseIOPorts<PimComputeInsPayload> ports_;
