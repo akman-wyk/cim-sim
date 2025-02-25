@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 
+#include "argparse/argparse.hpp"
 #include "base/test_macro.h"
 #include "fmt/format.h"
 #include "nlohmann/json.hpp"
@@ -19,6 +20,13 @@
 #endif
 
 namespace pimsim {
+
+struct TestArguments {
+    std::string config_file;
+    std::string test_unit_name;
+    int test_case_num;
+    bool print_cmd;
+};
 
 struct UnitTestCaseConfig {
     std::string comments{};
@@ -44,10 +52,35 @@ struct TestConfig {
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(TestConfig, root_dir, unit_test_list)
 };
 
-void unit_test(const std::string& root_dir, const UnitTestConfig& unit_test_config, bool& all_tests_passed) {
+TestArguments parseTestArguments(int argc, char* argv[]) {
+    argparse::ArgumentParser parser("Test");
+    parser.add_argument("config").help("config file");
+    parser.add_argument("-u", "--unit").help("test unit name").default_value(std::string(""));
+    parser.add_argument("-c", "--case").help("test case num, from 1 to n").scan<'i', int>().default_value(0);
+    parser.add_argument("-p", "--print").help("print command").default_value(false).implicit_value(true);
+
+    try {
+        parser.parse_args(argc, argv);
+    } catch (const std::runtime_error& err) {
+        std::cerr << err.what() << std::endl;
+        std::cerr << parser;
+        std::exit(EXIT_FAILURE);
+    }
+
+    return TestArguments{.config_file = parser.get("config"),
+                         .test_unit_name = parser.get("--unit"),
+                         .test_case_num = parser.get<int>("--case"),
+                         .print_cmd = parser.get<bool>("--print")};
+}
+
+bool test_unit(const std::string& root_dir, const UnitTestConfig& unit_test_config, const TestArguments& args) {
     std::cout << fmt::format("\tStart {}", unit_test_config.name) << std::endl;
 
+    bool all_test_cases_passed = true;
     for (int i = 0; i < unit_test_config.test_cases.size(); i++) {
+        if (args.test_case_num != 0 && i + 1 != args.test_case_num) {
+            continue;
+        }
         const auto& test_case_config = unit_test_config.test_cases[i];
         std::cout << fmt::format("\t\tStart test case {}: {}\n\t\t\t", i + 1, test_case_config.comments);
 
@@ -57,18 +90,22 @@ void unit_test(const std::string& root_dir, const UnitTestConfig& unit_test_conf
 
         auto cmd = fmt::format("./{} {} {} {} >> ./log.txt 2>&1", unit_test_config.name, config_file, instruction_file,
                                report_file);
+        if (args.print_cmd) {
+            std::cout << fmt::format("command: {}\n\t\t\t", cmd);
+        }
+
         int status = system(cmd.c_str());
         if (status == -1) {
-            all_tests_passed = false;
+            all_test_cases_passed = false;
             std::cout << "Fork Error!" << std::endl;
         } else if (!WIFEXITED(status)) {
-            all_tests_passed = false;
+            all_test_cases_passed = false;
             std::cout << "Abnormal Exit!" << std::endl;
         } else {
             if (int result = WEXITSTATUS(status); result == TEST_PASSED) {
                 std::cout << "Passed" << std::endl;
             } else {
-                all_tests_passed = false;
+                all_test_cases_passed = false;
                 if (result == TEST_FAILED) {
                     std::cout << "Failed" << std::endl;
                 } else if (result == INVALID_CONFIG) {
@@ -79,35 +116,36 @@ void unit_test(const std::string& root_dir, const UnitTestConfig& unit_test_conf
             }
         }
     }
+
+    return all_test_cases_passed;
 }
 
-void test_wrap(const char* test_config_file, bool& all_tests_passed) {
+bool test(const TestArguments& args) {
     std::ifstream ifs;
-    ifs.open(test_config_file);
+    ifs.open(args.config_file);
     auto j = nlohmann::json::parse(ifs);
     ifs.close();
 
     auto test_config = j.get<TestConfig>();
     // Unit Tests
     std::cout << "Start Unit Tests" << std::endl;
+    bool all_test_units_passed = true;
     for (const auto& unit_test_config : test_config.unit_test_list) {
-        unit_test(test_config.root_dir, unit_test_config, all_tests_passed);
+        if (!args.test_unit_name.empty() && unit_test_config.name != args.test_unit_name) {
+            continue;
+        }
+        if (!test_unit(test_config.root_dir, unit_test_config, args)) {
+            all_test_units_passed = false;
+        }
     }
     std::cout << "End Unit Tests" << std::endl;
+    return all_test_units_passed;
 }
 
 }  // namespace pimsim
 
 int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        std::cout << "Usage: ./TestWrap [test_config_file]" << std::endl;
-        return 1;
-    }
-
-    auto* test_config_file = argv[1];
-    bool all_tests_passed = true;
-    pimsim::test_wrap(test_config_file, all_tests_passed);
-    if (all_tests_passed) {
+    if (auto args = pimsim::parseTestArguments(argc, argv); pimsim::test(args)) {
         std::cout << "All Tests Passed!" << std::endl;
     } else {
         std::cout << "Some Tests Failed!!!!" << std::endl;
