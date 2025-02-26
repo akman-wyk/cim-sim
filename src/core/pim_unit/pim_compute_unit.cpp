@@ -12,27 +12,13 @@ namespace pimsim {
 
 PimComputeUnit::PimComputeUnit(const char *name, const pimsim::PimUnitConfig &config,
                                const pimsim::SimConfig &sim_config, pimsim::Core *core, pimsim::Clock *clk)
-    : BaseModule(name, sim_config, core, clk)
+    : ExecuteUnit(name, sim_config, core, clk, ExecuteUnitType::pim_compute)
     , config_(config)
-    , macro_size_(config.macro_size)
-    , fsm_("PimComputeFSM", clk) {
-    fsm_.input_.bind(fsm_in_);
-    fsm_.enable_.bind(ports_.id_ex_enable_port_);
-    fsm_.output_.bind(fsm_out_);
-
-    SC_METHOD(checkPimComputeInst)
-    sensitive << ports_.id_ex_payload_port_;
-
+    , macro_size_(config.macro_size) {
     SC_THREAD(processIssue)
     SC_THREAD(processSubIns)
     SC_THREAD(readValueSparseMaskSubmodule)
     SC_THREAD(readBitSparseMetaSubmodule)
-
-    SC_METHOD(finishInstruction)
-    sensitive << finish_ins_trigger_;
-
-    SC_METHOD(finishRun)
-    sensitive << finish_run_trigger_;
 
     if (config_.value_sparse) {
         value_sparse_network_energy_counter_.setStaticPowerMW(config_.value_sparse_config.static_power_mW);
@@ -48,16 +34,8 @@ void PimComputeUnit::bindLocalMemoryUnit(pimsim::LocalMemoryUnit *local_memory_u
 
 void PimComputeUnit::bindCimUnit(CimUnit *cim_unit) {
     cim_unit_ = cim_unit;
-    cim_unit_->bindCimComputeUnit(
-        [this](int ins_id) {
-            finish_ins_ = true;
-            finish_ins_id_ = ins_id;
-            finish_ins_trigger_.notify(SC_ZERO_TIME);
-        },
-        [this]() {
-            finish_run_ = true;
-            finish_run_trigger_.notify(SC_ZERO_TIME);
-        });
+    cim_unit_->bindCimComputeUnit([this](int ins_id) { triggerFinishInstruction(ins_id); },
+                                  [this]() { triggerFinishRun(); });
 }
 
 EnergyReporter PimComputeUnit::getEnergyReporter() {
@@ -73,32 +51,21 @@ EnergyReporter PimComputeUnit::getEnergyReporter() {
     return std::move(pim_compute_reporter);
 }
 
-void PimComputeUnit::checkPimComputeInst() {
-    if (const auto &payload = ports_.id_ex_payload_port_.read(); payload.ins.valid()) {
-        fsm_in_.write({payload, true});
-    } else {
-        fsm_in_.write({{}, false});
-    }
-}
-
 void PimComputeUnit::processIssue() {
     while (true) {
-        wait(fsm_.start_exec_);
+        auto payload = waitForExecuteAndGetPayload<PimComputeInsPayload>();
 
-        ports_.busy_port_.write(true);
-
-        const auto &payload = fsm_out_.read();
-        LOG(fmt::format("Pim compute start, pc: {}", payload.ins.pc));
-        ports_.data_conflict_port_.write(getDataConflictInfo(payload));
+        LOG(fmt::format("Pim compute start, pc: {}", payload->ins.pc));
+        ports_.data_conflict_port_.write(getDataConflictInfo(*payload));
 
         process_sub_ins_socket_.waitUntilFinishIfBusy();
         process_sub_ins_socket_.payload = {
-            .pim_ins_info = {.ins_pc = payload.ins.pc,
+            .pim_ins_info = {.ins_pc = payload->ins.pc,
                              .sub_ins_num = 1,
-                             .last_ins = isEndPC(payload.ins.pc) && sim_mode_ == +SimMode::run_one_round,
+                             .last_ins = isEndPC(payload->ins.pc) && sim_mode_ == +SimMode::run_one_round,
                              .last_sub_ins = true,
-                             .ins_id = payload.ins.ins_id},
-            .ins_payload = payload,
+                             .ins_id = payload->ins.ins_id},
+            .ins_payload = *payload,
             .group_max_activation_macro_cnt = cim_unit_->getMacroGroupMaxActivationMacroCount()};
         process_sub_ins_socket_.start_exec.notify();
 
@@ -106,8 +73,7 @@ void PimComputeUnit::processIssue() {
             wait(next_sub_ins_);
         }
 
-        ports_.busy_port_.write(false);
-        fsm_.finish_exec_.notify(SC_ZERO_TIME);
+        readyForNextExecute();
     }
 }
 
@@ -271,15 +237,6 @@ void PimComputeUnit::readBitSparseMetaSubmodule() {
     }
 }
 
-void PimComputeUnit::finishInstruction() {
-    ports_.finish_ins_port_.write(finish_ins_);
-    ports_.finish_ins_id_port_.write(finish_ins_id_);
-}
-
-void PimComputeUnit::finishRun() {
-    ports_.finish_run_port_.write(finish_run_);
-}
-
 DataConflictPayload PimComputeUnit::getDataConflictInfo(const pimsim::PimComputeInsPayload &payload) const {
     DataConflictPayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::pim_compute};
 
@@ -297,6 +254,10 @@ DataConflictPayload PimComputeUnit::getDataConflictInfo(const pimsim::PimCompute
     }
 
     return std::move(conflict_payload);
+}
+
+DataConflictPayload PimComputeUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload> &payload) {
+    return getDataConflictInfo(*std::dynamic_pointer_cast<PimComputeInsPayload>(payload));
 }
 
 }  // namespace pimsim

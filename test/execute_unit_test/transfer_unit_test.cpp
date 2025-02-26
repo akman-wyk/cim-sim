@@ -47,7 +47,7 @@ int sc_main(int argc, char* argv[]) {
                                           config.chip_config.core_config.transfer_unit_config,
                                           config,
                                           clk,
-                                          std::move(test_info.code)};
+                                          std::move(test_info.code), ExecuteUnitType::transfer};
     };
     return pimsim_unit_test<TransferUnitTestModule>(argc, argv, initializer);
 }

@@ -52,7 +52,8 @@ class PimControlUnitTestModule
 public:
     PimControlUnitTestModule(const char* name, const char* test_unit_name, const PimUnitConfig& test_unit_config,
                              const Config& config, Clock* clk, std::vector<PimControlTestInstruction> codes)
-        : TestBaseModule(name, test_unit_name, test_unit_config, config, clk, std::move(codes))
+        : TestBaseModule(name, test_unit_name, test_unit_config, config, clk, std::move(codes),
+                         ExecuteUnitType::pim_control)
         , cim_unit_("CimUnit", config.chip_config.core_config.pim_unit_config, config.sim_config, nullptr, clk) {
         test_unit_.bindCimUnit(&cim_unit_);
         local_memory_unit_.bindCimUnit(&cim_unit_);

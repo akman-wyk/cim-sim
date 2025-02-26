@@ -5,7 +5,7 @@
 #pragma once
 #include <unordered_map>
 
-#include "core/payload/execute_unit_payload.h"
+#include "core/execute_unit/execute_unit.h"
 #include "core/payload/payload.h"
 #include "systemc.h"
 
@@ -15,10 +15,9 @@ class StallHandler : public sc_core::sc_module {
 public:
     SC_HAS_PROCESS(StallHandler);
 
-    explicit StallHandler(sc_core::sc_event& decode_new_ins_trigger);
+    StallHandler(sc_core::sc_event& decode_new_ins_trigger, ExecuteUnitType execute_unit_type);
 
-    template <class InsPayload>
-    void bind(ExecuteUnitSignalPorts<InsPayload>& signals, sc_core::sc_signal<bool>& conflict_signal,
+    void bind(ExecuteUnitSignalPorts& signals, sc_core::sc_signal<bool>& conflict_signal,
               DataConflictPayload* cur_ins_conflict_info) {
         busy_.bind(signals.busy_);
         data_conflict_.bind(signals.data_conflict_);
@@ -43,6 +42,7 @@ public:
     sc_core::sc_out<bool> conflict_;
 
 private:
+    const ExecuteUnitType execute_unit_type_;
     DataConflictPayload* cur_ins_conflict_info_{nullptr};
 
     std::unordered_map<int, DataConflictPayload> ins_data_conflict_info_map_{};

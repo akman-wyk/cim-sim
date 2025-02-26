@@ -13,25 +13,11 @@ namespace pimsim {
 
 PimControlUnit::PimControlUnit(const char *name, const pimsim::PimUnitConfig &config,
                                const pimsim::SimConfig &sim_config, pimsim::Core *core, pimsim::Clock *clk)
-    : BaseModule(name, sim_config, core, clk)
+    : ExecuteUnit(name, sim_config, core, clk, ExecuteUnitType::pim_control)
     , config_(config)
-    , macro_size_(config.macro_size)
-    , fsm_("PimControlFSM", clk) {
-    fsm_.input_.bind(fsm_in_);
-    fsm_.enable_.bind(ports_.id_ex_enable_port_);
-    fsm_.output_.bind(fsm_out_);
-
-    SC_METHOD(checkPimControlInst)
-    sensitive << ports_.id_ex_payload_port_;
-
+    , macro_size_(config.macro_size) {
     SC_THREAD(processIssue)
     SC_THREAD(processExecute)
-
-    SC_METHOD(finishInstruction)
-    sensitive << finish_ins_trigger_;
-
-    SC_METHOD(finishRun)
-    sensitive << finish_run_trigger_;
 }
 
 void PimControlUnit::bindLocalMemoryUnit(pimsim::LocalMemoryUnit *local_memory_unit) {
@@ -48,31 +34,18 @@ EnergyReporter PimControlUnit::getEnergyReporter() {
     return std::move(reporter);
 }
 
-void PimControlUnit::checkPimControlInst() {
-    if (const auto &payload = ports_.id_ex_payload_port_.read(); payload.ins.valid()) {
-        fsm_in_.write({payload, true});
-    } else {
-        fsm_in_.write({{}, false});
-    }
-}
-
 void PimControlUnit::processIssue() {
     while (true) {
-        wait(fsm_.start_exec_);
+        auto payload = waitForExecuteAndGetPayload<PimControlInsPayload>();
+        LOG(fmt::format("Pim set start, pc: {}", payload->ins.pc));
 
-        ports_.busy_port_.write(true);
-
-        const auto &payload = fsm_out_.read();
-        LOG(fmt::format("Pim set start, pc: {}", payload.ins.pc));
-
-        ports_.data_conflict_port_.write(getDataConflictInfo(payload));
+        ports_.data_conflict_port_.write(getDataConflictInfo(*payload));
 
         execute_socket_.waitUntilFinishIfBusy();
-        execute_socket_.payload = payload;
+        execute_socket_.payload = *payload;
         execute_socket_.start_exec.notify();
 
-        ports_.busy_port_.write(false);
-        fsm_.finish_exec_.notify(SC_ZERO_TIME);
+        readyForNextExecute();
     }
 }
 
@@ -92,8 +65,7 @@ void PimControlUnit::processExecute() {
         }
 
         if (isEndPC(payload.ins.pc) && sim_mode_ == +SimMode::run_one_round) {
-            finish_run_ = true;
-            finish_run_trigger_.notify(SC_ZERO_TIME);
+            triggerFinishRun();
         }
 
         execute_socket_.finish();
@@ -106,9 +78,7 @@ void PimControlUnit::processSetActivation(const PimControlInsPayload &payload) {
         IntDivCeil(1 * macro_size_.element_cnt_per_compartment * config_.macro_group_size, BYTE_TO_BIT);
     auto mask_byte_data = local_memory_socket_.readData(payload.ins, payload.mask_addr_byte, mask_size_byte);
 
-    finish_ins_ = true;
-    finish_ins_id_ = payload.ins.ins_id;
-    finish_ins_trigger_.notify(SC_ZERO_TIME);
+    triggerFinishInstruction(payload.ins.ins_id);
 
     if (cim_unit_ != nullptr) {
         cim_unit_->setMacroGroupActivationElementColumn(mask_byte_data, payload.group_broadcast, payload.group_id);
@@ -116,9 +86,7 @@ void PimControlUnit::processSetActivation(const PimControlInsPayload &payload) {
 }
 
 void PimControlUnit::processOnlyOutput(const PimControlInsPayload &payload) {
-    finish_ins_ = true;
-    finish_ins_id_ = payload.ins.ins_id;
-    finish_ins_trigger_.notify(SC_ZERO_TIME);
+    triggerFinishInstruction(payload.ins.ins_id);
 
     int size_byte =
         IntDivCeil(payload.output_bit_width * payload.output_cnt_per_group * payload.activation_group_num, BYTE_TO_BIT);
@@ -146,9 +114,7 @@ void PimControlUnit::processOutputSum(const PimControlInsPayload &payload) {
     double sum_stall_ns = (config_.result_adder.latency_cycle - 1) * period_ns_;
     wait(sum_stall_ns, SC_NS);
 
-    finish_ins_ = true;
-    finish_ins_id_ = payload.ins.ins_id;
-    finish_ins_trigger_.notify(SC_ZERO_TIME);
+    triggerFinishInstruction(payload.ins.ins_id);
 
     // write to memory
     int valid_output_cnt_per_group = payload.output_cnt_per_group - sum_times_per_group;
@@ -169,24 +135,13 @@ void PimControlUnit::processOutputSumMove(const PimControlInsPayload &payload) {
     double sum_stall_ns = (config_.result_adder.latency_cycle - 1) * period_ns_;
     wait(sum_stall_ns, SC_NS);
 
-    finish_ins_ = true;
-    finish_ins_id_ = payload.ins.ins_id;
-    finish_ins_trigger_.notify(SC_ZERO_TIME);
+    triggerFinishInstruction(payload.ins.ins_id);
 
     // write to memory
     int valid_output_cnt_per_group = sum_times_per_group;
     int size_byte =
         IntDivCeil(payload.output_bit_width * valid_output_cnt_per_group * payload.activation_group_num, BYTE_TO_BIT);
     local_memory_socket_.writeData(payload.ins, payload.output_addr_byte, size_byte, {});
-}
-
-void PimControlUnit::finishInstruction() {
-    ports_.finish_ins_port_.write(finish_ins_);
-    ports_.finish_ins_id_port_.write(finish_ins_id_);
-}
-
-void PimControlUnit::finishRun() {
-    ports_.finish_run_port_.write(finish_run_);
 }
 
 DataConflictPayload PimControlUnit::getDataConflictInfo(const PimControlInsPayload &payload) const {
@@ -211,6 +166,10 @@ DataConflictPayload PimControlUnit::getDataConflictInfo(const PimControlInsPaylo
     }
 
     return std::move(conflict_payload);
+}
+
+DataConflictPayload PimControlUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload> &payload) {
+    return getDataConflictInfo(*std::dynamic_pointer_cast<PimControlInsPayload>(payload));
 }
 
 }  // namespace pimsim

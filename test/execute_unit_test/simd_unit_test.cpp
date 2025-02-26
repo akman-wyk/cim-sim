@@ -41,9 +41,13 @@ using namespace pimsim;
 
 int sc_main(int argc, char* argv[]) {
     auto initializer = [](const Config& config, Clock* clk, SIMDTestInfo& test_info) {
-        return new SIMDUnitTestModule{
-            "SIMD_unit_test_module",  "SIMDUnit", config.chip_config.core_config.simd_unit_config, config, clk,
-            std::move(test_info.code)};
+        return new SIMDUnitTestModule{"SIMD_unit_test_module",
+                                      "SIMDUnit",
+                                      config.chip_config.core_config.simd_unit_config,
+                                      config,
+                                      clk,
+                                      std::move(test_info.code),
+                                      ExecuteUnitType::simd};
     };
     return pimsim_unit_test<SIMDUnitTestModule>(argc, argv, initializer);
 }

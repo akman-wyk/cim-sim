@@ -100,12 +100,12 @@ void ControlInsStat::addInsCount(int type) {
     }
 }
 
-void InsStat::addInsCount(int class_code, int type, int opcode, const CoreConfig& core_config) {
+void InsStat::addInsCount(int class_code, int type, int opcode, const SIMDUnitConfig& simd_unit_config) {
     total++;
     if (class_code == InstClass::pim) {
         pim.addInsCount(type);
     } else if (class_code == InstClass::simd) {
-        simd.addInsCount(opcode, core_config.simd_unit_config);
+        simd.addInsCount(opcode, simd_unit_config);
     } else if (class_code == InstClass::scalar) {
         scalar.addInsCount(type, opcode);
     } else if (class_code == InstClass::transfer) {

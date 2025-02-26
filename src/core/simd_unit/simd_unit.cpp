@@ -11,24 +11,11 @@
 namespace pimsim {
 
 SIMDUnit::SIMDUnit(const char* name, const SIMDUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk)
-    : BaseModule(name, sim_config, core, clk), config_(config), simd_fsm_("SIMD_UNIT_FSM", clk) {
-    simd_fsm_.input_.bind(simd_fsm_in_);
-    simd_fsm_.enable_.bind(ports_.id_ex_enable_port_);
-    simd_fsm_.output_.bind(simd_fsm_out_);
-
-    SC_METHOD(checkSIMDInst)
-    sensitive << ports_.id_ex_payload_port_;
-
+    : ExecuteUnit(name, sim_config, core, clk, ExecuteUnitType::simd), config_(config) {
     SC_THREAD(processIssue)
     SC_THREAD(processReadSubmodule)
     SC_THREAD(processExecuteSubmodule)
     SC_THREAD(processWriteSubmodule)
-
-    SC_METHOD(finishInstruction)
-    sensitive << finish_ins_trigger_;
-
-    SC_METHOD(finishRun)
-    sensitive << finish_run_trigger_;
 
     for (const auto& ins_config : config_.instruction_list) {
         instruction_config_map_.emplace(getSIMDInstructionIdentityCode(ins_config.input_cnt, ins_config.opcode),
@@ -44,38 +31,27 @@ SIMDUnit::SIMDUnit(const char* name, const SIMDUnitConfig& config, const SimConf
     energy_counter_.setStaticPowerMW(SIMD_functors_total_static_power_mW);
 }
 
-void SIMDUnit::checkSIMDInst() {
-    if (const auto& payload = ports_.id_ex_payload_port_.read(); payload.ins.valid()) {
-        simd_fsm_in_.write({payload, true});
-    } else {
-        simd_fsm_in_.write({{}, false});
-    }
-}
-
 void SIMDUnit::processIssue() {
     while (true) {
-        wait(simd_fsm_.start_exec_);
-
-        ports_.busy_port_.write(true);
+        auto payload = waitForExecuteAndGetPayload<SIMDInsPayload>();
 
         // Find instruction and functor
-        const auto& payload = simd_fsm_out_.read();
-        const auto [instruction, functor] = getSIMDInstructionAndFunctor(payload);
+        const auto [instruction, functor] = getSIMDInstructionAndFunctor(*payload);
         if (instruction == nullptr || functor == nullptr) {
             if (instruction == nullptr) {
                 throw std::runtime_error(
-                    fmt::format("No match inst, Invalid SIMD instruction: \n{}", payload.toString()));
+                    fmt::format("No match inst, Invalid SIMD instruction: \n{}", payload->toString()));
             } else {
                 throw std::runtime_error(
-                    fmt::format("No match functor, Invalid SIMD instruction: \n{}", payload.toString()));
+                    fmt::format("No match functor, Invalid SIMD instruction: \n{}", payload->toString()));
             }
         }
 
         // Decode instruction
-        const auto& [ins_info, conflict_payload] = decodeAndGetInfo(instruction, functor, payload);
+        const auto& [ins_info, conflict_payload] = decodeAndGetInfo(instruction, functor, *payload);
         ports_.data_conflict_port_.write(conflict_payload);
 
-        int vector_total_len = ins_info.vector_inputs.empty() ? 1 : payload.len;
+        int vector_total_len = ins_info.vector_inputs.empty() ? 1 : payload->len;
         int process_times = IntDivCeil(vector_total_len, functor->functor_cnt);
         SIMDSubmodulePayload submodule_payload{.ins_info = ins_info};
         for (int batch = 0; batch < process_times; batch++) {
@@ -92,8 +68,7 @@ void SIMDUnit::processIssue() {
             }
         }
 
-        ports_.busy_port_.write(false);
-        simd_fsm_.finish_exec_.notify(SC_ZERO_TIME);
+        readyForNextExecute();
     }
 }
 
@@ -102,7 +77,8 @@ void SIMDUnit::processReadSubmodule() {
         read_submodule_socket_.waitUntilStart();
 
         const auto& payload = read_submodule_socket_.payload;
-        LOG(fmt::format("simd read start, pc: {}, batch: {}", payload.ins_info.ins.pc, payload.batch_info.batch_num));
+        LOG(fmt::format("simd read start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
+                        payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
 
         if (payload.batch_info.first_batch) {
             for (const auto& scalar_input : payload.ins_info.scalar_inputs) {
@@ -134,8 +110,8 @@ void SIMDUnit::processExecuteSubmodule() {
         execute_submodule_socket_.waitUntilStart();
 
         const auto& payload = execute_submodule_socket_.payload;
-        LOG(fmt::format("simd execute start, pc: {}, batch: {}", payload.ins_info.ins.pc,
-                        payload.batch_info.batch_num));
+        LOG(fmt::format("simd execute start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
+                        payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
 
         double dynamic_power_mW =
             payload.ins_info.functor_config->dynamic_power_per_functor_mW * payload.batch_info.batch_vector_len;
@@ -154,12 +130,11 @@ void SIMDUnit::processWriteSubmodule() {
         write_submodule_socket_.waitUntilStart();
 
         const auto& payload = write_submodule_socket_.payload;
-        LOG(fmt::format("simd write start, pc: {}, batch: {}", payload.ins_info.ins.pc, payload.batch_info.batch_num));
+        LOG(fmt::format("simd write start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
+                        payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
 
         if (payload.batch_info.last_batch) {
-            finish_ins_ = true;
-            finish_ins_id_ = payload.ins_info.ins.ins_id;
-            finish_ins_trigger_.notify(SC_ZERO_TIME);
+            triggerFinishInstruction(payload.ins_info.ins.ins_id);
         }
 
         int address_byte = payload.ins_info.output.start_address_byte +
@@ -168,7 +143,8 @@ void SIMDUnit::processWriteSubmodule() {
         int size_byte = payload.ins_info.output.data_bit_width * payload.batch_info.batch_vector_len / BYTE_TO_BIT;
         local_memory_socket_.writeData(payload.ins_info.ins, address_byte, size_byte, {});
 
-        LOG(fmt::format("simd write end, pc: {}, batch: {}", payload.ins_info.ins.pc, payload.batch_info.batch_num));
+        LOG(fmt::format("simd write end, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
+                        payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
 
         if (!payload.ins_info.use_pipeline && !payload.batch_info.last_batch) {
             cur_ins_next_batch_.notify();
@@ -177,19 +153,9 @@ void SIMDUnit::processWriteSubmodule() {
         write_submodule_socket_.finish();
 
         if (payload.batch_info.last_batch && isEndPC(payload.ins_info.ins.pc) && sim_mode_ == +SimMode::run_one_round) {
-            finish_run_ = true;
-            finish_run_trigger_.notify(SC_ZERO_TIME);
+            triggerFinishRun();
         }
     }
-}
-
-void SIMDUnit::finishInstruction() {
-    ports_.finish_ins_port_.write(finish_ins_);
-    ports_.finish_ins_id_port_.write(finish_ins_id_);
-}
-
-void SIMDUnit::finishRun() {
-    ports_.finish_run_port_.write(finish_run_);
 }
 
 void SIMDUnit::bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit) {
@@ -277,6 +243,10 @@ DataConflictPayload SIMDUnit::getDataConflictInfo(const SIMDInsPayload& payload)
     }
     cur_ins_conflict_info.addWriteMemoryId(local_memory_socket_.getLocalMemoryIdByAddress(payload.output_address_byte));
     return std::move(cur_ins_conflict_info);
+}
+
+DataConflictPayload SIMDUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) {
+    return getDataConflictInfo(*std::dynamic_pointer_cast<SIMDInsPayload>(payload));
 }
 
 }  // namespace pimsim

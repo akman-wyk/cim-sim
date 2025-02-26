@@ -94,22 +94,6 @@ DataConflictPayload& DataConflictPayload::operator+=(const pimsim::DataConflictP
 
 DEFINE_PIM_PAYLOAD_FUNCTIONS(DataConflictPayload, ins_id, unit_type, read_memory_id, write_memory_id, used_memory_id)
 
-DEFINE_PIM_PAYLOAD_FUNCTIONS(SIMDInsPayload, ins, input_cnt, opcode, inputs_bit_width, output_bit_width,
-                             inputs_address_byte, output_address_byte, len)
-
-DEFINE_PIM_PAYLOAD_FUNCTIONS(TransferInsPayload, ins, type, src_address_byte, dst_address_byte, size_byte, src_id,
-                             dst_id, transfer_id_tag)
-
-DEFINE_PIM_PAYLOAD_FUNCTIONS(ScalarInsPayload, ins, op, src1_value, src2_value, offset, dst_reg, write_special_register)
-
-DEFINE_PIM_PAYLOAD_FUNCTIONS(PimComputeInsPayload, ins, input_addr_byte, input_len, input_bit_width,
-                             activation_group_num, group_input_step_byte, row, bit_sparse, bit_sparse_meta_addr_byte,
-                             value_sparse, value_sparse_mask_addr_byte)
-
-DEFINE_PIM_PAYLOAD_FUNCTIONS(PimControlInsPayload, ins, op, group_broadcast, group_id, mask_addr_byte,
-                             activation_group_num, output_addr_byte, output_cnt_per_group, output_bit_width,
-                             output_mask_addr_byte)
-
 DEFINE_PIM_PAYLOAD_FUNCTIONS(RegUnitReadRequest, rs1_id, rs2_id, rs3_id, rs4_id, rd_id, rs1_read_double,
                              rs2_read_double, special_reg_ids)
 

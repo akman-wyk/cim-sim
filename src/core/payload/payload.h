@@ -80,11 +80,28 @@ struct DataConflictPayload {
     DataConflictPayload& operator+=(const DataConflictPayload& other);
 };
 
-struct SIMDInsPayload {
-    MAKE_SIGNAL_TYPE_TRACE_STREAM(SIMDInsPayload)
-
+struct ExecuteInsPayload {
+    ExecuteInsPayload() = default;
+    explicit ExecuteInsPayload(InstructionPayload ins) : ins(ins) {}
+    virtual ~ExecuteInsPayload() = default;
     InstructionPayload ins{};
+};
 
+struct ExecuteUnitPayload {
+    MAKE_SIGNAL_TYPE_TRACE_STREAM(ExecuteUnitPayload)
+
+    std::shared_ptr<ExecuteInsPayload> payload{nullptr};
+
+    ExecuteUnitPayload() = default;
+    bool operator==(const ExecuteUnitPayload& another) const {
+        if (payload == nullptr || another.payload == nullptr) {
+            return payload == another.payload;
+        }
+        return payload->ins == another.payload->ins;
+    }
+};
+
+struct SIMDInsPayload : public ExecuteInsPayload {
     // compute type info
     unsigned int input_cnt{2};
     unsigned int opcode{0x00};
@@ -100,15 +117,12 @@ struct SIMDInsPayload {
     // vector length info
     int len{0};
 
-    DECLARE_PIM_PAYLOAD_FUNCTIONS(SIMDInsPayload)
+    DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(SIMDInsPayload, ins, input_cnt, opcode, inputs_bit_width, output_bit_width,
+                                         inputs_address_byte, output_address_byte, len)
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(SIMDInsPayload)
 };
 
-struct TransferInsPayload {
-    MAKE_SIGNAL_TYPE_TRACE_STREAM(TransferInsPayload)
-
-    InstructionPayload ins{};
-
+struct TransferInsPayload : public ExecuteInsPayload {
     TransferType type{TransferType::local_trans};
 
     int src_address_byte{0};
@@ -119,15 +133,12 @@ struct TransferInsPayload {
     int dst_id{0};
     int transfer_id_tag{0};
 
-    DECLARE_PIM_PAYLOAD_FUNCTIONS(TransferInsPayload)
+    DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(TransferInsPayload, ins, type, src_address_byte, dst_address_byte, size_byte,
+                                         src_id, dst_id, transfer_id_tag)
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(TransferInsPayload)
 };
 
-struct ScalarInsPayload {
-    MAKE_SIGNAL_TYPE_TRACE_STREAM(ScalarInsPayload)
-
-    InstructionPayload ins{};
-
+struct ScalarInsPayload : public ExecuteInsPayload {
     ScalarOperator op{};
 
     int src1_value{0}, src2_value{0}, offset{0};
@@ -135,15 +146,12 @@ struct ScalarInsPayload {
 
     bool write_special_register{false};
 
-    DECLARE_PIM_PAYLOAD_FUNCTIONS(ScalarInsPayload)
+    DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(ScalarInsPayload, ins, op, src1_value, src2_value, offset, dst_reg,
+                                         write_special_register)
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(ScalarInsPayload)
 };
 
-struct PimComputeInsPayload {
-    MAKE_SIGNAL_TYPE_TRACE_STREAM(PimComputeInsPayload)
-
-    InstructionPayload ins{};
-
+struct PimComputeInsPayload : public ExecuteInsPayload {
     // input info
     int input_addr_byte{0}, input_len{0}, input_bit_width{0};
 
@@ -162,14 +170,12 @@ struct PimComputeInsPayload {
     bool value_sparse{false};
     int value_sparse_mask_addr_byte{0};
 
-    DECLARE_PIM_PAYLOAD_FUNCTIONS(PimComputeInsPayload)
+    DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(PimComputeInsPayload, ins, input_addr_byte, input_len, input_bit_width,
+                                         activation_group_num, group_input_step_byte, row, bit_sparse,
+                                         bit_sparse_meta_addr_byte, value_sparse, value_sparse_mask_addr_byte)
 };
 
-struct PimControlInsPayload {
-    MAKE_SIGNAL_TYPE_TRACE_STREAM(PimControlInsPayload)
-
-    InstructionPayload ins{};
-
+struct PimControlInsPayload : public ExecuteInsPayload {
     PimControlOperator op{PimControlOperator::set_activation};
 
     // set activation
@@ -181,7 +187,9 @@ struct PimControlInsPayload {
     int activation_group_num{0};
     int output_addr_byte{0}, output_cnt_per_group{0}, output_bit_width{0}, output_mask_addr_byte{0};
 
-    DECLARE_PIM_PAYLOAD_FUNCTIONS(PimControlInsPayload);
+    DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(PimControlInsPayload, ins, op, group_broadcast, group_id, mask_addr_byte,
+                                         activation_group_num, output_addr_byte, output_cnt_per_group, output_bit_width,
+                                         output_mask_addr_byte)
 };
 
 struct RegUnitReadRequest {

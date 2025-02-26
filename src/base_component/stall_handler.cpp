@@ -9,7 +9,8 @@
 
 namespace pimsim {
 
-StallHandler::StallHandler(sc_core::sc_event& decode_new_ins_trigger) : sc_core::sc_module("StallHandler") {
+StallHandler::StallHandler(sc_core::sc_event& decode_new_ins_trigger, ExecuteUnitType execute_unit_type)
+    : sc_core::sc_module("StallHandler"), execute_unit_type_(execute_unit_type) {
     SC_METHOD(processAddUnitDataConflict)
     sensitive << data_conflict_;
 
