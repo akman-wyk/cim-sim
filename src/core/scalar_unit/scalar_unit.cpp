@@ -89,8 +89,8 @@ void ScalarUnit::executeInst() {
     }
 }
 
-RegUnitWriteRequest ScalarUnit::executeAndWriteRegister(const pimsim::ScalarInsPayload &payload) {
-    RegUnitWriteRequest reg_file_write_req{.reg_id = payload.dst_reg, .write_special_register = false};
+RegUnitWritePayload ScalarUnit::executeAndWriteRegister(const pimsim::ScalarInsPayload &payload) {
+    RegUnitWritePayload reg_file_write_req{.reg_id = payload.dst_reg, .write_special_register = false};
     switch (payload.op) {
         case ScalarOperator::add: {
             reg_file_write_req.reg_value = payload.src1_value + payload.src2_value;

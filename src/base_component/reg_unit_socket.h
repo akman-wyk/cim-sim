@@ -17,7 +17,7 @@ public:
 
     int getSpecialBoundGeneralId(int special_id);
 
-    void writeRegister(const RegUnitWriteRequest& write_req);
+    void writeRegister(const RegUnitWritePayload& write_req);
 
 private:
     RegUnit* reg_unit_{nullptr};

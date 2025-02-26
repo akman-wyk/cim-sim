@@ -51,12 +51,18 @@ public:
     [[nodiscard]] int getCoreId() const;
 
 private:
-    [[noreturn]] void issue();
+    [[noreturn]] void processDecode();
+    [[noreturn]] void processUpdatePC();
+    void processIssue();
+
     void processStall();
     void processIdExEnable();
     void processFinishRun();
 
     void registerExecuteUnit(ExecuteUnitType type, ExecuteUnit* execute_unit);
+
+    void bindModules();
+    void setThreadAndMethod();
 
 private:
     const int core_id_;
@@ -65,33 +71,32 @@ private:
     // instruction
     std::vector<Instruction> ins_list_;
     int ins_index_{0};
-    DataConflictPayload cur_ins_conflict_info_;
-    sc_core::sc_event decode_new_ins_trigger_;
 
     // modules
-    // execute units
-    ScalarUnit scalar_unit_;
-    SIMDUnit simd_unit_;
-    TransferUnit transfer_unit_;
     CimUnit cim_unit_;
-    PimComputeUnit pim_compute_unit_;
-    PimControlUnit pim_control_unit_;
-    // other modules
     LocalMemoryUnit local_memory_unit_;
     RegUnit reg_unit_;
     Switch core_switch_;
     Decoder decoder_;
 
-    // bind execute unit
+    // execute units
+    ScalarUnit scalar_unit_;
+    SIMDUnit simd_unit_;
+    TransferUnit transfer_unit_;
+    PimComputeUnit pim_compute_unit_;
+    PimControlUnit pim_control_unit_;
+
+    // execute unit manage
     sc_process_handle processStall_handle_;
     sc_process_handle processFinishRun_handle_;
     std::vector<std::shared_ptr<ExecuteUnitRegistration>> execute_unit_list_;
 
-    sc_core::sc_signal<RegUnitReadRequest> read_req_signal_;
-    sc_core::sc_signal<RegUnitReadResponse> read_rsp_signal_;
-    sc_core::sc_signal<RegUnitWriteRequest> write_req_signal_;
-
-    // stall
+    // decode, issue and stall
+    std::shared_ptr<ExecuteInsPayload> cur_ins_payload_;
+    int pc_increment_{0};
+    DataConflictPayload cur_ins_conflict_info_;
+    sc_core::sc_event decode_new_ins_trigger_;
+    sc_core::sc_signal<bool> id_finish_;
     sc_core::sc_signal<bool> id_stall_;
 
     // finish run
