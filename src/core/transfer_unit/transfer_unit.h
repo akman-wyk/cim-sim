@@ -4,14 +4,11 @@
 
 #pragma once
 
-#include "base_component/base_module.h"
-#include "base_component/fsm.h"
 #include "base_component/memory_socket.h"
 #include "base_component/submodule_socket.h"
 #include "config/config.h"
+#include "core/execute_unit/execute_unit.h"
 #include "core/local_memory_unit/local_memory_unit.h"
-#include "core/payload/execute_unit_payload.h"
-#include "core/payload/payload.h"
 #include "network/payload.h"
 #include "network/switch_socket.h"
 
@@ -46,7 +43,7 @@ struct TransferSubmodulePayload {
     TransferBatchInfo batch_info;
 };
 
-class TransferUnit : public BaseModule {
+class TransferUnit : public ExecuteUnit {
 public:
     SC_HAS_PROCESS(TransferUnit);
 
@@ -56,15 +53,12 @@ public:
     [[noreturn]] void processIssue();
     [[noreturn]] void processReadSubmodule();
     [[noreturn]] void processWriteSubmodule();
-    void finishInstruction();
-    void finishRun();
-
-    void checkTransferInst();
 
     void bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit);
     void bindSwitch(Switch* switch_);
 
     DataConflictPayload getDataConflictInfo(const TransferInsPayload& payload) const;
+    DataConflictPayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
 
 private:
     static void waitAndStartNextSubmodule(TransferSubmodulePayload& cur_payload,
@@ -83,28 +77,14 @@ private:
     void processLoadGlobalData(const InstructionPayload& ins, int src_address_byte, int data_size_byte);
     void processStoreGlobalData(const InstructionPayload& ins, int dst_address_byte, int data_size_byte);
 
-public:
-    ExecuteUnitResponseIOPorts<TransferInsPayload> ports_;
-
 private:
     const TransferUnitConfig& config_;
-
-    FSM<TransferInsPayload> transfer_fsm_;
-    sc_core::sc_signal<TransferInsPayload> transfer_fsm_out_;
-    sc_core::sc_signal<FSMPayload<TransferInsPayload>> transfer_fsm_in_;
 
     MemorySocket local_memory_socket_;
 
     sc_core::sc_event cur_ins_next_batch_;
     SubmoduleSocket<TransferSubmodulePayload> read_submodule_socket_{};
     SubmoduleSocket<TransferSubmodulePayload> write_submodule_socket_{};
-
-    sc_core::sc_event finish_ins_trigger_;
-    int finish_ins_id_{-1};
-    bool finish_ins_{false};
-
-    sc_core::sc_event finish_run_trigger_;
-    bool finish_run_{false};
 
     // send receive
     const int core_id_;

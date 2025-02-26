@@ -5,14 +5,11 @@
 #pragma once
 #include <vector>
 
-#include "base_component/base_module.h"
-#include "base_component/fsm.h"
 #include "base_component/memory_socket.h"
 #include "base_component/submodule_socket.h"
 #include "cim_unit.h"
 #include "config/config.h"
-#include "core/payload/execute_unit_payload.h"
-#include "core/payload/payload.h"
+#include "core/execute_unit/execute_unit.h"
 #include "macro_group.h"
 
 namespace pimsim {
@@ -30,7 +27,7 @@ struct PimComputeSubInsPayload {
     int group_max_activation_macro_cnt{};
 };
 
-class PimComputeUnit : public BaseModule {
+class PimComputeUnit : public ExecuteUnit {
 public:
     SC_HAS_PROCESS(PimComputeUnit);
 
@@ -42,10 +39,9 @@ public:
     EnergyReporter getEnergyReporter() override;
 
     DataConflictPayload getDataConflictInfo(const PimComputeInsPayload& payload) const;
+    DataConflictPayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
 
 private:
-    void checkPimComputeInst();
-
     [[noreturn]] void processIssue();
     [[noreturn]] void processSubIns();
     void processSubInsReadData(const PimComputeSubInsPayload& sub_ins_payload);
@@ -54,14 +50,8 @@ private:
     [[noreturn]] void readValueSparseMaskSubmodule();
     [[noreturn]] void readBitSparseMetaSubmodule();
 
-    void finishInstruction();
-    void finishRun();
-
     std::vector<std::vector<unsigned long long>> getMacroGroupInputs(int group_id, int addr_byte, int size_byte,
                                                                      const PimComputeSubInsPayload& sub_ins_payload);
-
-public:
-    ExecuteUnitResponseIOPorts<PimComputeInsPayload> ports_;
 
 private:
     const PimUnitConfig& config_;
@@ -74,18 +64,7 @@ private:
     SubmoduleSocket<PimComputeReadDataPayload> read_value_sparse_mask_socket_;
     SubmoduleSocket<PimComputeReadDataPayload> read_bit_sparse_meta_socket_;
 
-    FSM<PimComputeInsPayload> fsm_;
-    sc_core::sc_signal<PimComputeInsPayload> fsm_out_;
-    sc_core::sc_signal<FSMPayload<PimComputeInsPayload>> fsm_in_;
-
     MemorySocket local_memory_socket_;
-
-    sc_core::sc_event finish_ins_trigger_;
-    int finish_ins_id_{-1};
-    bool finish_ins_{false};
-
-    sc_core::sc_event finish_run_trigger_;
-    bool finish_run_{false};
 
     EnergyCounter value_sparse_network_energy_counter_;
     EnergyCounter meta_buffer_energy_counter_;

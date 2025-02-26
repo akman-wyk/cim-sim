@@ -12,22 +12,9 @@ namespace pimsim {
 
 ScalarUnit::ScalarUnit(const char *name, const pimsim::ScalarUnitConfig &config, const pimsim::SimConfig &sim_config,
                        pimsim::Core *core, pimsim::Clock *clk)
-    : BaseModule(name, sim_config, core, clk), config_(config), scalar_fsm_("ScalarUnitFSM", clk) {
-    scalar_fsm_.input_.bind(scalar_fsm_in_);
-    scalar_fsm_.enable_.bind(ports_.id_ex_enable_port_);
-    scalar_fsm_.output_.bind(scalar_fsm_out_);
-
-    SC_METHOD(checkScalarInst)
-    sensitive << ports_.id_ex_payload_port_;
-
+    : ExecuteUnit(name, sim_config, core, clk, ExecuteUnitType::scalar), config_(config) {
     SC_THREAD(process)
     SC_THREAD(executeInst)
-
-    SC_METHOD(finishInstruction)
-    sensitive << finish_ins_trigger_;
-
-    SC_METHOD(finishRun)
-    sensitive << finish_run_trigger_;
 
     double scalar_functors_total_static_power_mW = config_.default_functor_static_power_mW;
     for (const auto &scalar_functor_config : config_.functor_list) {
@@ -37,49 +24,28 @@ ScalarUnit::ScalarUnit(const char *name, const pimsim::ScalarUnitConfig &config,
     energy_counter_.setStaticPowerMW(scalar_functors_total_static_power_mW);
 }
 
-void ScalarUnit::checkScalarInst() {
-    if (const auto &payload = ports_.id_ex_payload_port_.read(); payload.ins.valid()) {
-        scalar_fsm_in_.write({payload, true});
-    } else {
-        scalar_fsm_in_.write({{}, false});
-    }
-}
-
 void ScalarUnit::process() {
     while (true) {
-        wait(scalar_fsm_.start_exec_);
+        auto payload = waitForExecuteAndGetPayload<ScalarInsPayload>();
 
-        ports_.busy_port_.write(true);
-
-        const auto &payload = scalar_fsm_out_.read();
-        DataConflictPayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::scalar};
+        DataConflictPayload conflict_payload{.ins_id = payload->ins.ins_id, .unit_type = ExecuteUnitType::scalar};
         ports_.data_conflict_port_.write(conflict_payload);
 
-        LOG(fmt::format("scalar {} start, pc: {}", payload.op._to_string(), payload.ins.pc));
+        LOG(fmt::format("scalar {} start, pc: {}", payload->op._to_string(), payload->ins.pc));
 
         // statistic energy
-        auto functor_found = functor_config_map_.find(payload.op._to_string());
+        auto functor_found = functor_config_map_.find(payload->op._to_string());
         double dynamic_power_mW = functor_found == functor_config_map_.end() ? config_.default_functor_dynamic_power_mW
                                                                              : functor_found->second->dynamic_power_mW;
         energy_counter_.addDynamicEnergyPJ(period_ns_, dynamic_power_mW);
 
         // execute instruction
         execute_socket_.waitUntilFinishIfBusy();
-        execute_socket_.payload = payload;
+        execute_socket_.payload = *payload;
         execute_socket_.start_exec.notify();
 
-        ports_.busy_port_.write(false);
-        scalar_fsm_.finish_exec_.notify();
+        readyForNextExecute();
     }
-}
-
-void ScalarUnit::finishInstruction() {
-    ports_.finish_ins_port_.write(finish_ins_);
-    ports_.finish_ins_id_port_.write(finish_ins_id_);
-}
-
-void ScalarUnit::finishRun() {
-    ports_.finish_run_port_.write(finish_run_);
 }
 
 void ScalarUnit::bindLocalMemoryUnit(pimsim::LocalMemoryUnit *local_memory_unit) {
@@ -98,9 +64,7 @@ void ScalarUnit::executeInst() {
         LOG(fmt::format("Scalar start execute, pc: {}", payload.ins.pc));
 
         if (payload.op == +ScalarOperator::store) {
-            finish_ins_ = true;
-            finish_ins_id_ = payload.ins.ins_id;
-            finish_ins_trigger_.notify(SC_ZERO_TIME);
+            triggerFinishInstruction(payload.ins.ins_id);
 
             int address_byte = payload.src1_value + payload.offset;
             int size_byte = WORD_BYTE_SIZE;
@@ -109,18 +73,15 @@ void ScalarUnit::executeInst() {
         } else {
             reg_unit_socket_.writeRegister(executeAndWriteRegister(payload));
 
-            finish_ins_ = true;
-            finish_ins_id_ = payload.ins.ins_id;
-            finish_ins_trigger_.notify(SC_ZERO_TIME);
+            triggerFinishInstruction(payload.ins.ins_id);
         }
 
         // check if last pc
         if (isEndPC(payload.ins.pc) && sim_mode_ == +SimMode::run_one_round) {
-            finish_run_ = true;
             if (payload.op == +ScalarOperator::store) {
-                finish_run_trigger_.notify(SC_ZERO_TIME);
+                triggerFinishRun();
             } else {
-                finish_run_trigger_.notify(period_ns_, SC_NS);
+                triggerFinishRun(period_ns_);
             }
         }
 

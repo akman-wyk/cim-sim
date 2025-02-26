@@ -557,10 +557,6 @@ DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(RegBufferConfig, size_byte, read_
                                                rw_min_unit_byte, static_power_mW, rw_dynamic_power_per_unit_mW,
                                                has_image, image_file)
 
-int AddressSpaceConfig::end() const {
-    return offset_byte + size_byte;
-}
-
 bool AddressSpaceConfig::checkValid() const {
     if (!check_not_negative(offset_byte, size_byte)) {
         std::cerr << "AddressSpaceConfig not valid, 'offset_byte, size_byte' must be non-negative" << std::endl;

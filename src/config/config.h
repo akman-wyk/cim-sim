@@ -215,8 +215,16 @@ struct AddressSpaceConfig {
     int offset_byte{};  // byte
     int size_byte{};    // byte
 
-    [[nodiscard]] int end() const;
     [[nodiscard]] bool checkValid() const;
+
+    [[nodiscard]] int end() const {
+        return offset_byte + size_byte;
+    }
+
+    [[nodiscard]] bool contains(int address) const {
+        return offset_byte <= address && address < offset_byte + size_byte;
+    }
+
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(AddressSpaceConfig)
 };
 

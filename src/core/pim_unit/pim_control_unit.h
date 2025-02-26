@@ -3,18 +3,15 @@
 //
 
 #pragma once
-#include "base_component/base_module.h"
-#include "base_component/fsm.h"
 #include "base_component/memory_socket.h"
 #include "base_component/submodule_socket.h"
-#include "config/config.h"
-#include "core/payload/execute_unit_payload.h"
-#include "core/payload/payload.h"
 #include "cim_unit.h"
+#include "config/config.h"
+#include "core/execute_unit/execute_unit.h"
 
 namespace pimsim {
 
-class PimControlUnit : public BaseModule {
+class PimControlUnit : public ExecuteUnit {
 public:
     SC_HAS_PROCESS(PimControlUnit);
 
@@ -27,10 +24,9 @@ public:
     EnergyReporter getEnergyReporter() override;
 
     DataConflictPayload getDataConflictInfo(const PimControlInsPayload& payload) const;
+    DataConflictPayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
 
 private:
-    void checkPimControlInst();
-
     [[noreturn]] void processIssue();
     [[noreturn]] void processExecute();
 
@@ -39,31 +35,14 @@ private:
     void processOutputSum(const PimControlInsPayload& payload);
     void processOutputSumMove(const PimControlInsPayload& payload);
 
-    void finishInstruction();
-    void finishRun();
-
-public:
-    ExecuteUnitResponseIOPorts<PimControlInsPayload> ports_;
-
 private:
     const PimUnitConfig& config_;
     const PimMacroSizeConfig& macro_size_;
 
     SubmoduleSocket<PimControlInsPayload> execute_socket_;
 
-    FSM<PimControlInsPayload> fsm_;
-    sc_core::sc_signal<PimControlInsPayload> fsm_out_;
-    sc_core::sc_signal<FSMPayload<PimControlInsPayload>> fsm_in_;
-
     MemorySocket local_memory_socket_;
     CimUnit* cim_unit_{};
-
-    sc_core::sc_event finish_ins_trigger_;
-    int finish_ins_id_{-1};
-    bool finish_ins_{false};
-
-    sc_core::sc_event finish_run_trigger_;
-    bool finish_run_{false};
 
     EnergyCounter result_adder_energy_counter_;
 };

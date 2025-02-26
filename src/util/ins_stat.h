@@ -74,7 +74,7 @@ struct InsStat {
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(InsStat);
     bool operator==(const InsStat& another) const;
 
-    void addInsCount(int class_code, int type, int opcode, const CoreConfig& core_config);
+    void addInsCount(int class_code, int type, int opcode, const SIMDUnitConfig& simd_unit_config);
 };
 
 }  // namespace pimsim

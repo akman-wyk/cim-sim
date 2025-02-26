@@ -8,7 +8,6 @@
 
 #include "base_component/base_module.h"
 #include "base_component/stall_handler.h"
-#include "core/payload/execute_unit_payload.h"
 #include "core/pim_unit/cim_unit.h"
 #include "core/pim_unit/pim_compute_unit.h"
 #include "core/pim_unit/pim_control_unit.h"
@@ -16,19 +15,30 @@
 #include "core/scalar_unit/scalar_unit.h"
 #include "core/simd_unit/simd_unit.h"
 #include "core/transfer_unit/transfer_unit.h"
+#include "decoder/decoder.h"
+#include "execute_unit/execute_unit.h"
 #include "isa/instruction.h"
 #include "local_memory_unit/local_memory_unit.h"
 #include "payload/payload.h"
-#include "util/ins_stat.h"
 
 namespace pimsim {
+
+struct ExecuteUnitRegistration {
+    ExecuteUnitRegistration(ExecuteUnitType type, ExecuteUnit* execute_unit, sc_event& decode_new_ins_trigger);
+
+    ExecuteUnitType type;
+    ExecuteUnit* execute_unit;
+    StallHandler stall_handler;
+    ExecuteUnitSignalPorts signals;
+    sc_signal<bool> conflict_signal;
+};
 
 class Core : public BaseModule {
 public:
     SC_HAS_PROCESS(Core);
 
     Core(int core_id, const char* name, const Config& config, Clock* clk, std::vector<Instruction> ins_list,
-         std::function<void()> finish_run_call, bool check = false, std::ostream& reg_stat_os = std::cout);
+         std::function<void()> finish_run_call);
     void bindNetwork(Network* network);
 
     EnergyReporter getEnergyReporter() override;
@@ -46,43 +56,23 @@ private:
     void processIdExEnable();
     void processFinishRun();
 
-    int decodeAndGetPCIncrement();
-    void decodeScalarIns(const Instruction& ins, const InstructionPayload& ins_payload);
-    void decodeSIMDIns(const Instruction& ins, const InstructionPayload& ins_payload);
-    void decodeTransferIns(const Instruction& ins, const InstructionPayload& ins_payload);
-    void decodePimComputeIns(const Instruction& ins, const InstructionPayload& ins_payload);
-    void decodePimControlIns(const Instruction& ins, const InstructionPayload& ins_payload);
-    int decodeControlInsAndGetPCIncrement(const Instruction& ins, const InstructionPayload& ins_payload);
+    void registerExecuteUnit(ExecuteUnitType type, ExecuteUnit* execute_unit);
 
 private:
     const int core_id_;
     const CoreConfig& core_config_;
-    const AddressSpaceConfig& global_memory_addressing_;
-
-    InsStat ins_stat_{};
-    bool check{false};
-    std::ostream& reg_stat_os_;
 
     // instruction
     std::vector<Instruction> ins_list_;
     int ins_index_{0};
-    int ins_id_{0};
     DataConflictPayload cur_ins_conflict_info_;
     sc_core::sc_event decode_new_ins_trigger_;
-
-    // payloads to execute units
-    ScalarInsPayload scalar_payload_;
-    SIMDInsPayload simd_payload_;
-    TransferInsPayload transfer_payload_;
-    PimComputeInsPayload pim_compute_payload_;
-    PimControlInsPayload pim_control_payload_;
 
     // modules
     // execute units
     ScalarUnit scalar_unit_;
     SIMDUnit simd_unit_;
     TransferUnit transfer_unit_;
-
     CimUnit cim_unit_;
     PimComputeUnit pim_compute_unit_;
     PimControlUnit pim_control_unit_;
@@ -90,23 +80,18 @@ private:
     LocalMemoryUnit local_memory_unit_;
     RegUnit reg_unit_;
     Switch core_switch_;
+    Decoder decoder_;
 
-    // signals
-    ExecuteUnitSignalPorts<ScalarInsPayload> scalar_signals_;
-    ExecuteUnitSignalPorts<SIMDInsPayload> simd_signals_;
-    ExecuteUnitSignalPorts<TransferInsPayload> transfer_signals_;
-    ExecuteUnitSignalPorts<PimComputeInsPayload> pim_compute_signals_;
-    ExecuteUnitSignalPorts<PimControlInsPayload> pim_control_signals_;
+    // bind execute unit
+    sc_process_handle processStall_handle_;
+    sc_process_handle processFinishRun_handle_;
+    std::vector<std::shared_ptr<ExecuteUnitRegistration>> execute_unit_list_;
 
     sc_core::sc_signal<RegUnitReadRequest> read_req_signal_;
     sc_core::sc_signal<RegUnitReadResponse> read_rsp_signal_;
     sc_core::sc_signal<RegUnitWriteRequest> write_req_signal_;
 
     // stall
-    StallHandler scalar_stall_handler_, simd_stall_handler_, transfer_stall_handler_, pim_compute_stall_handler_,
-        pim_control_stall_handler_;
-    sc_core::sc_signal<bool> scalar_conflict_, simd_conflict_, transfer_conflict_, pim_compute_conflict_,
-        pim_control_conflict_;
     sc_core::sc_signal<bool> id_stall_;
 
     // finish run

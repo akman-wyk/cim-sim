@@ -421,6 +421,7 @@ namespace pimsim {
 
 #define PIM_PAYLOAD_CONSTRUCTOR_DEFINE_PARAMETER(field)  decltype(field) field
 #define PIM_PAYLOAD_CONSTRUCTOR_ASSIGN_MEMBER(field)     field(std::move(field))
+#define PIM_PAYLOAD_COPY_CONSTRUCTOR_MEMBER(field)       field(another.field)
 #define PIM_PAYLOAD_EQUAL_OPERATOR_COMPARE_MEMBER(field) field == another.field
 #define PIM_PAYLOAD_TO_STRING_FUNCTION_MEMBER(field) \
     ss << #field << ": ";                            \
@@ -446,6 +447,31 @@ namespace pimsim {
 #define DEFINE_PIM_PAYLOAD_FUNCTIONS(Type, ...)          \
     DEFINE_PIM_PAYLOAD_EQUAL_OPERATOR(Type, __VA_ARGS__) \
     DEFINE_PIM_PAYLOAD_TO_STRING_FUNCTION(Type, __VA_ARGS__)
+
+#define DEFINE_EXECUTE_INS_PAYLOAD_CONSTRUCTOR(Type, ...)                                                           \
+    Type() = default;                                                                                               \
+    Type(InstructionPayload ins, PIM_PASTE(PIM_PAYLOAD_CONSTRUCTOR_DEFINE_PARAMETER, DELIMITER_COMMA, __VA_ARGS__)) \
+        : ExecuteInsPayload(ins), PIM_PASTE(PIM_PAYLOAD_CONSTRUCTOR_ASSIGN_MEMBER, DELIMITER_COMMA, __VA_ARGS__) {} \
+    Type(const Type& another)                                                                                       \
+        : ExecuteInsPayload(another.ins)                                                                            \
+        , PIM_PASTE(PIM_PAYLOAD_COPY_CONSTRUCTOR_MEMBER, DELIMITER_COMMA, __VA_ARGS__) {}
+
+#define DEFINE_EXECUTE_INS_PAYLOAD_EQUAL_OPERATOR(Type, ...)                                     \
+    bool operator==(const Type& another) const {                                                 \
+        return PIM_PASTE(PIM_PAYLOAD_EQUAL_OPERATOR_COMPARE_MEMBER, DELIMITER_AND, __VA_ARGS__); \
+    }
+
+#define DEFINE_EXECUTE_INS_PAYLOAD_TO_STRING_FUNCTION(Type, ...)                       \
+    std::string toString() const {                                                     \
+        std::stringstream ss;                                                          \
+        PIM_PASTE(PIM_PAYLOAD_TO_STRING_FUNCTION_MEMBER, DELIMITER_SPACE, __VA_ARGS__) \
+        return ss.str();                                                               \
+    }
+
+#define DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(Type, ins, ...)          \
+    DEFINE_EXECUTE_INS_PAYLOAD_CONSTRUCTOR(Type, __VA_ARGS__)         \
+    DEFINE_EXECUTE_INS_PAYLOAD_EQUAL_OPERATOR(Type, ins, __VA_ARGS__) \
+    DEFINE_EXECUTE_INS_PAYLOAD_TO_STRING_FUNCTION(Type, ins, __VA_ARGS__)
 
 #define MAKE_SIGNAL_TYPE_TRACE_STREAM(CLASS_NAME)                                \
     friend std::ostream& operator<<(std::ostream& out, const CLASS_NAME& self) { \

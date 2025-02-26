@@ -95,6 +95,10 @@ add_library(pim-simulator STATIC ""
         src/util/log.cpp
         src/core/pim_unit/cim_unit.cpp
         src/core/pim_unit/cim_unit.h
+        src/core/execute_unit/execute_unit.cpp
+        src/core/execute_unit/execute_unit.h
+        src/core/decoder/decoder.cpp
+        src/core/decoder/decoder.h
 )
 set_target_properties(pim-simulator PROPERTIES OUTPUT_NAME "pim-simulator")
 target_include_directories(pim-simulator PRIVATE

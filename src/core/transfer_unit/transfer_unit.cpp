@@ -14,59 +14,35 @@ namespace pimsim {
 
 TransferUnit::TransferUnit(const char* name, const TransferUnitConfig& config, const SimConfig& sim_config, Core* core,
                            Clock* clk, int core_id, int global_memory_switch_id)
-    : BaseModule(name, sim_config, core, clk)
+    : ExecuteUnit(name, sim_config, core, clk, ExecuteUnitType::transfer)
     , config_(config)
-    , transfer_fsm_("TransferUnitFSM", clk)
     , core_id_(core_id)
     , global_memory_switch_id_(global_memory_switch_id) {
-    transfer_fsm_.input_.bind(transfer_fsm_in_);
-    transfer_fsm_.enable_.bind(ports_.id_ex_enable_port_);
-    transfer_fsm_.output_.bind(transfer_fsm_out_);
-
-    SC_METHOD(checkTransferInst)
-    sensitive << ports_.id_ex_payload_port_;
-
     SC_THREAD(processIssue)
     SC_THREAD(processReadSubmodule)
     SC_THREAD(processWriteSubmodule)
-
-    SC_METHOD(finishInstruction)
-    sensitive << finish_ins_trigger_;
-
-    SC_METHOD(finishRun)
-    sensitive << finish_run_trigger_;
-}
-
-void TransferUnit::checkTransferInst() {
-    if (const auto& payload = ports_.id_ex_payload_port_.read(); payload.ins.valid()) {
-        transfer_fsm_in_.write({payload, true});
-    } else {
-        transfer_fsm_in_.write({{}, false});
-    }
 }
 
 void TransferUnit::processIssue() {
     while (true) {
-        wait(transfer_fsm_.start_exec_);
-        ports_.busy_port_.write(true);
+        auto payload = waitForExecuteAndGetPayload<TransferInsPayload>();
 
-        const auto& payload = transfer_fsm_out_.read();
-        const auto& [ins_info, conflict_payload] = decodeAndGetInfo(payload);
+        const auto& [ins_info, conflict_payload] = decodeAndGetInfo(*payload);
         ports_.data_conflict_port_.write(conflict_payload);
 
-        if (payload.type == +TransferType::send) {
-            processSendHandshake(payload.dst_id, payload.transfer_id_tag);
-        } else if (payload.type == +TransferType::receive) {
-            processReceiveHandshake(payload.src_id, payload.transfer_id_tag);
+        if (payload->type == +TransferType::send) {
+            processSendHandshake(payload->dst_id, payload->transfer_id_tag);
+        } else if (payload->type == +TransferType::receive) {
+            processReceiveHandshake(payload->src_id, payload->transfer_id_tag);
         }
 
-        int process_times = IntDivCeil(payload.size_byte, ins_info.batch_max_data_size_byte);
+        int process_times = IntDivCeil(payload->size_byte, ins_info.batch_max_data_size_byte);
         TransferSubmodulePayload submodule_payload{.ins_info = ins_info};
         for (int batch = 0; batch < process_times; batch++) {
             submodule_payload.batch_info = {
                 .batch_num = batch,
                 .batch_data_size_byte = (batch == process_times - 1)
-                                            ? payload.size_byte - batch * ins_info.batch_max_data_size_byte
+                                            ? payload->size_byte - batch * ins_info.batch_max_data_size_byte
                                             : ins_info.batch_max_data_size_byte,
                 .first_batch = (batch == 0),
                 .last_batch = (batch == process_times - 1)};
@@ -77,8 +53,7 @@ void TransferUnit::processIssue() {
             }
         }
 
-        ports_.busy_port_.write(false);
-        transfer_fsm_.finish_exec_.notify(SC_ZERO_TIME);
+        readyForNextExecute();
     }
 }
 
@@ -120,9 +95,7 @@ void TransferUnit::processWriteSubmodule() {
                         payload.batch_info.batch_num));
 
         if (payload.batch_info.last_batch) {
-            finish_ins_ = true;
-            finish_ins_id_ = payload.ins_info.ins.ins_id;
-            finish_ins_trigger_.notify(SC_ZERO_TIME);
+            triggerFinishInstruction(payload.ins_info.ins.ins_id);
         }
 
         int address_byte = payload.ins_info.dst_start_address_byte +
@@ -146,19 +119,9 @@ void TransferUnit::processWriteSubmodule() {
         write_submodule_socket_.finish();
 
         if (payload.batch_info.last_batch && isEndPC(payload.ins_info.ins.pc) && sim_mode_ == +SimMode::run_one_round) {
-            finish_run_ = true;
-            finish_run_trigger_.notify(SC_ZERO_TIME);
+            triggerFinishRun();
         }
     }
-}
-
-void TransferUnit::finishInstruction() {
-    ports_.finish_ins_port_.write(finish_ins_);
-    ports_.finish_ins_id_port_.write(finish_ins_id_);
-}
-
-void TransferUnit::finishRun() {
-    ports_.finish_run_port_.write(finish_run_);
 }
 
 void TransferUnit::bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit) {
@@ -224,6 +187,10 @@ DataConflictPayload TransferUnit::getDataConflictInfo(const TransferInsPayload& 
         conflict_payload.addWriteMemoryId(local_memory_socket_.getLocalMemoryIdByAddress(payload.dst_address_byte));
     }
     return std::move(conflict_payload);
+}
+
+DataConflictPayload TransferUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) {
+    return getDataConflictInfo(*std::dynamic_pointer_cast<TransferInsPayload>(payload));
 }
 
 void TransferUnit::switchReceiveHandler(const std::shared_ptr<NetworkPayload>& payload) {

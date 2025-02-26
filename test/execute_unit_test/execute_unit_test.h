@@ -11,8 +11,8 @@
 #include "base_component/base_module.h"
 #include "base_component/stall_handler.h"
 #include "config/config.h"
+#include "core/execute_unit/execute_unit.h"
 #include "core/local_memory_unit/local_memory_unit.h"
-#include "core/payload/execute_unit_payload.h"
 #include "fmt/format.h"
 #include "systemc.h"
 #include "util/log.h"
@@ -32,13 +32,14 @@ public:
 
 public:
     ExecuteUnitTestModule(const char* name, const char* test_unit_name, const TestUnitConfig& test_unit_config,
-                          const Config& config, Clock* clk, std::vector<TestInstruction> codes)
+                          const Config& config, Clock* clk, std::vector<TestInstruction> codes, ExecuteUnitType type)
         : BaseModule(name, config.sim_config, nullptr, clk)
         , test_unit_config_(test_unit_config)
         , local_memory_unit_("LocalMemoryUnit", config.chip_config.core_config.local_memory_unit_config,
                              config.sim_config, nullptr, clk)
         , test_unit_(test_unit_name, test_unit_config, config.sim_config, nullptr, clk)
-        , unit_stall_handler_(decode_new_ins_trigger_) {
+        , unit_stall_handler_(decode_new_ins_trigger_, type)
+        , type_(type) {
         test_unit_.ports_.bind(signals_);
         unit_stall_handler_.bind(signals_, unit_conflict_, &cur_ins_conflict_info_);
 
@@ -72,24 +73,25 @@ public:
 
 private:
     [[noreturn]] void issue() {
-        InsPayload nop{};
         wait(8, SC_NS);
 
         while (true) {
             if (cur_ins_conflict_info_.unit_type == +ExecuteUnitType::none && ins_index_ < ins_list_.size()) {
                 ins_list_[ins_index_].payload.ins.ins_id = ins_id++;
+                ins_list_[ins_index_].payload.ins.unit_type = type_;
                 cur_ins_conflict_info_ = test_unit_.getDataConflictInfo(ins_list_[ins_index_].payload);
                 decode_new_ins_trigger_.notify();
             }
             wait(0.1, SC_NS);
 
             if (!id_stall_.read() && cur_ins_conflict_info_.unit_type != +ExecuteUnitType::none) {
-                signals_.id_ex_payload_.write(ins_list_[ins_index_].payload);
+                signals_.id_ex_payload_.write(
+                    ExecuteUnitPayload{.payload = std::make_shared<InsPayload>(ins_list_[ins_index_].payload)});
                 ins_index_++;
 
                 cur_ins_conflict_info_ = DataConflictPayload{.ins_id = -1, .unit_type = ExecuteUnitType::none};
             } else {
-                signals_.id_ex_payload_.write(nop);
+                signals_.id_ex_payload_.write(ExecuteUnitPayload{.payload = nullptr});
             }
             wait(period_ns_ - 0.1, SC_NS);
         }
@@ -119,6 +121,7 @@ private:
 
 protected:
     // config
+    const ExecuteUnitType type_;
     const TestUnitConfig& test_unit_config_;
 
     // instruction list
@@ -138,7 +141,7 @@ protected:
     sc_core::sc_signal<bool> id_stall_;
 
     // id ex signals
-    ExecuteUnitSignalPorts<InsPayload> signals_;
+    ExecuteUnitSignalPorts signals_;
 
     sc_core::sc_time running_time_;
 };
