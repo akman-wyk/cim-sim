@@ -30,9 +30,9 @@ public:
 
     int getSpecialBoundGeneralId(int special_id) const;
 
-    void writeRegister(const RegUnitWriteRequest& write_req);
+    void writeRegister(const RegUnitWritePayload& write_req);
 
-    int readRegister(int id, bool special = false);
+    int readRegister(int id, bool special = false) const;
 
     bool checkRegValues(const std::array<int, GENERAL_REG_NUM>& general_reg_expected_values,
                         const std::array<int, SPECIAL_REG_NUM>& special_reg_expected_values);
@@ -40,32 +40,11 @@ public:
     std::string getGeneralRegistersString() const;
 
 private:
-    void readValue();
-    void writeValue();
-    void updateValue();
-
-    int readGeneralRegValue(int id, const RegUnitWriteRequest& cur_write_req,
-                            const RegUnitWriteRequest& last_write_req) const;
-
-    int readSpecialRegValue(int id, const RegUnitWriteRequest& cur_write_req,
-                            const RegUnitWriteRequest& last_write_req) const;
-
-public:
-    sc_core::sc_in<RegUnitReadRequest> read_req_port_;
-    sc_core::sc_out<RegUnitReadResponse> read_rsp_port_;
-
-    sc_core::sc_in<RegUnitWriteRequest> write_req_port_;
-
-private:
     const RegisterUnitConfig& config_;
     std::unordered_map<int, int> special_bind_map_{};
 
     std::array<int, GENERAL_REG_NUM> general_regs_{};
     std::array<int, SPECIAL_REG_NUM> special_regs_{};
-
-    Register<RegUnitWriteRequest> write_req_reg_;
-    sc_core::sc_signal<RegUnitWriteRequest> write_req_reg_in_;
-    sc_core::sc_signal<RegUnitWriteRequest> write_req_reg_out_;
 };
 
 }  // namespace pimsim

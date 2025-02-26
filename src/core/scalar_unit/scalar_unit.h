@@ -26,7 +26,7 @@ public:
 private:
     [[noreturn]] void process();
     [[noreturn]] void executeInst();
-    RegUnitWriteRequest executeAndWriteRegister(const ScalarInsPayload& payload);
+    RegUnitWritePayload executeAndWriteRegister(const ScalarInsPayload& payload);
 
 private:
     const ScalarUnitConfig& config_;

@@ -192,35 +192,13 @@ struct PimControlInsPayload : public ExecuteInsPayload {
                                          output_mask_addr_byte)
 };
 
-struct RegUnitReadRequest {
-    MAKE_SIGNAL_TYPE_TRACE_STREAM(RegUnitReadRequest)
-
-    int rs1_id{0}, rs2_id{0}, rs3_id{0}, rs4_id{0}, rd_id{0};
-    bool rs1_read_double{false}, rs2_read_double{false};
-
-    std::vector<int> special_reg_ids{};
-
-    DECLARE_PIM_PAYLOAD_FUNCTIONS(RegUnitReadRequest)
-};
-
-struct RegUnitReadResponse {
-    MAKE_SIGNAL_TYPE_TRACE_STREAM(RegUnitReadResponse)
-
-    int rs1_value{0}, rs2_value{0}, rs3_value{0}, rs4_value{0}, rd_value{0};
-    int rs1_double_value{0}, rs2_double_value{0};
-
-    std::unordered_map<int, int> special_reg_values{};
-
-    DECLARE_PIM_PAYLOAD_FUNCTIONS(RegUnitReadResponse)
-};
-
-struct RegUnitWriteRequest {
-    MAKE_SIGNAL_TYPE_TRACE_STREAM(RegUnitWriteRequest)
+struct RegUnitWritePayload {
+    MAKE_SIGNAL_TYPE_TRACE_STREAM(RegUnitWritePayload)
 
     int reg_id{0}, reg_value{0};
     bool write_special_register{false};
 
-    DECLARE_PIM_PAYLOAD_FUNCTIONS(RegUnitWriteRequest)
+    DECLARE_PIM_PAYLOAD_FUNCTIONS(RegUnitWritePayload)
 };
 
 }  // namespace pimsim
