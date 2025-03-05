@@ -17,11 +17,13 @@
 #include "core/transfer_unit/transfer_unit.h"
 #include "decoder/decoder.h"
 #include "execute_unit/execute_unit.h"
-#include "isa/instruction.h"
 #include "local_memory_unit/local_memory_unit.h"
 #include "payload/payload.h"
 
 namespace pimsim {
+
+using DecoderImpl = DecoderV2;
+using Instruction = DecoderImpl::Instruction;
 
 struct ExecuteUnitRegistration {
     ExecuteUnitRegistration(ExecuteUnitType type, ExecuteUnit* execute_unit, sc_event& decode_new_ins_trigger);
@@ -77,7 +79,7 @@ private:
     LocalMemoryUnit local_memory_unit_;
     RegUnit reg_unit_;
     Switch core_switch_;
-    Decoder decoder_;
+    DecoderImpl decoder_;
 
     // execute units
     ScalarUnit scalar_unit_;

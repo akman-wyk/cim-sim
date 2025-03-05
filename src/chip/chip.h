@@ -4,7 +4,7 @@
 
 #pragma once
 #include "base_component/base_module.h"
-#include "isa/instruction.h"
+#include "core/core.h"
 #include "memory/global_memory.h"
 
 namespace pimsim {

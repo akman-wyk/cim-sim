@@ -11,7 +11,6 @@
 #include <vector>
 
 #include "config/config.h"
-#include "isa/isa.h"
 #include "payload_enum.h"
 #include "systemc.h"
 #include "util/macro_scope.h"

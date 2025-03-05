@@ -4,10 +4,13 @@
 
 #pragma once
 #include <algorithm>
+#include <fstream>
+#include <string>
 #include <unordered_set>
 #include <vector>
 
 #include "config/config.h"
+#include "nlohmann/json.hpp"
 
 namespace pimsim {
 
@@ -38,5 +41,19 @@ int BytesToInt(const std::vector<unsigned char>& bytes, bool little_endian);
 std::vector<unsigned char> IntToBytes(int value, bool little_endian);
 
 bool check_text_file_same(const std::string& file1, const std::string& file2);
+
+template <class Type>
+Type readTypeFromJsonFile(const char* file) {
+    std::ifstream ifs;
+    ifs.open(file);
+    nlohmann::ordered_json j = nlohmann::ordered_json::parse(ifs);
+    ifs.close();
+    return j.get<Type>();
+}
+
+template <class Type>
+Type readTypeFromJsonFile(const std::string& file) {
+    return readTypeFromJsonFile<Type>(file.c_str());
+}
 
 }  // namespace pimsim

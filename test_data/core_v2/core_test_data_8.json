@@ -1,0 +1,31 @@
+{
+  "comments": "test fot Pim Compute instructions with vs config",
+  "code": [
+    {"opcode": 44, "rd": 0, "imm": 4104, "asm": "G_LI 4104 to $0"},
+    {"opcode": 45, "rd": 0, "imm": 8, "asm": "S_LI 8 to $0"},
+    {"opcode": 45, "rd": 4, "imm": 4, "asm": "S_LI 4 to $4"},
+    {"opcode": 45, "rd": 6, "imm": 128, "asm": "S_LI 128 to $6"},
+    {"opcode": 45, "rd": 7, "imm": 3072, "asm": "S_LI 3072 to $7"},
+    {"opcode": 44, "rd": 1, "imm": 1024, "asm": "G_LI 1024 to $1"},
+    {"opcode": 44, "rd": 2, "imm": 128, "asm": "G_LI 128 to $2"},
+    {"opcode": 44, "rd": 3, "imm": 0, "asm": "G_LI 0 to $3"},
+    {"opcode": 4, "rs": 0, "rt": 0, "GRP_B": true, "asm": "CIM_CFG $0 $0, flags: GRP_B"},
+    {"opcode": 0, "rs": 1, "rt": 2, "re": 3, "GRP": true, "SP_V": true, "asm": "CIM_MVM $1 $2 $3, flags: GRP SP_V"},
+    {"opcode": 45, "rd": 4, "imm": 3, "asm": "S_LI 3 to $4"},
+    {"opcode": 45, "rd": 7, "imm": 3104, "asm": "S_LI 3104 to $7"},
+    {"opcode": 44, "rd": 3, "imm": 1, "asm": "G_LI 1 to $3"},
+    {"opcode": 0, "rs": 1, "rt": 2, "re": 3, "GRP": true, "SP_V": true, "asm": "CIM_MVM $1 $2 $3, flags: GRP SP_V"},
+    {"opcode": 45, "rd": 4, "imm": 2, "asm": "S_LI 2 to $4"},
+    {"opcode": 45, "rd": 7, "imm": 3136, "asm": "S_LI 3136 to $7"},
+    {"opcode": 44, "rd": 3, "imm": 2, "asm": "G_LI 2 to $3"},
+    {"opcode": 0, "rs": 1, "rt": 2, "re": 3, "GRP": true, "SP_V": true, "asm": "CIM_MVM $1 $2 $3, flags: GRP SP_V"},
+    {"opcode": 45, "rd": 4, "imm": 4, "asm": "S_LI 4 to $4"},
+    {"opcode": 45, "rd": 7, "imm": 3168, "asm": "S_LI 3168 to $7"},
+    {"opcode": 44, "rd": 3, "imm": 3, "asm": "G_LI 3 to $3"},
+    {"opcode": 0, "rs": 1, "rt": 2, "re": 3, "GRP": true, "SP_V": true, "asm": "CIM_MVM $1 $2 $3, flags: GRP SP_V"}
+  ],
+  "expected": {
+    "time_ns": 255,
+    "energy_pj": 280650
+  }
+}

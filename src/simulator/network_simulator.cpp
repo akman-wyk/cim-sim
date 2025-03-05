@@ -4,6 +4,8 @@
 
 #include "network_simulator.h"
 
+#include "util/util.h"
+
 #if defined(WIN32)
 #define WEXITSTATUS(status) (((status) & 0xff00) >> 8)
 #define WIFEXITED(status)   (((status) & 0x7f) == 0)
@@ -65,11 +67,7 @@ Reporter test_network(const std::string& data_root_dir, const std::string& repor
         }
 
         // read json file, get reporter and add reporter
-        std::ifstream ifs(report_json_file);
-        auto report_json = nlohmann::json::parse(ifs);
-        ifs.close();
-
-        auto reporter = report_json.get<Reporter>();
+        auto reporter = readTypeFromJsonFile<Reporter>(report_json_file);
         total_reporter += reporter;
 
         // delete json file
@@ -87,11 +85,7 @@ Reporter test_network(const std::string& data_root_dir, const std::string& repor
 }
 
 void test_wrap(const std::string& test_config_file, bool& all_tests_passed) {
-    std::ifstream ifs(test_config_file);
-    auto test_config_json = nlohmann::json::parse(ifs);
-    ifs.close();
-
-    auto test_config = test_config_json.get<TestConfig>();
+    auto test_config = readTypeFromJsonFile<TestConfig>(test_config_file);
     std::map<std::string, Reporter> reporters;
 
     if (test_config.generate_report) {

@@ -1,0 +1,40 @@
+{
+  "comments": "test fot Pim Output instructions",
+  "code": [
+    {"opcode": 45, "rd": 1, "imm": 32, "asm": "S_LI 32 to $1"},
+    {"opcode": 45, "rd": 4, "imm": 4, "asm": "S_LI 4 to $4"},
+    {"opcode": 44, "rd": 0, "imm": 256, "asm": "G_LI 256 to $0"},
+    {"opcode": 44, "rd": 1, "imm": 0, "asm": "G_LI 0 to $1"},
+    {"opcode": 44, "rd": 2, "imm": 3072, "asm": "G_LI 3072 to $2"},
+    {"opcode": 8, "rs": 0, "rt": 1, "rd": 2, "asm": "CIM_OUT $0 $1 to $2, flags:"},
+    {"opcode": 45, "rd": 4, "imm": 3, "asm": "S_LI 3 to $4"},
+    {"opcode": 44, "rd": 0, "imm": 192, "asm": "G_LI 192 to $0"},
+    {"opcode": 44, "rd": 1, "imm": 0, "asm": "G_LI 0 to $1"},
+    {"opcode": 44, "rd": 2, "imm": 3072, "asm": "G_LI 3072 to $2"},
+    {"opcode": 8, "rs": 0, "rt": 1, "rd": 2, "asm": "CIM_OUT $0 $1 to $2, flags:"},
+    {"opcode": 45, "rd": 4, "imm": 4, "asm": "S_LI 4 to $4"},
+    {"opcode": 44, "rd": 0, "imm": 256, "asm": "G_LI 256 to $0"},
+    {"opcode": 44, "rd": 1, "imm": 2048, "asm": "G_LI 2048 to $1"},
+    {"opcode": 44, "rd": 2, "imm": 3072, "asm": "G_LI 3072 to $2"},
+    {"opcode": 8, "rs": 0, "rt": 1, "rd": 2, "OSUM": true, "asm": "CIM_OUT $0 $1 to $2, flags: OSUM"},
+    {"opcode": 45, "rd": 4, "imm": 2, "asm": "S_LI 2 to $4"},
+    {"opcode": 44, "rd": 0, "imm": 256, "asm": "G_LI 256 to $0"},
+    {"opcode": 44, "rd": 1, "imm": 2080, "asm": "G_LI 2080 to $1"},
+    {"opcode": 44, "rd": 2, "imm": 3072, "asm": "G_LI 3072 to $2"},
+    {"opcode": 8, "rs": 0, "rt": 1, "rd": 2, "OSUM": true, "asm": "CIM_OUT $0 $1 to $2, flags: OSUM"},
+    {"opcode": 45, "rd": 4, "imm": 4, "asm": "S_LI 4 to $4"},
+    {"opcode": 44, "rd": 0, "imm": 128, "asm": "G_LI 128 to $0"},
+    {"opcode": 44, "rd": 1, "imm": 0, "asm": "G_LI 0 to $1"},
+    {"opcode": 44, "rd": 2, "imm": 3072, "asm": "G_LI 3072 to $2"},
+    {"opcode": 8, "rs": 0, "rt": 1, "rd": 2, "OSUM_MOV": true, "asm": "CIM_OUT $0 $1 to $2, flags: OSUM_MOV"},
+    {"opcode": 45, "rd": 4, "imm": 1, "asm": "S_LI 1 to $4"},
+    {"opcode": 44, "rd": 0, "imm": 107, "asm": "G_LI 107 to $0"},
+    {"opcode": 44, "rd": 1, "imm": 0, "asm": "G_LI 0 to $1"},
+    {"opcode": 44, "rd": 2, "imm": 3072, "asm": "G_LI 3072 to $2"},
+    {"opcode": 8, "rs": 0, "rt": 1, "rd": 2, "OSUM_MOV": true, "asm": "CIM_OUT $0 $1 to $2, flags: OSUM_MOV"}
+  ],
+  "expected": {
+    "time_ns": 160,
+    "energy_pj": 6062.5
+  }
+}

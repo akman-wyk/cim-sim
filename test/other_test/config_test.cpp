@@ -7,6 +7,7 @@
 #include <string>
 
 #include "config/config.h"
+#include "util/util.h"
 
 using namespace pimsim;
 
@@ -63,10 +64,7 @@ void write_config() {
 }
 
 void read_config() {
-    std::ifstream ifs;
-    ifs.open(CONFIG_FILE);
-    nlohmann::ordered_json j = nlohmann::ordered_json::parse(ifs);
-    auto config = j.get<Config>();
+    auto config = readTypeFromJsonFile<Config>(CONFIG_FILE);
 
     nlohmann::ordered_json j1 = config;
     std::ofstream ofs;
@@ -76,11 +74,7 @@ void read_config() {
 }
 
 void check_config() {
-    std::ifstream ifs;
-    ifs.open(CONFIG_FILE);
-    nlohmann::ordered_json j = nlohmann::ordered_json::parse(ifs);
-
-    if (auto config = j.get<Config>(); config.checkValid()) {
+    if (auto config = readTypeFromJsonFile<Config>(CONFIG_FILE); config.checkValid()) {
         std::cout << "Config valid";
     }
 }

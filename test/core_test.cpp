@@ -8,27 +8,17 @@
 #include "config/config.h"
 #include "core/core.h"
 #include "fmt/format.h"
-#include "isa/instruction.h"
 #include "nlohmann/json.hpp"
 #include "systemc.h"
 #include "util/util.h"
 
 namespace pimsim {
 
-struct CoreTestRegisterInfo {
-    bool check{false};
-    std::array<int, GENERAL_REG_NUM> general_reg_expected_values{};
-    std::array<int, SPECIAL_REG_NUM> special_reg_expected_values{};
-};
-
 struct CoreTestInfo {
     std::vector<Instruction> code{};
     TestExpectedInfo expected;
     CoreTestRegisterInfo reg_info;
 };
-
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CoreTestRegisterInfo, check, general_reg_expected_values,
-                                               special_reg_expected_values)
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CoreTestInfo, code, expected, reg_info)
 
@@ -50,22 +40,13 @@ int sc_main(int argc, char* argv[]) {
     auto* instruction_file = argv[2];
     auto* report_file = argv[3];
 
-    std::ifstream config_ifs;
-    config_ifs.open(config_file);
-    nlohmann::ordered_json config_j = nlohmann::ordered_json::parse(config_ifs);
-    config_ifs.close();
-    auto config = config_j.get<Config>();
+    auto config = readTypeFromJsonFile<Config>(config_file);
     if (!config.checkValid()) {
         std::cout << "Config not valid" << std::endl;
         return INVALID_CONFIG;
     }
 
-    std::ifstream ins_ifs;
-    ins_ifs.open(instruction_file);
-    nlohmann::ordered_json ins_j = nlohmann::ordered_json::parse(ins_ifs);
-    ins_ifs.close();
-    auto test_info = ins_j.get<CoreTestInfo>();
-
+    auto test_info = readTypeFromJsonFile<CoreTestInfo>(instruction_file);
     Clock clk{"clock", config.sim_config.period_ns};
     sc_core::sc_time running_time;
     auto finish_run_call = [&running_time] {
