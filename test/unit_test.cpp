@@ -11,6 +11,7 @@
 #include "base/test_macro.h"
 #include "fmt/format.h"
 #include "nlohmann/json.hpp"
+#include "util/util.h"
 
 #if defined(WIN32)
 #define WEXITSTATUS(status) (((status) & 0xff00) >> 8)
@@ -121,12 +122,7 @@ bool test_unit(const std::string& root_dir, const UnitTestConfig& unit_test_conf
 }
 
 bool test(const TestArguments& args) {
-    std::ifstream ifs;
-    ifs.open(args.config_file);
-    auto j = nlohmann::json::parse(ifs);
-    ifs.close();
-
-    auto test_config = j.get<TestConfig>();
+    auto test_config = readTypeFromJsonFile<TestConfig>(args.config_file);
     // Unit Tests
     std::cout << "Start Unit Tests" << std::endl;
     bool all_test_units_passed = true;

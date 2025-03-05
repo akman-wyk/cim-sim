@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "config/config.h"
 #include "nlohmann/json.hpp"
 #include "util/macro_scope.h"
 
@@ -14,5 +15,13 @@ struct TestExpectedInfo {
 };
 
 DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(TestExpectedInfo)
+
+struct CoreTestRegisterInfo {
+    bool check{false};
+    std::array<int, GENERAL_REG_NUM> general_reg_expected_values{};
+    std::array<int, SPECIAL_REG_NUM> special_reg_expected_values{};
+};
+
+DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(CoreTestRegisterInfo)
 
 }  // namespace pimsim

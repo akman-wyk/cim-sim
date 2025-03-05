@@ -6,7 +6,6 @@
 
 #include "argparse/argparse.hpp"
 #include "fmt/format.h"
-#include "isa/instruction.h"
 #include "util/util.h"
 
 namespace pimsim {
@@ -23,28 +22,16 @@ LayerSimulator::LayerSimulator(std::string config_file, std::string instruction_
     , check_(check) {}
 
 void LayerSimulator::run() {
-    std::cout << "Loading Instructions and Config" << std::endl;
-    std::ifstream config_if(config_file_);
-    std::ifstream instruction_if(instruction_file_);
-    nlohmann::ordered_json config_json = nlohmann::ordered_json::parse(config_if);
-    nlohmann::ordered_json instruction_json = nlohmann::ordered_json::parse(instruction_if);
-    config_ = config_json.get<Config>();
-
-    // for (auto& local_memory_config : config_.chip_config.core_config.local_memory_unit_config.local_memory_list) {
-    //     if (local_memory_config.name == GLOBAL_MEMORY_NAME) {
-    //         local_memory_config.ram_config.has_image = true;
-    //         local_memory_config.ram_config.image_file = global_image_file_;
-    //     }
-    // }
+    std::cout << "Loading Config" << std::endl;
+    config_ = readTypeFromJsonFile<Config>(config_file_);
     if (!config_.checkValid()) {
         std::cout << "Invalid config" << std::endl;
         return;
     }
-
     std::cout << "Load finish" << std::endl;
 
     std::cout << "Reading Instructions" << std::endl;
-    auto core_ins_list = getCoreInstructionList(instruction_json);
+    auto core_ins_list = getCoreInstructionList();
     std::cout << "Read finish" << std::endl;
 
     std::cout << "Build Chip" << std::endl;
@@ -92,8 +79,10 @@ void LayerSimulator::report(std::ostream& os, const std::string& report_json_fil
 //     return check_text_file_same(expected_reg_file_, actual_reg_file_);
 // }
 
-std::vector<std::vector<Instruction>> LayerSimulator::getCoreInstructionList(
-    const nlohmann::ordered_json& instruction_json) const {
+std::vector<std::vector<Instruction>> LayerSimulator::getCoreInstructionList() const {
+    std::ifstream instruction_if(instruction_file_);
+    nlohmann::ordered_json instruction_json = nlohmann::ordered_json::parse(instruction_if);
+
     int core_cnt = config_.chip_config.core_cnt;
     assert(instruction_json.size() == core_cnt);
 

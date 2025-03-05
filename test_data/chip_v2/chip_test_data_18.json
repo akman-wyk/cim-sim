@@ -1,0 +1,21 @@
+{
+  "comments": "",
+  "code": [
+    [
+      {"opcode": 44, "rd": 0, "imm": 3072, "asm": "G_LI 3072 to $0"},
+      {"opcode": 44, "rd": 1, "imm": 64, "asm": "G_LI 64 to $1"},
+      {"opcode": 44, "rd": 2, "imm": 1024, "asm": "G_LI 1024 to $2"},
+      {"opcode": 44, "rd": 3, "imm": 2048, "asm": "G_LI 2048 to $3"},
+      {"opcode": 48, "rs": 0, "rt": 1, "rd": 2, "imm": 0, "asm": "MEM_CPY $0 to $2, size: $1, off: 0, mask: 00"},
+      {"opcode": 48, "rs": 3, "rt": 1, "rd": 0, "imm": 0, "asm": "MEM_CPY $3 to $0, size: $1, off: 0, mask: 00"},
+      {"opcode": 48, "rs": 0, "rt": 1, "rd": 2, "imm": 0, "asm": "MEM_CPY $0 to $2, size: $1, off: 0, mask: 00"}
+    ],
+    [
+      {"opcode": 44, "rd": 0, "imm": 1024, "asm": "G_LI 1024 to $0"}
+    ]
+  ],
+  "expected": {
+    "time_ns": 1115,
+    "energy_pj": 1110
+  }
+}

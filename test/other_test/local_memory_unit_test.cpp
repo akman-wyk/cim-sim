@@ -6,6 +6,7 @@
 #include "config/config.h"
 #include "core/local_memory_unit/local_memory_unit.h"
 #include "systemc.h"
+#include "util/util.h"
 
 const std::string CONFIG_FILE = "../config/config_template.json";
 
@@ -54,12 +55,7 @@ using namespace pimsim;
 int sc_main(int argc, char* argv[]) {
     sc_core::sc_report_handler::set_actions(sc_core::SC_WARNING, sc_core::SC_DO_NOTHING);
 
-    std::ifstream ifs;
-    ifs.open(CONFIG_FILE);
-    nlohmann::ordered_json j = nlohmann::ordered_json::parse(ifs);
-    ifs.close();
-
-    auto config = j.get<Config>();
+    auto config = readTypeFromJsonFile<Config>(CONFIG_FILE);
     if (!config.checkValid()) {
         std::cout << "Config not valid" << std::endl;
         return 1;

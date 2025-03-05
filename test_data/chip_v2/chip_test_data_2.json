@@ -1,0 +1,29 @@
+{
+  "comments": "",
+  "code": [
+    [
+      {"opcode": 44, "rd": 0, "imm": 1024, "asm": "G_LI 1024 to $0"},
+      {"opcode": 44, "rd": 1, "imm": 1, "asm": "G_LI 1 to $1"},
+      {"opcode": 44, "rd": 2, "imm": 1024, "asm": "G_LI 1024 to $2"},
+      {"opcode": 44, "rd": 3, "imm": 23358, "asm": "G_LI 23358 to $3"},
+      {"opcode": 44, "rd": 4, "imm": 64, "asm": "G_LI 64 to $4"},
+      {"opcode": 52, "rs": 0, "rt": 1, "rd": 2, "re": 4, "rf": 3, "asm": "SEND $0 to [$1]$2, size: $4, trans-id: $3"}
+    ],
+    [
+      {"opcode": 44, "rd": 0, "imm": 1024, "asm": "G_LI 1024 to $0"},
+      {"opcode": 44, "rd": 1, "imm": 160, "asm": "G_LI 160 to $1"},
+      {"opcode": 44, "rd": 2, "imm": 1024, "asm": "G_LI 1024 to $2"},
+      {"opcode": 48, "rs": 0, "rt": 1, "rd": 2, "imm": 0, "asm": "MEM_CPY $0 to $2, size: $1, off: 0, mask: 00"},
+      {"opcode": 44, "rd": 0, "imm": 0, "asm": "G_LI 0 to $0"},
+      {"opcode": 44, "rd": 1, "imm": 1024, "asm": "G_LI 1024 to $1"},
+      {"opcode": 44, "rd": 2, "imm": 1024, "asm": "G_LI 1024 to $2"},
+      {"opcode": 44, "rd": 3, "imm": 23358, "asm": "G_LI 23358 to $3"},
+      {"opcode": 44, "rd": 4, "imm": 64, "asm": "G_LI 64 to $4"},
+      {"opcode": 54, "rs": 0, "rt": 1, "rd": 2, "re": 4, "rf": 3, "asm": "RECV [$0]$1 to $2, size: $4, trans-id: $3"}
+    ]
+  ],
+  "expected": {
+    "time_ns": 205,
+    "energy_pj": 200
+  }
+}

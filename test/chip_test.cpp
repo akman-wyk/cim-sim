@@ -9,7 +9,6 @@
 #include "chip/chip.h"
 #include "config/config.h"
 #include "fmt/format.h"
-#include "isa/instruction.h"
 #include "systemc.h"
 #include "util/util.h"
 
@@ -40,22 +39,13 @@ int sc_main(int argc, char* argv[]) {
     auto* instruction_file = argv[2];
     auto* report_file = argv[3];
 
-    std::ifstream config_ifs;
-    config_ifs.open(config_file);
-    nlohmann::ordered_json config_j = nlohmann::ordered_json::parse(config_ifs);
-    config_ifs.close();
-    auto config = config_j.get<Config>();
+    auto config = readTypeFromJsonFile<Config>(config_file);
     if (!config.checkValid()) {
         std::cout << "Config not valid" << std::endl;
         return INVALID_CONFIG;
     }
 
-    std::ifstream ins_ifs;
-    ins_ifs.open(instruction_file);
-    nlohmann::ordered_json ins_j = nlohmann::ordered_json::parse(ins_ifs);
-    ins_ifs.close();
-    auto test_info = ins_j.get<ChipTestInfo>();
-
+    auto test_info = readTypeFromJsonFile<ChipTestInfo>(instruction_file);
     Chip chip{"Chip", config, test_info.code};
     sc_start();
 

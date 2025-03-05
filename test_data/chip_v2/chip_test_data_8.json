@@ -1,0 +1,33 @@
+{
+  "comments": "",
+  "code": [
+    [
+      {"opcode": 44, "rd": 0, "imm": 1024, "asm": "G_LI 1024 to $0"},
+      {"opcode": 44, "rd": 1, "imm": 1, "asm": "G_LI 1 to $1"},
+      {"opcode": 44, "rd": 2, "imm": 1024, "asm": "G_LI 1024 to $2"},
+      {"opcode": 44, "rd": 3, "imm": 23358, "asm": "G_LI 23358 to $3"},
+      {"opcode": 44, "rd": 4, "imm": 64, "asm": "G_LI 64 to $4"},
+      {"opcode": 44, "rd": 5, "imm": 2048, "asm": "G_LI 2048 to $5"},
+      {"opcode": 44, "rd": 6, "imm": 2048, "asm": "G_LI 2048 to $6"},
+      {"opcode": 44, "rd": 7, "imm": 114514, "asm": "G_LI 114514 to $7"},
+      {"opcode": 52, "rs": 0, "rt": 1, "rd": 2, "re": 4, "rf": 3, "asm": "SEND $0 to [$1]$2, size: $4, trans-id: $3"},
+      {"opcode": 52, "rs": 5, "rt": 1, "rd": 6, "re": 4, "rf": 7, "asm": "SEND $5 to [$1]$6, size: $4, trans-id: $7"}
+    ],
+    [
+      {"opcode": 44, "rd": 0, "imm": 0, "asm": "G_LI 0 to $0"},
+      {"opcode": 44, "rd": 1, "imm": 1024, "asm": "G_LI 1024 to $1"},
+      {"opcode": 44, "rd": 2, "imm": 1024, "asm": "G_LI 1024 to $2"},
+      {"opcode": 44, "rd": 3, "imm": 23358, "asm": "G_LI 23358 to $3"},
+      {"opcode": 44, "rd": 4, "imm": 64, "asm": "G_LI 64 to $4"},
+      {"opcode": 44, "rd": 5, "imm": 2048, "asm": "G_LI 2048 to $5"},
+      {"opcode": 44, "rd": 6, "imm": 2048, "asm": "G_LI 2048 to $6"},
+      {"opcode": 44, "rd": 7, "imm": 114514, "asm": "G_LI 114514 to $7"},
+      {"opcode": 54, "rs": 0, "rt": 1, "rd": 2, "re": 4, "rf": 3, "asm": "RECV [$0]$1 to $2, size: $4, trans-id: $3"},
+      {"opcode": 54, "rs": 0, "rt": 5, "rd": 6, "re": 4, "rf": 7, "asm": "RECV [$0]$5 to $6, size: $4, trans-id: $7"}
+    ]
+  ],
+  "expected": {
+    "time_ns": 215,
+    "energy_pj": 200
+  }
+}

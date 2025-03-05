@@ -12,7 +12,7 @@ namespace pimsim {
 BETTER_ENUM(MemoryAccessType, int, read = 1, write = 2)  // NOLINT(*-explicit-constructor, *-no-recursion)
 
 BETTER_ENUM(ScalarOperator, int,  // NOLINT(*-explicit-constructor)
-            add, sub, mul, div, sll, srl, sra, mod, min, max, s_and, s_or, eq, ne, gt, lt, lui, load, store, assign)
+            add = 0, sub, mul, div, sll, srl, sra, mod, min, max, s_and, s_or, eq, ne, gt, lt, lui, load, store, assign)
 DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(ScalarOperator)
 
 BETTER_ENUM(PimControlOperator, int,  // NOLINT(*-explicit-constructor, *-no-recursion)

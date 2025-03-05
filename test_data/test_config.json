@@ -185,79 +185,79 @@
         {
           "comments": "Test for SIMD instructions",
           "config_file": "config/test/SIMD_Transfer_test_config.json",
-          "instruction_file": "test_data/core/core_test_data_1.json",
+          "instruction_file": "test_data/core_v2/core_test_data_1.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
           "comments": "Test for Transfer instructions",
           "config_file": "config/test/SIMD_Transfer_test_config.json",
-          "instruction_file": "test_data/core/core_test_data_2.json",
+          "instruction_file": "test_data/core_v2/core_test_data_2.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
           "comments": "Test for Pim Load instructions",
           "config_file": "config/test/Transfer_test_config_load_pim.json",
-          "instruction_file": "test_data/core/core_test_data_3.json",
+          "instruction_file": "test_data/core_v2/core_test_data_3.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
           "comments": "Test for Pim Set instructions",
           "config_file": "config/test/pim_control_unit_test_config_set_activation.json",
-          "instruction_file": "test_data/core/core_test_data_4.json",
+          "instruction_file": "test_data/core_v2/core_test_data_4.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
           "comments": "Test for Pim Output instructions",
           "config_file": "config/test/pim_control_unit_test_config_output.json",
-          "instruction_file": "test_data/core/core_test_data_5.json",
+          "instruction_file": "test_data/core_v2/core_test_data_5.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
           "comments": "Test for Pim Compute instructions without any sparsity",
           "config_file": "config/test/pim_compute_unit_test_config_base.json",
-          "instruction_file": "test_data/core/core_test_data_6.json",
+          "instruction_file": "test_data/core_v2/core_test_data_6.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
           "comments": "Test for Pim Compute instructions with input bit sparsity and weight bit sparsity",
           "config_file": "config/test/pim_compute_unit_test_config_bs.json",
-          "instruction_file": "test_data/core/core_test_data_7.json",
+          "instruction_file": "test_data/core_v2/core_test_data_7.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
           "comments": "Test for Pim Compute instructions with weight value sparsity",
           "config_file": "config/test/pim_compute_unit_test_config_vs.json",
-          "instruction_file": "test_data/core/core_test_data_8.json",
+          "instruction_file": "test_data/core_v2/core_test_data_8.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
           "comments": "Test for Pim Compute instructions with input bit sparsity, weight bit sparsity and weight value sparsity",
           "config_file": "config/test/pim_compute_unit_test_config_bs_vs.json",
-          "instruction_file": "test_data/core/core_test_data_9.json",
+          "instruction_file": "test_data/core_v2/core_test_data_9.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
           "comments": "Test for scalar instructions",
           "config_file": "config/test/scalar_test_config.json",
-          "instruction_file": "test_data/core/core_test_data_10.json",
+          "instruction_file": "test_data/core_v2/core_test_data_10.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
           "comments": "Test for control instructions",
           "config_file": "config/test/scalar_test_config.json",
-          "instruction_file": "test_data/core/core_test_data_11.json",
+          "instruction_file": "test_data/core_v2/core_test_data_11.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
           "comments": "Test for transfer instructions with real data",
           "config_file": "config/test/Core_Transfer_test_config.json",
-          "instruction_file": "test_data/core/core_test_data_12.json",
+          "instruction_file": "test_data/core_v2/core_test_data_12.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
           "comments": "Test for Pim Compute instructions with macro simulation config",
           "config_file": "config/test/macro_simulation_test_config.json",
-          "instruction_file": "test_data/core/core_test_data_13.json",
+          "instruction_file": "test_data/core_v2/core_test_data_13.json",
           "report_file": "report/Core_test_report.txt"
         }
       ]
@@ -268,121 +268,121 @@
         {
           "comments": "Test multi-cores finishing",
           "config_file": "config/test/chip/chip_test_config_1.json",
-          "instruction_file": "test_data/chip/chip_test_data_1.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_1.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test two-cores when send before receive",
           "config_file": "config/test/chip/chip_test_config_2.json",
-          "instruction_file": "test_data/chip/chip_test_data_2.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_2.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test two-cores when receive before send",
           "config_file": "config/test/chip/chip_test_config_2.json",
-          "instruction_file": "test_data/chip/chip_test_data_3.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_3.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test two-cores when send(core 0) receive(core 1) at the same time",
           "config_file": "config/test/chip/chip_test_config_2.json",
-          "instruction_file": "test_data/chip/chip_test_data_4.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_4.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test two-cores when send(core 1) receive(core 0) at the same time",
           "config_file": "config/test/chip/chip_test_config_2.json",
-          "instruction_file": "test_data/chip/chip_test_data_5.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_5.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test two-cores when other inst being blocked by send",
           "config_file": "config/test/chip/chip_test_config_2.json",
-          "instruction_file": "test_data/chip/chip_test_data_6.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_6.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test two-cores when other inst being blocked by receive",
           "config_file": "config/test/chip/chip_test_config_2.json",
-          "instruction_file": "test_data/chip/chip_test_data_7.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_7.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test two-cores when send-send(core 0) and receive-receive(core1)",
           "config_file": "config/test/chip/chip_test_config_2.json",
-          "instruction_file": "test_data/chip/chip_test_data_8.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_8.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test two-cores when send-receive(core 0) and receive-send(core1)",
           "config_file": "config/test/chip/chip_test_config_2.json",
-          "instruction_file": "test_data/chip/chip_test_data_9.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_9.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test 3-cores when core 2 send to core 0, core 1 send to core 0",
           "config_file": "config/test/chip/chip_test_config_3.json",
-          "instruction_file": "test_data/chip/chip_test_data_10.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_10.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test 3-cores when core 1 send to core 0, core 2 send to core 0",
           "config_file": "config/test/chip/chip_test_config_3.json",
-          "instruction_file": "test_data/chip/chip_test_data_11.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_11.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test 3-cores when core 0 send to core 2, core 0 send to core 1",
           "config_file": "config/test/chip/chip_test_config_3.json",
-          "instruction_file": "test_data/chip/chip_test_data_12.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_12.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test 3-cores when core 0 send to core 1, core 0 send to core 2",
           "config_file": "config/test/chip/chip_test_config_3.json",
-          "instruction_file": "test_data/chip/chip_test_data_13.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_13.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test 3-cores when core 0 send to core 2, core 1 send to core 0",
           "config_file": "config/test/chip/chip_test_config_3.json",
-          "instruction_file": "test_data/chip/chip_test_data_14.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_14.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test 3-cores when core 1 send to core 0, core 0 send to core 2",
           "config_file": "config/test/chip/chip_test_config_3.json",
-          "instruction_file": "test_data/chip/chip_test_data_15.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_15.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test 3-cores when core 2 send to core 0, core 0 send to core 1",
           "config_file": "config/test/chip/chip_test_config_3.json",
-          "instruction_file": "test_data/chip/chip_test_data_16.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_16.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test 3-cores when core 0 send to core 1, core 2 send to core 0",
           "config_file": "config/test/chip/chip_test_config_3.json",
-          "instruction_file": "test_data/chip/chip_test_data_17.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_17.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test 1-core load-store-load",
           "config_file": "config/test/chip/chip_test_config_2.json",
-          "instruction_file": "test_data/chip/chip_test_data_18.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_18.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test 2-cores when core 0 load and core 1 store",
           "config_file": "config/test/chip/chip_test_config_2.json",
-          "instruction_file": "test_data/chip/chip_test_data_19.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_19.json",
           "report_file": "report/Chip_test_report.txt"
         },
         {
           "comments": "Test 2-cores when core 0 load and core 1 load",
           "config_file": "config/test/chip/chip_test_config_2.json",
-          "instruction_file": "test_data/chip/chip_test_data_20.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_20.json",
           "report_file": "report/Chip_test_report.txt"
         }
       ]

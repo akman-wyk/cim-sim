@@ -1,0 +1,39 @@
+{
+  "comments": "test fot SIMD instructions",
+  "code": [
+    {"opcode": 45, "rd": 16, "imm": 8, "asm": "S_LI 8 to $16"},
+    {"opcode": 45, "rd": 20, "imm": 8, "asm": "S_LI 8 to $20"},
+    {"opcode": 44, "rd": 0, "imm": 1024, "asm": "G_LI 1024 to $0"},
+    {"opcode": 44, "rd": 2, "imm": 64, "asm": "G_LI 64 to $2"},
+    {"opcode": 44, "rd": 3, "imm": 2048, "asm": "G_LI 2048 to $3"},
+    {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 2, "funct": 0, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $2, func: 0"},
+    {"opcode": 44, "rd": 0, "imm": 2048, "asm": "G_LI 2048 to $0"},
+    {"opcode": 44, "rd": 3, "imm": 2560, "asm": "G_LI 2560 to $3"},
+    {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 2, "funct": 0, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $2, func: 0"},
+    {"opcode": 44, "rd": 0, "imm": 1024, "asm": "G_LI 1024 to $0"},
+    {"opcode": 44, "rd": 3, "imm": 1536, "asm": "G_LI 1536 to $3"},
+    {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 2, "funct": 0, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $2, func: 0"},
+    {"opcode": 44, "rd": 0, "imm": 1024, "asm": "G_LI 1024 to $0"},
+    {"opcode": 44, "rd": 3, "imm": 1536, "asm": "G_LI 1536 to $3"},
+    {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 2, "funct": 0, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $2, func: 0"},
+    {"opcode": 44, "rd": 0, "imm": 2048, "asm": "G_LI 2048 to $0"},
+    {"opcode": 44, "rd": 3, "imm": 1024, "asm": "G_LI 1024 to $3"},
+    {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 2, "funct": 0, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $2, func: 0"},
+    {"opcode": 44, "rd": 0, "imm": 2048, "asm": "G_LI 2048 to $0"},
+    {"opcode": 44, "rd": 3, "imm": 1024, "asm": "G_LI 1024 to $3"},
+    {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 2, "funct": 0, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $2, func: 0"},
+    {"opcode": 44, "rd": 0, "imm": 2048, "asm": "G_LI 2048 to $0"},
+    {"opcode": 44, "rd": 3, "imm": 2560, "asm": "G_LI 2560 to $3"},
+    {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 2, "funct": 0, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $2, func: 0"},
+    {"opcode": 44, "rd": 0, "imm": 2048, "asm": "G_LI 2048 to $0"},
+    {"opcode": 44, "rd": 3, "imm": 1024, "asm": "G_LI 1024 to $3"},
+    {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 2, "funct": 0, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $2, func: 0"},
+    {"opcode": 44, "rd": 0, "imm": 1024, "asm": "G_LI 1024 to $0"},
+    {"opcode": 44, "rd": 3, "imm": 2048, "asm": "G_LI 2048 to $3"},
+    {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 2, "funct": 0, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $2, func: 0"}
+  ],
+  "expected": {
+    "time_ns": 380,
+    "energy_pj": 3240
+  }
+}

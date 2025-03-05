@@ -1,0 +1,29 @@
+{
+  "comments": "test fot Pim Compute instructions with macro simulation config",
+  "code": [
+    {"opcode": 44, "rd": 0, "imm": 4096, "asm": "G_LI 4096 to $0"},
+    {"opcode": 45, "rd": 0, "imm": 8, "asm": "S_LI 8 to $0"},
+    {"opcode": 45, "rd": 4, "imm": 4, "asm": "S_LI 4 to $4"},
+    {"opcode": 45, "rd": 6, "imm": 128, "asm": "S_LI 128 to $6"},
+    {"opcode": 44, "rd": 1, "imm": 1024, "asm": "G_LI 1024 to $1"},
+    {"opcode": 44, "rd": 2, "imm": 16, "asm": "G_LI 16 to $2"},
+    {"opcode": 44, "rd": 3, "imm": 0, "asm": "G_LI 0 to $3"},
+    {"opcode": 0, "rs": 1, "rt": 2, "re": 3, "GRP": true, "asm": "CIM_MVM $1 $2 $3, flags: GRP"},
+    {"opcode": 45, "rd": 4, "imm": 4, "asm": "S_LI 4 to $4"},
+    {"opcode": 44, "rd": 1, "imm": 1040, "asm": "G_LI 1040 to $1"},
+    {"opcode": 44, "rd": 3, "imm": 1, "asm": "G_LI 1 to $3"},
+    {"opcode": 0, "rs": 1, "rt": 2, "re": 3, "GRP": true, "asm": "CIM_MVM $1 $2 $3, flags: GRP"},
+    {"opcode": 45, "rd": 4, "imm": 4, "asm": "S_LI 4 to $4"},
+    {"opcode": 44, "rd": 1, "imm": 1056, "asm": "G_LI 1056 to $1"},
+    {"opcode": 44, "rd": 3, "imm": 2, "asm": "G_LI 2 to $3"},
+    {"opcode": 0, "rs": 1, "rt": 2, "re": 3, "GRP": true, "asm": "CIM_MVM $1 $2 $3, flags: GRP"},
+    {"opcode": 45, "rd": 4, "imm": 4, "asm": "S_LI 4 to $4"},
+    {"opcode": 44, "rd": 1, "imm": 1072, "asm": "G_LI 1072 to $1"},
+    {"opcode": 44, "rd": 3, "imm": 3, "asm": "G_LI 3 to $3"},
+    {"opcode": 0, "rs": 1, "rt": 2, "re": 3, "GRP": true, "asm": "CIM_MVM $1 $2 $3, flags: GRP"}
+  ],
+  "expected": {
+    "time_ns": 225,
+    "energy_pj": 372560
+  }
+}

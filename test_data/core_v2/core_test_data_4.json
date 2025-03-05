@@ -1,0 +1,25 @@
+{
+  "comments": "test fot Pim Set instructions",
+  "code": [
+    {"opcode": 44, "rd": 0, "imm": 0, "asm": "G_LI 0 to $0"},
+    {"opcode": 44, "rd": 1, "imm": 2144, "asm": "G_LI 2144 to $1"},
+    {"opcode": 4, "rs": 0, "rt": 1, "asm": "CIM_CFG $0 $1, flags:"},
+    {"opcode": 44, "rd": 0, "imm": 3, "asm": "G_LI 3 to $0"},
+    {"opcode": 44, "rd": 1, "imm": 2144, "asm": "G_LI 2144 to $1"},
+    {"opcode": 4, "rs": 0, "rt": 1, "asm": "CIM_CFG $0 $1, flags:"},
+    {"opcode": 44, "rd": 0, "imm": 2, "asm": "G_LI 2 to $0"},
+    {"opcode": 44, "rd": 1, "imm": 2176, "asm": "G_LI 2176 to $1"},
+    {"opcode": 4, "rs": 0, "rt": 1, "asm": "CIM_CFG $0 $1, flags:"},
+    {"opcode": 44, "rd": 0, "imm": 1, "asm": "G_LI 1 to $0"},
+    {"opcode": 44, "rd": 1, "imm": 2176, "asm": "G_LI 2176 to $1"},
+    {"opcode": 4, "rs": 0, "rt": 1, "asm": "CIM_CFG $0 $1, flags:"},
+    {"opcode": 44, "rd": 1, "imm": 2176, "asm": "G_LI 2176 to $1"},
+    {"opcode": 4, "rs": 0, "rt": 1, "GRP_B": true, "asm": "CIM_CFG $0 $1, flags: GRP_B"},
+    {"opcode": 44, "rd": 1, "imm": 2048, "asm": "G_LI 2048 to $1"},
+    {"opcode": 4, "rs": 0, "rt": 1, "GRP_B": true, "asm": "CIM_CFG $0 $1, flags: GRP_B"}
+  ],
+  "expected": {
+    "time_ns": 85,
+    "energy_pj": 30
+  }
+}

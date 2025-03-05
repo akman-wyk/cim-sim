@@ -15,55 +15,50 @@ add_subdirectory(packages/zlib)
 add_subdirectory(packages/filesystem)
 
 add_library(pim-simulator STATIC ""
-        src/config/config.cpp
-        src/config/config.h
-        src/config/config_enum.cpp
-        src/config/config_enum.h
-        src/config/config_enum.cpp
-        src/config/config_enum.h
-        src/util/macro_scope.h
-        src/memory/memory.cpp
-        src/memory/memory.h
-        src/core/payload/payload.h
-        src/core/payload/payload_enum.h
         src/base_component/base_module.cpp
         src/base_component/base_module.h
         src/base_component/clock.cpp
         src/base_component/clock.h
         src/base_component/energy_counter.cpp
         src/base_component/energy_counter.h
-        src/util/reporter.cpp
-        src/util/reporter.h
-        src/memory/ram.cpp
-        src/memory/ram.h
-        src/util/util.cpp
-        src/util/util.h
-        src/memory/reg_buffer.cpp
-        src/memory/reg_buffer.h
-        src/core/local_memory_unit/local_memory_unit.cpp
-        src/core/local_memory_unit/local_memory_unit.h
-        src/core/simd_unit/simd_unit.cpp
-        src/core/simd_unit/simd_unit.h
         src/base_component/fsm.h
-        src/base_component/submodule_socket.h
         src/base_component/memory_socket.cpp
         src/base_component/memory_socket.h
-        src/core/payload/payload.cpp
-        src/util/log.h
-        src/core/transfer_unit/transfer_unit.cpp
-        src/core/transfer_unit/transfer_unit.h
-        src/isa/isa.h
-        src/core/payload/payload_enum.cpp
-        src/core/scalar_unit/scalar_unit.cpp
-        src/core/scalar_unit/scalar_unit.h
-        src/core/reg_unit/reg_unit.cpp
-        src/core/reg_unit/reg_unit.h
-        src/base_component/register.h
         src/base_component/reg_unit_socket.cpp
         src/base_component/reg_unit_socket.h
+        src/base_component/register.h
+        src/base_component/stall_handler.cpp
+        src/base_component/stall_handler.h
+        src/base_component/submodule_socket.h
+
+        src/chip/chip.cpp
+        src/chip/chip.h
+
+        src/config/config.cpp
+        src/config/config.h
+        src/config/config_enum.cpp
+        src/config/config_enum.h
+
+        src/core/decoder/decoder.h
+        src/core/decoder/decoder_v1.cpp
+        src/core/decoder/decoder_v2.cpp
+        src/core/decoder/decoder_v3.cpp
+
+        src/core/execute_unit/execute_unit.cpp
+        src/core/execute_unit/execute_unit.h
+
+        src/core/local_memory_unit/local_memory_unit.cpp
+        src/core/local_memory_unit/local_memory_unit.h
+
+        src/core/payload/payload.cpp
+        src/core/payload/payload.h
+        src/core/payload/payload_enum.cpp
+        src/core/payload/payload_enum.h
+
+        src/core/pim_unit/cim_unit.cpp
+        src/core/pim_unit/cim_unit.h
         src/core/pim_unit/macro.cpp
         src/core/pim_unit/macro.h
-        src/core/pim_unit/pim_payload.h
         src/core/pim_unit/macro_group.cpp
         src/core/pim_unit/macro_group.h
         src/core/pim_unit/macro_group_controller.cpp
@@ -72,14 +67,42 @@ add_library(pim-simulator STATIC ""
         src/core/pim_unit/pim_compute_unit.h
         src/core/pim_unit/pim_control_unit.cpp
         src/core/pim_unit/pim_control_unit.h
-        src/isa/instruction.h
-        src/isa/instruction.cpp
+        src/core/pim_unit/pim_payload.h
+
+        src/core/reg_unit/reg_unit.cpp
+        src/core/reg_unit/reg_unit.h
+
+        src/core/scalar_unit/scalar_unit.cpp
+        src/core/scalar_unit/scalar_unit.h
+
+        src/core/simd_unit/simd_unit.cpp
+        src/core/simd_unit/simd_unit.h
+
+        src/core/transfer_unit/transfer_unit.cpp
+        src/core/transfer_unit/transfer_unit.h
+
         src/core/core.cpp
         src/core/core.h
-        src/base_component/stall_handler.cpp
-        src/base_component/stall_handler.h
-        src/util/ins_stat.cpp
-        src/util/ins_stat.h
+
+        src/isa/inst_v1.cpp
+        src/isa/inst_v1.h
+        src/isa/inst_v2.cpp
+        src/isa/inst_v2.h
+        src/isa/inst_v3.cpp
+        src/isa/inst_v3.h
+        src/isa/isa.h
+        src/isa/isa_v2.h
+
+        src/memory/global_memory.cpp
+        src/memory/global_memory.h
+        src/memory/memory.cpp
+        src/memory/memory.h
+        src/memory/memory_hardware.h
+        src/memory/ram.cpp
+        src/memory/ram.h
+        src/memory/reg_buffer.cpp
+        src/memory/reg_buffer.h
+
         src/network/network.cpp
         src/network/network.h
         src/network/payload.h
@@ -87,18 +110,16 @@ add_library(pim-simulator STATIC ""
         src/network/switch.h
         src/network/switch_socket.cpp
         src/network/switch_socket.h
-        src/memory/memory_hardware.h
-        src/memory/global_memory.cpp
-        src/memory/global_memory.h
-        src/chip/chip.cpp
-        src/chip/chip.h
+
+        src/util/ins_stat.cpp
+        src/util/ins_stat.h
         src/util/log.cpp
-        src/core/pim_unit/cim_unit.cpp
-        src/core/pim_unit/cim_unit.h
-        src/core/execute_unit/execute_unit.cpp
-        src/core/execute_unit/execute_unit.h
-        src/core/decoder/decoder.cpp
-        src/core/decoder/decoder.h
+        src/util/log.h
+        src/util/macro_scope.h
+        src/util/reporter.cpp
+        src/util/reporter.h
+        src/util/util.cpp
+        src/util/util.h
 )
 set_target_properties(pim-simulator PROPERTIES OUTPUT_NAME "pim-simulator")
 target_include_directories(pim-simulator PRIVATE
@@ -207,5 +228,22 @@ add_dependencies(UnitTest nlohmann_json fmt)
 target_link_libraries(UnitTest PUBLIC nlohmann_json fmt)
 target_include_directories(UnitTest PRIVATE src)
 target_include_directories(UnitTest PUBLIC packages/header-only)
+
+add_executable(InstConvert "" test/inst_convert.cpp
+        src/isa/inst_v1.cpp
+        src/isa/inst_v1.h
+        src/isa/inst_v2.cpp
+        src/isa/inst_v2.h
+        src/isa/inst_v3.cpp
+        src/isa/inst_v3.h
+        src/isa/isa.h
+        src/isa/isa_v2.h
+
+        test/base/test_payload.cpp
+        test/base/test_payload.h)
+add_dependencies(InstConvert nlohmann_json fmt)
+target_link_libraries(InstConvert PUBLIC nlohmann_json fmt)
+target_include_directories(InstConvert PRIVATE src)
+target_include_directories(InstConvert PUBLIC packages/header-only)
 
 add_executable(Test "" test/test.cpp)

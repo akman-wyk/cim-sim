@@ -1,73 +1,129 @@
 //
-// Created by wyk on 2025/2/15.
+// Created by wyk on 2025/3/5.
 //
 
-#include "decoder.h"
-
 #include "core/core.h"
+#include "decoder.h"
 #include "fmt/format.h"
+#include "isa/isa.h"
+#include "util/util.h"
 
 namespace pimsim {
 
-Decoder::Decoder(const char* name, const ChipConfig& chip_config, const SimConfig& sim_config, Core* core, Clock* clk)
-    : BaseModule(name, sim_config, core, clk)
-    , global_as_(chip_config.global_memory_config.addressing)
-    , simd_unit_config_(chip_config.core_config.simd_unit_config) {}
-
-void Decoder::bindRegUnit(RegUnit* reg_unit) {
-    this->reg_unit_ = reg_unit;
-}
-
-void Decoder::bindExecuteUnit(ExecuteUnitType type, ExecuteUnit* execute) {
-    this->execute_unit_map_.insert({type._to_integral(), execute});
-}
-
-bool Decoder::checkInsStat(const std::string& expected_ins_stat_file) const {
-    std::ifstream expected_ins_stat_ifs;
-    expected_ins_stat_ifs.open(expected_ins_stat_file);
-    nlohmann::ordered_json expected_ins_stat_j = nlohmann::ordered_json::parse(expected_ins_stat_ifs);
-    expected_ins_stat_ifs.close();
-
-    auto expected_ins_stat = expected_ins_stat_j.get<InsStat>();
+bool DecoderV1::checkInsStat(const std::string& expected_ins_stat_file) const {
+    auto expected_ins_stat = readTypeFromJsonFile<InsStat>(expected_ins_stat_file);
     return expected_ins_stat == ins_stat_;
 }
 
-std::shared_ptr<ExecuteInsPayload> Decoder::decode(const Instruction& ins, int pc, int& pc_increment,
-                                                   DataConflictPayload& conflict_info) {
+std::shared_ptr<ExecuteInsPayload> DecoderV1::decode(const InstV1& ins, int pc, int& pc_increment,
+                                                     DataConflictPayload& conflict_info) {
     // std::cout << fmt::format("pc: {}, ins id: {}, general reg: [{}]\n", ins_payload.pc, ins_payload.ins_id,
     //                             reg_unit_.getGeneralRegistersString());
     ins_id_++;
     ins_stat_.addInsCount(ins.class_code, ins.type, ins.opcode, simd_unit_config_);
 
-    if (ins.class_code == InstClass::control) {
-        pc_increment = decodeControlInsAndGetPCIncrement(ins, pc);
-        conflict_info = {.ins_id = ins_id_, .unit_type = ExecuteUnitType::control};
-        return nullptr;
-    }
-
     std::shared_ptr<ExecuteInsPayload> payload{};
+    pc_increment = 1;
+
     if (ins.class_code == InstClass::scalar) {
-        payload = decodeScalarIns(ins, pc);
+        payload = decodeScalarIns(ins);
     } else if (ins.class_code == InstClass::simd) {
-        payload = decodeSIMDIns(ins, pc);
+        payload = decodeSIMDIns(ins);
     } else if (ins.class_code == InstClass::transfer) {
-        payload = decodeTransferIns(ins, pc);
+        payload = decodeTransferIns(ins);
     } else if (ins.class_code == InstClass::pim) {
-        if (ins.type == PIMInstType::compute) {
-            payload = decodePimComputeIns(ins, pc);
-        } else {
-            payload = decodePimControlIns(ins, pc);
-        }
+        payload = decodePimIns(ins);
+    } else if (ins.class_code == InstClass::control) {
+        payload = std::make_shared<ExecuteInsPayload>(InstructionPayload{.unit_type = ExecuteUnitType::control});
+        pc_increment = decodeControlInsAndGetPCIncrement(ins);
+    }
+    payload->ins.pc = pc;
+    payload->ins.ins_id = ins_id_;
+
+    if (auto found = execute_unit_map_.find(payload->ins.unit_type._to_string()); found == execute_unit_map_.end()) {
+        conflict_info = {.ins_id = ins_id_, .unit_type = payload->ins.unit_type};
+    } else {
+        conflict_info = found->second->getDataConflictInfo(payload);
     }
 
-    pc_increment = 1;
-    conflict_info = execute_unit_map_[payload->ins.unit_type._to_integral()]->getDataConflictInfo(payload);
     return payload;
 }
 
-std::shared_ptr<ExecuteInsPayload> Decoder::decodeScalarIns(const Instruction& ins, int pc) const {
+std::shared_ptr<ExecuteInsPayload> DecoderV1::decodePimIns(const InstV1& ins) const {
+    std::shared_ptr<ExecuteInsPayload> payload{nullptr};
+    if (ins.type == PIMInstType::compute) {
+        PimComputeInsPayload p;
+        p.ins.unit_type = ExecuteUnitType::pim_compute;
+
+        p.input_addr_byte = reg_unit_->readRegister(ins.rs1, false);
+        p.input_len = reg_unit_->readRegister(ins.rs2, false);
+        p.input_bit_width = reg_unit_->readRegister(SpecialRegId::pim_input_bit_width, true);
+        p.activation_group_num = reg_unit_->readRegister(SpecialRegId::activation_group_num, true);
+        p.group_input_step_byte = reg_unit_->readRegister(SpecialRegId::group_input_step, true);
+        p.row = reg_unit_->readRegister(ins.rs3, false);
+        p.bit_sparse = (ins.bit_sparse != 0);
+        p.bit_sparse_meta_addr_byte = reg_unit_->readRegister(SpecialRegId::bit_sparse_meta_addr, true);
+        p.value_sparse = (ins.value_sparse != 0);
+        p.value_sparse_mask_addr_byte = reg_unit_->readRegister(SpecialRegId::value_sparse_mask_addr, true);
+
+        payload = std::make_shared<PimComputeInsPayload>(p);
+    } else if (ins.type == PIMInstType::set) {
+        PimControlInsPayload p;
+        p.ins.unit_type = ExecuteUnitType::pim_control;
+
+        p.op = PimControlOperator::set_activation;
+        p.group_broadcast = (ins.group_broadcast != 0);
+        p.group_id = reg_unit_->readRegister(ins.rs1, false);
+        p.mask_addr_byte = reg_unit_->readRegister(ins.rs2, false);
+
+        payload = std::make_shared<PimControlInsPayload>(p);
+    } else if (ins.type == PIMInstType::output) {
+        PimControlInsPayload p;
+        p.ins.unit_type = ExecuteUnitType::pim_control;
+
+        p.op = (ins.outsum_move != 0) ? PimControlOperator::output_sum_move
+               : (ins.outsum != 0)    ? PimControlOperator::output_sum
+                                      : PimControlOperator::only_output;
+        p.activation_group_num = reg_unit_->readRegister(SpecialRegId::activation_group_num, true);
+        p.output_addr_byte = reg_unit_->readRegister(ins.rd, false);
+        p.output_cnt_per_group = reg_unit_->readRegister(ins.rs1, false);
+        p.output_bit_width = reg_unit_->readRegister(SpecialRegId::pim_output_bit_width, true);
+        p.output_mask_addr_byte = reg_unit_->readRegister(ins.rs2, false);
+
+        payload = std::make_shared<PimControlInsPayload>(p);
+    }
+    return payload;
+}
+
+std::shared_ptr<ExecuteInsPayload> DecoderV1::decodeSIMDIns(const InstV1& ins) const {
+    SIMDInsPayload p;
+    p.ins.unit_type = ExecuteUnitType::simd;
+
+    p.input_cnt = ins.input_num + 1;
+
+    int i1_addr = reg_unit_->readRegister(ins.rs1, false);
+    int i2_addr = (p.input_cnt < 2) ? 0 : reg_unit_->readRegister(ins.rs2, false);
+    int i3_addr = (p.input_cnt < 3) ? 0 : reg_unit_->readRegister(SpecialRegId::input_3_address, true);
+    int i4_addr = (p.input_cnt < 4) ? 0 : reg_unit_->readRegister(SpecialRegId::input_4_address, true);
+
+    int i1_bit_width = reg_unit_->readRegister(SpecialRegId::simd_input_1_bit_width, true);
+    int i2_bit_width = (p.input_cnt < 2) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_2_bit_width, true);
+    int i3_bit_width = (p.input_cnt < 3) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_3_bit_width, true);
+    int i4_bit_width = (p.input_cnt < 4) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_4_bit_width, true);
+
+    p.opcode = static_cast<unsigned int>(ins.opcode);
+    p.inputs_bit_width = std::array<int, SIMD_MAX_INPUT_NUM>{i1_bit_width, i2_bit_width, i3_bit_width, i4_bit_width};
+    p.inputs_address_byte = std::array<int, SIMD_MAX_INPUT_NUM>{i1_addr, i2_addr, i3_addr, i4_addr};
+    p.output_bit_width = reg_unit_->readRegister(SpecialRegId::simd_output_bit_width, true);
+    p.output_address_byte = reg_unit_->readRegister(ins.rd, false);
+    p.len = reg_unit_->readRegister(ins.rs3, false);
+
+    return std::make_shared<SIMDInsPayload>(p);
+}
+
+std::shared_ptr<ExecuteInsPayload> DecoderV1::decodeScalarIns(const InstV1& ins) const {
     ScalarInsPayload p;
-    p.ins = {.pc = pc, .ins_id = ins_id_, .unit_type = ExecuteUnitType::scalar};
+    p.ins.unit_type = ExecuteUnitType::scalar;
 
     if (ins.type == ScalarInstType::RR) {
         p.op = decodeScalarRROpcode(ins.opcode);
@@ -108,35 +164,9 @@ std::shared_ptr<ExecuteInsPayload> Decoder::decodeScalarIns(const Instruction& i
     return std::make_shared<ScalarInsPayload>(p);
 }
 
-std::shared_ptr<ExecuteInsPayload> Decoder::decodeSIMDIns(const Instruction& ins, int pc) const {
-    SIMDInsPayload p;
-    p.ins = {.pc = pc, .ins_id = ins_id_, .unit_type = ExecuteUnitType::simd};
-
-    p.input_cnt = ins.input_num + 1;
-
-    int i1_addr = reg_unit_->readRegister(ins.rs1, false);
-    int i2_addr = (p.input_cnt < 2) ? 0 : reg_unit_->readRegister(ins.rs2, false);
-    int i3_addr = (p.input_cnt < 3) ? 0 : reg_unit_->readRegister(SpecialRegId::input_3_address, true);
-    int i4_addr = (p.input_cnt < 4) ? 0 : reg_unit_->readRegister(SpecialRegId::input_4_address, true);
-
-    int i1_bit_width = reg_unit_->readRegister(SpecialRegId::simd_input_1_bit_width, true);
-    int i2_bit_width = (p.input_cnt < 2) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_2_bit_width, true);
-    int i3_bit_width = (p.input_cnt < 3) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_3_bit_width, true);
-    int i4_bit_width = (p.input_cnt < 4) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_4_bit_width, true);
-
-    p.opcode = static_cast<unsigned int>(ins.opcode);
-    p.inputs_bit_width = std::array<int, SIMD_MAX_INPUT_NUM>{i1_bit_width, i2_bit_width, i3_bit_width, i4_bit_width};
-    p.inputs_address_byte = std::array<int, SIMD_MAX_INPUT_NUM>{i1_addr, i2_addr, i3_addr, i4_addr};
-    p.output_bit_width = reg_unit_->readRegister(SpecialRegId::simd_output_bit_width, true);
-    p.output_address_byte = reg_unit_->readRegister(ins.rd, false);
-    p.len = reg_unit_->readRegister(ins.rs3, false);
-
-    return std::make_shared<SIMDInsPayload>(p);
-}
-
-std::shared_ptr<ExecuteInsPayload> Decoder::decodeTransferIns(const Instruction& ins, int pc) const {
+std::shared_ptr<ExecuteInsPayload> DecoderV1::decodeTransferIns(const InstV1& ins) const {
     TransferInsPayload p;
-    p.ins = {.pc = pc, .ins_id = ins_id_, .unit_type = ExecuteUnitType::transfer};
+    p.ins.unit_type = ExecuteUnitType::transfer;
 
     if (ins.type == +TransferInstType::trans) {
         p.type = TransferType::local_trans;
@@ -171,47 +201,7 @@ std::shared_ptr<ExecuteInsPayload> Decoder::decodeTransferIns(const Instruction&
     return std::make_shared<TransferInsPayload>(p);
 }
 
-std::shared_ptr<ExecuteInsPayload> Decoder::decodePimComputeIns(const Instruction& ins, int pc) const {
-    PimComputeInsPayload p;
-    p.ins = {.pc = pc, .ins_id = ins_id_, .unit_type = ExecuteUnitType::pim_compute};
-
-    p.input_addr_byte = reg_unit_->readRegister(ins.rs1, false);
-    p.input_len = reg_unit_->readRegister(ins.rs2, false);
-    p.input_bit_width = reg_unit_->readRegister(SpecialRegId::pim_input_bit_width, true);
-    p.activation_group_num = reg_unit_->readRegister(SpecialRegId::activation_group_num, true);
-    p.group_input_step_byte = reg_unit_->readRegister(SpecialRegId::group_input_step, true);
-    p.row = reg_unit_->readRegister(ins.rs3, false);
-    p.bit_sparse = (ins.bit_sparse != 0);
-    p.bit_sparse_meta_addr_byte = reg_unit_->readRegister(SpecialRegId::bit_sparse_meta_addr, true);
-    p.value_sparse = (ins.value_sparse != 0);
-    p.value_sparse_mask_addr_byte = reg_unit_->readRegister(SpecialRegId::value_sparse_mask_addr, true);
-
-    return std::make_shared<PimComputeInsPayload>(p);
-}
-
-std::shared_ptr<ExecuteInsPayload> Decoder::decodePimControlIns(const Instruction& ins, int pc) const {
-    PimControlInsPayload p;
-    p.ins = {.pc = pc, .ins_id = ins_id_, .unit_type = ExecuteUnitType::pim_control};
-
-    if (ins.type == PIMInstType::set) {
-        p.op = PimControlOperator::set_activation;
-        p.group_broadcast = (ins.group_broadcast != 0);
-        p.group_id = reg_unit_->readRegister(ins.rs1, false);
-        p.mask_addr_byte = reg_unit_->readRegister(ins.rs2, false);
-    } else {
-        p.op = (ins.outsum_move != 0) ? PimControlOperator::output_sum_move
-               : (ins.outsum != 0)    ? PimControlOperator::output_sum
-                                      : PimControlOperator::only_output;
-        p.activation_group_num = reg_unit_->readRegister(SpecialRegId::activation_group_num, true);
-        p.output_addr_byte = reg_unit_->readRegister(ins.rd, false);
-        p.output_cnt_per_group = reg_unit_->readRegister(ins.rs1, false);
-        p.output_bit_width = reg_unit_->readRegister(SpecialRegId::pim_output_bit_width, true);
-        p.output_mask_addr_byte = reg_unit_->readRegister(ins.rs2, false);
-    }
-    return std::make_shared<PimControlInsPayload>(p);
-}
-
-int Decoder::decodeControlInsAndGetPCIncrement(const Instruction& ins, int pc) const {
+int DecoderV1::decodeControlInsAndGetPCIncrement(const InstV1& ins) const {
     if (ins.type == ControlInstType::jmp) {
         return ins.offset;
     }
@@ -232,7 +222,7 @@ int Decoder::decodeControlInsAndGetPCIncrement(const Instruction& ins, int pc) c
     return 1;
 }
 
-ScalarOperator Decoder::decodeScalarRROpcode(int opcode) {
+ScalarOperator DecoderV1::decodeScalarRROpcode(int opcode) {
     ScalarOperator op{};
     switch (opcode) {
         case ScalarRRInstOpcode::add: op = ScalarOperator::add; break;
@@ -256,7 +246,7 @@ ScalarOperator Decoder::decodeScalarRROpcode(int opcode) {
     return op;
 }
 
-ScalarOperator Decoder::decodeScalarRIOpcode(int opcode) {
+ScalarOperator DecoderV1::decodeScalarRIOpcode(int opcode) {
     ScalarOperator op{};
     switch (opcode) {
         case ScalarRIInstOpcode::addi: op = ScalarOperator::add; break;

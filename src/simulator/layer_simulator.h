@@ -30,8 +30,7 @@ public:
     // [[nodiscard]] bool checkReg() const;
 
 private:
-    [[nodiscard]] std::vector<std::vector<Instruction>> getCoreInstructionList(
-        const nlohmann::ordered_json& instruction_json) const;
+    [[nodiscard]] std::vector<std::vector<Instruction>> getCoreInstructionList() const;
 
 private:
     std::shared_ptr<Chip> chip_;

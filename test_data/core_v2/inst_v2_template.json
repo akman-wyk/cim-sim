@@ -1,0 +1,17 @@
+{
+  "opcode": 0,
+  "rs": 0,
+  "rt": 0,
+  "rd": 0,
+  "re": 0,
+  "rf": 0,
+  "funct": 0,
+  "imm": 0,
+  "GRP": false,
+  "GRP_I": false,
+  "SP_V": false,
+  "SP_B": false,
+  "GRP_B": false,
+  "OSUM": false,
+  "OSUM_MOV": false
+}

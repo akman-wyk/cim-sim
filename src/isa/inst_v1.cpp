@@ -2,12 +2,12 @@
 // Created by wyk on 2024/8/8.
 //
 
-#include "instruction.h"
+#include "inst_v1.h"
 
 namespace pimsim {
 
-void from_json(const nlohmann::ordered_json& j, Instruction& t) {
-    const Instruction obj{};
+void from_json(const nlohmann::ordered_json& j, InstV1& t) {
+    const InstV1 obj{};
     if (j.contains("class")) {
         t.class_code = j["class"];
     } else if (j.contains("class_code")) {
@@ -48,7 +48,7 @@ void from_json(const nlohmann::ordered_json& j, Instruction& t) {
     t.reg_len = j.value("reg_len", obj.reg_len);
 }
 
-DEFINE_TYPE_TO_JSON_FUNCTION_WITH_DEFAULT(Instruction, class_code, type, opcode, rs1, rs2, rs3, rs4, rd, imm, offset,
+DEFINE_TYPE_TO_JSON_FUNCTION_WITH_DEFAULT(InstV1, class_code, type, opcode, rs1, rs2, rs3, rs4, rd, imm, offset,
                                           value_sparse, bit_sparse, group, group_input_mode, group_broadcast,
                                           outsum_move, outsum, input_num, offset_mask, rd1, rd2, reg_id, reg_len)
 

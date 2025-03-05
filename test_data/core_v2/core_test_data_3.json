@@ -1,0 +1,25 @@
+{
+  "comments": "test fot Pim Load instructions",
+  "code": [
+    {"opcode": 44, "rd": 0, "imm": 2048, "asm": "G_LI 2048 to $0"},
+    {"opcode": 44, "rd": 1, "imm": 256, "asm": "G_LI 256 to $1"},
+    {"opcode": 44, "rd": 2, "imm": 0, "asm": "G_LI 0 to $2"},
+    {"opcode": 48, "rs": 0, "rt": 1, "rd": 2, "imm": 0, "asm": "MEM_CPY $0 to $2, size: $1, off: 0, mask: 00"},
+    {"opcode": 44, "rd": 0, "imm": 2048, "asm": "G_LI 2048 to $0"},
+    {"opcode": 44, "rd": 1, "imm": 320, "asm": "G_LI 320 to $1"},
+    {"opcode": 44, "rd": 2, "imm": 512, "asm": "G_LI 512 to $2"},
+    {"opcode": 48, "rs": 0, "rt": 1, "rd": 2, "imm": 0, "asm": "MEM_CPY $0 to $2, size: $1, off: 0, mask: 00"},
+    {"opcode": 44, "rd": 0, "imm": 2048, "asm": "G_LI 2048 to $0"},
+    {"opcode": 44, "rd": 1, "imm": 64, "asm": "G_LI 64 to $1"},
+    {"opcode": 44, "rd": 2, "imm": 1024, "asm": "G_LI 1024 to $2"},
+    {"opcode": 48, "rs": 0, "rt": 1, "rd": 2, "imm": 0, "asm": "MEM_CPY $0 to $2, size: $1, off: 0, mask: 00"},
+    {"opcode": 44, "rd": 0, "imm": 2048, "asm": "G_LI 2048 to $0"},
+    {"opcode": 44, "rd": 1, "imm": 512, "asm": "G_LI 512 to $1"},
+    {"opcode": 44, "rd": 2, "imm": 1536, "asm": "G_LI 1536 to $2"},
+    {"opcode": 48, "rs": 0, "rt": 1, "rd": 2, "imm": 0, "asm": "MEM_CPY $0 to $2, size: $1, off: 0, mask: 00"}
+  ],
+  "expected": {
+    "time_ns": 105,
+    "energy_pj": 562
+  }
+}
