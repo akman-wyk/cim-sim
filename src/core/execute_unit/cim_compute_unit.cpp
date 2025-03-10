@@ -2,7 +2,7 @@
 // Created by wyk on 2024/7/29.
 //
 
-#include "pim_compute_unit.h"
+#include "cim_compute_unit.h"
 
 #include "fmt/format.h"
 #include "util/log.h"
@@ -34,8 +34,7 @@ void PimComputeUnit::bindLocalMemoryUnit(pimsim::LocalMemoryUnit *local_memory_u
 
 void PimComputeUnit::bindCimUnit(CimUnit *cim_unit) {
     cim_unit_ = cim_unit;
-    cim_unit_->bindCimComputeUnit([this](int ins_id) { triggerFinishInstruction(ins_id); },
-                                  [this]() { triggerFinishRun(); });
+    cim_unit_->bindCimComputeUnit([this](int ins_id) { releaseResource(ins_id); }, [this]() { finishInstruction(); });
 }
 
 EnergyReporter PimComputeUnit::getEnergyReporter() {
@@ -56,13 +55,12 @@ void PimComputeUnit::processIssue() {
         auto payload = waitForExecuteAndGetPayload<PimComputeInsPayload>();
 
         LOG(fmt::format("Pim compute start, pc: {}", payload->ins.pc));
-        ports_.data_conflict_port_.write(getDataConflictInfo(*payload));
+        ports_.resource_allocate_.write(getDataConflictInfo(*payload));
 
         process_sub_ins_socket_.waitUntilFinishIfBusy();
         process_sub_ins_socket_.payload = {
             .pim_ins_info = {.ins_pc = payload->ins.pc,
                              .sub_ins_num = 1,
-                             .last_ins = isEndPC(payload->ins.pc) && sim_mode_ == +SimMode::run_one_round,
                              .last_sub_ins = true,
                              .ins_id = payload->ins.ins_id},
             .ins_payload = *payload,
@@ -237,8 +235,8 @@ void PimComputeUnit::readBitSparseMetaSubmodule() {
     }
 }
 
-DataConflictPayload PimComputeUnit::getDataConflictInfo(const pimsim::PimComputeInsPayload &payload) const {
-    DataConflictPayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::pim_compute};
+ResourceAllocatePayload PimComputeUnit::getDataConflictInfo(const pimsim::PimComputeInsPayload &payload) const {
+    ResourceAllocatePayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::pim_compute};
 
     int input_memory_id = local_memory_socket_.getLocalMemoryIdByAddress(payload.input_addr_byte);
     conflict_payload.addReadMemoryId({input_memory_id, cim_unit_->getLocalMemoryId()});
@@ -256,7 +254,7 @@ DataConflictPayload PimComputeUnit::getDataConflictInfo(const pimsim::PimCompute
     return std::move(conflict_payload);
 }
 
-DataConflictPayload PimComputeUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload> &payload) {
+ResourceAllocatePayload PimComputeUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload> &payload) {
     return getDataConflictInfo(*std::dynamic_pointer_cast<PimComputeInsPayload>(payload));
 }
 

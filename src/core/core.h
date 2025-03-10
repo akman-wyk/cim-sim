@@ -7,33 +7,23 @@
 #include <vector>
 
 #include "base_component/base_module.h"
-#include "base_component/stall_handler.h"
-#include "core/pim_unit/cim_unit.h"
-#include "core/pim_unit/pim_compute_unit.h"
-#include "core/pim_unit/pim_control_unit.h"
+#include "conflict/conflict_handler.h"
+#include "core/cim_unit/cim_unit.h"
 #include "core/reg_unit/reg_unit.h"
-#include "core/scalar_unit/scalar_unit.h"
-#include "core/simd_unit/simd_unit.h"
-#include "core/transfer_unit/transfer_unit.h"
 #include "decoder/decoder.h"
+#include "execute_unit/cim_compute_unit.h"
+#include "execute_unit/cim_control_unit.h"
 #include "execute_unit/execute_unit.h"
+#include "execute_unit/scalar_unit.h"
+#include "execute_unit/simd_unit.h"
+#include "execute_unit/transfer_unit.h"
 #include "local_memory_unit/local_memory_unit.h"
-#include "payload/payload.h"
+#include "payload.h"
 
 namespace pimsim {
 
 using DecoderImpl = DecoderV2;
 using Instruction = DecoderImpl::Instruction;
-
-struct ExecuteUnitRegistration {
-    ExecuteUnitRegistration(ExecuteUnitType type, ExecuteUnit* execute_unit, sc_event& decode_new_ins_trigger);
-
-    ExecuteUnitType type;
-    ExecuteUnit* execute_unit;
-    StallHandler stall_handler;
-    ExecuteUnitSignalPorts signals;
-    sc_signal<bool> conflict_signal;
-};
 
 class Core : public BaseModule {
 public:
@@ -51,6 +41,17 @@ public:
     bool checkInsStat(const std::string& expected_ins_stat_file) const;
 
     [[nodiscard]] int getCoreId() const;
+
+private:
+    struct ExecuteUnitRegistration {
+        ExecuteUnitRegistration(ExecuteUnitType type, ExecuteUnit* execute_unit, sc_event& decode_new_ins_trigger);
+
+        ExecuteUnitType type;
+        ExecuteUnit* execute_unit;
+        ConflictHandler stall_handler;
+        ExecuteUnitSignalPorts signals;
+        sc_signal<bool> conflict_signal;
+    };
 
 private:
     [[noreturn]] void processDecode();
@@ -96,7 +97,7 @@ private:
     // decode, issue and stall
     std::shared_ptr<ExecuteInsPayload> cur_ins_payload_;
     int pc_increment_{0};
-    DataConflictPayload cur_ins_conflict_info_;
+    ResourceAllocatePayload cur_ins_conflict_info_;
     sc_core::sc_event decode_new_ins_trigger_;
     sc_core::sc_signal<bool> id_finish_;
     sc_core::sc_signal<bool> id_stall_;

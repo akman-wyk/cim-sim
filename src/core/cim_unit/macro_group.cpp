@@ -45,12 +45,12 @@ EnergyReporter MacroGroup::getEnergyReporter() {
     return std::move(macro_group_reporter);
 }
 
-void MacroGroup::setFinishInsFunc(std::function<void(int)> finish_ins_func) {
-    finish_ins_func_ = std::move(finish_ins_func);
+void MacroGroup::setReleaseResourceFunc(std::function<void(int)> release_resource_func) {
+    release_resource_func_ = std::move(release_resource_func);
 }
 
-void MacroGroup::setFinishRunFunc(std::function<void()> finish_run_func) {
-    finish_run_func_ = std::move(finish_run_func);
+void MacroGroup::setFinishInsFunc(std::function<void()> finish_ins_func) {
+    finish_ins_func_ = std::move(finish_ins_func);
 }
 
 void MacroGroup::setMacrosActivationElementColumn(
@@ -120,15 +120,15 @@ void MacroGroup::processResultAdderSubmodule() {
         LOG(fmt::format("{} start result adder, ins pc: {}, sub ins num: {}", getName(), pim_ins_info.ins_pc,
                         pim_ins_info.sub_ins_num));
 
-        if (sub_ins_info.last_group && pim_ins_info.last_sub_ins && finish_ins_func_) {
-            finish_ins_func_(pim_ins_info.ins_id);
+        if (sub_ins_info.last_group && pim_ins_info.last_sub_ins && release_resource_func_) {
+            release_resource_func_(pim_ins_info.ins_id);
         }
 
         double latency = config_.result_adder.latency_cycle * period_ns_;
         wait(latency, SC_NS);
 
-        if (sub_ins_info.last_group && pim_ins_info.last_sub_ins && pim_ins_info.last_ins && finish_run_func_) {
-            finish_run_func_();
+        if (finish_ins_func_ && sub_ins_info.last_group && pim_ins_info.last_sub_ins) {
+            finish_ins_func_();
         }
 
         LOG(fmt::format("{} end result adder, ins pc: {}, sub ins num: {}", getName(), pim_ins_info.ins_pc,

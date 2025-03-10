@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include "base_component/memory_socket.h"
 #include "base_component/submodule_socket.h"
 #include "config/config.h"
-#include "core/execute_unit/execute_unit.h"
-#include "core/local_memory_unit/local_memory_unit.h"
+#include "execute_unit.h"
+#include "memory/memory_socket.h"
 #include "network/payload.h"
 #include "network/switch_socket.h"
+#include "payload.h"
 
 namespace pimsim {
 
@@ -57,14 +57,14 @@ public:
     void bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit);
     void bindSwitch(Switch* switch_);
 
-    DataConflictPayload getDataConflictInfo(const TransferInsPayload& payload) const;
-    DataConflictPayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
+    ResourceAllocatePayload getDataConflictInfo(const TransferInsPayload& payload) const;
+    ResourceAllocatePayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
 
 private:
     static void waitAndStartNextSubmodule(TransferSubmodulePayload& cur_payload,
                                           SubmoduleSocket<TransferSubmodulePayload>& next_submodule_socket);
 
-    std::pair<TransferInstructionInfo, DataConflictPayload> decodeAndGetInfo(const TransferInsPayload& payload) const;
+    std::pair<TransferInstructionInfo, ResourceAllocatePayload> decodeAndGetInfo(const TransferInsPayload& payload) const;
 
     void switchReceiveHandler(const std::shared_ptr<NetworkPayload>& payload);
 

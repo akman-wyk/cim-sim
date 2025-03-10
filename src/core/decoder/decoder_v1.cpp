@@ -16,7 +16,7 @@ bool DecoderV1::checkInsStat(const std::string& expected_ins_stat_file) const {
 }
 
 std::shared_ptr<ExecuteInsPayload> DecoderV1::decode(const InstV1& ins, int pc, int& pc_increment,
-                                                     DataConflictPayload& conflict_info) {
+                                                     ResourceAllocatePayload& conflict_info) {
     // std::cout << fmt::format("pc: {}, ins id: {}, general reg: [{}]\n", ins_payload.pc, ins_payload.ins_id,
     //                             reg_unit_.getGeneralRegistersString());
     ins_id_++;

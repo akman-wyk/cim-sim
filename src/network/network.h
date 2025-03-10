@@ -10,7 +10,6 @@
 #include "base_component/energy_counter.h"
 #include "config/config.h"
 #include "nlohmann/json.hpp"
-#include "systemc.h"
 #include "util/reporter.h"
 
 namespace pimsim {

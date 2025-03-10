@@ -30,7 +30,8 @@
     {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 2, "funct": 0, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $2, func: 0"},
     {"opcode": 44, "rd": 0, "imm": 1024, "asm": "G_LI 1024 to $0"},
     {"opcode": 44, "rd": 3, "imm": 2048, "asm": "G_LI 2048 to $3"},
-    {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 2, "funct": 0, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $2, func: 0"}
+    {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 2, "funct": 0, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $2, func: 0"},
+    {"opcode": 45, "rd": 0, "imm": 0, "asm": "S_LI 0 to $0"}
   ],
   "expected": {
     "time_ns": 380,

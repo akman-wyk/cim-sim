@@ -24,8 +24,8 @@ public:
 
     EnergyReporter getEnergyReporter() override;
 
-    void setFinishInsFunc(std::function<void(int ins_pc)> finish_ins_func);
-    void setFinishRunFunc(std::function<void()> finish_run_func);
+    void setReleaseResourceFunc(std::function<void(int ins_pc)> release_resource_func);
+    void setFinishInsFunc(std::function<void()> finish_ins_func);
 
     void setMacrosActivationElementColumn(const std::vector<unsigned char>& macros_activation_element_col_mask);
     int getActivationMacroCount() const;
@@ -46,8 +46,8 @@ private:
     SubmoduleSocket<MacroGroupPayload> macro_group_socket_{};
     SubmoduleSocket<MacroGroupSubmodulePayload> result_adder_socket_{};
 
-    std::function<void(int ins_pc)> finish_ins_func_;
-    std::function<void()> finish_run_func_;
+    std::function<void(int ins_id)> release_resource_func_;
+    std::function<void()> finish_ins_func_;
 
     sc_core::sc_event next_sub_ins_;
 };

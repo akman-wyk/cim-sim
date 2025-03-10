@@ -41,8 +41,8 @@ public:
     void runMacroGroup(int group_id, MacroGroupPayload group_payload);
 
     // Other Interface
-    void bindCimComputeUnit(const std::function<void(int)>& finish_ins_func,
-                            const std::function<void()>& finish_run_func);
+    void bindCimComputeUnit(const std::function<void(int)>& release_resource_func,
+                            const std::function<void()>& finish_ins_func);
     void bindLocalMemoryUnit(int local_memory_id);
     int getLocalMemoryId() const;
 

@@ -7,7 +7,6 @@
 
 #include "network.h"
 #include "payload.h"
-#include "systemc.h"
 #include "base_component/base_module.h"
 
 namespace pimsim {

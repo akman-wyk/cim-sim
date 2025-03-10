@@ -9,7 +9,7 @@
 namespace pimsim {
 
 std::shared_ptr<ExecuteInsPayload> DecoderV3::decode(const InstV3& ins, int pc, int& pc_increment,
-                                                     DataConflictPayload& conflict_info) {
+                                                     ResourceAllocatePayload& conflict_info) {
     ins_id_++;
 
     // decode to get payload

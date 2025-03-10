@@ -9,8 +9,8 @@
 
 #include "../base/test_macro.h"
 #include "base_component/base_module.h"
-#include "base_component/stall_handler.h"
 #include "config/config.h"
+#include "core/conflict/conflict_handler.h"
 #include "core/execute_unit/execute_unit.h"
 #include "core/local_memory_unit/local_memory_unit.h"
 #include "fmt/format.h"
@@ -41,6 +41,7 @@ public:
         , unit_stall_handler_(decode_new_ins_trigger_, type)
         , type_(type) {
         test_unit_.ports_.bind(signals_);
+        test_unit_.ports_.id_finish_port_.bind(id_finish_);
         unit_stall_handler_.bind(signals_, unit_conflict_, &cur_ins_conflict_info_);
 
         SC_THREAD(issue)
@@ -51,15 +52,14 @@ public:
         SC_METHOD(processIdExEnable)
         sensitive << id_stall_;
 
-        SC_METHOD(processFinishIns)
-        sensitive << signals_.finish_ins_ << signals_.finish_ins_id_;
+        SC_METHOD(processResourceRelease)
+        sensitive << signals_.resource_release_;
 
         SC_METHOD(processFinishRun)
-        sensitive << signals_.finish_run_;
+        sensitive << signals_.unit_finish_;
 
         test_unit_.bindLocalMemoryUnit(&local_memory_unit_);
         ins_list_ = std::move(codes);
-        test_unit_.setEndPC(static_cast<int>(ins_list_.size()));
     }
 
     Reporter getReporter() {
@@ -76,11 +76,15 @@ private:
         wait(8, SC_NS);
 
         while (true) {
-            if (cur_ins_conflict_info_.unit_type == +ExecuteUnitType::none && ins_index_ < ins_list_.size()) {
-                ins_list_[ins_index_].payload.ins.ins_id = ins_id++;
-                ins_list_[ins_index_].payload.ins.unit_type = type_;
-                cur_ins_conflict_info_ = test_unit_.getDataConflictInfo(ins_list_[ins_index_].payload);
-                decode_new_ins_trigger_.notify();
+            if (cur_ins_conflict_info_.unit_type == +ExecuteUnitType::none) {
+                if (ins_index_ < ins_list_.size()) {
+                    ins_list_[ins_index_].payload.ins.ins_id = ins_id++;
+                    ins_list_[ins_index_].payload.ins.unit_type = type_;
+                    cur_ins_conflict_info_ = test_unit_.getDataConflictInfo(ins_list_[ins_index_].payload);
+                    decode_new_ins_trigger_.notify();
+                } else {
+                    id_finish_.write(true);
+                }
             }
             wait(0.1, SC_NS);
 
@@ -89,7 +93,7 @@ private:
                     ExecuteUnitPayload{.payload = std::make_shared<InsPayload>(ins_list_[ins_index_].payload)});
                 ins_index_++;
 
-                cur_ins_conflict_info_ = DataConflictPayload{.ins_id = -1, .unit_type = ExecuteUnitType::none};
+                cur_ins_conflict_info_ = ResourceAllocatePayload{.ins_id = -1, .unit_type = ExecuteUnitType::none};
             } else {
                 signals_.id_ex_payload_.write(ExecuteUnitPayload{.payload = nullptr});
             }
@@ -106,14 +110,14 @@ private:
         signals_.id_ex_enable_.write(!id_stall_.read());
     }
 
-    void processFinishIns() {
-        if (signals_.finish_ins_.read()) {
-            LOG(fmt::format("pim set ins finish, pc: {}", signals_.finish_ins_id_.read()));
+    void processResourceRelease() {
+        if (auto ins_id = signals_.resource_release_.read().ins_id; ins_id != -1) {
+            LOG(fmt::format("pim set ins finish, pc: {}", ins_id));
         }
     }
 
     void processFinishRun() {
-        if (signals_.finish_run_.read()) {
+        if (signals_.unit_finish_.read()) {
             running_time_ = sc_core::sc_time_stamp();
             sc_stop();
         }
@@ -128,7 +132,7 @@ protected:
     std::vector<TestInstruction> ins_list_;
     int ins_index_{0};
     int ins_id{0};
-    DataConflictPayload cur_ins_conflict_info_;
+    ResourceAllocatePayload cur_ins_conflict_info_;
     sc_core::sc_event decode_new_ins_trigger_;
 
     // modules
@@ -136,9 +140,10 @@ protected:
     TestUnit test_unit_;
 
     // stall
-    StallHandler unit_stall_handler_;
+    ConflictHandler unit_stall_handler_;
     sc_core::sc_signal<bool> unit_conflict_;
     sc_core::sc_signal<bool> id_stall_;
+    sc_core::sc_signal<bool> id_finish_;
 
     // id ex signals
     ExecuteUnitSignalPorts signals_;

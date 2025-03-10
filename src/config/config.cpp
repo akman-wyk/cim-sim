@@ -8,7 +8,7 @@
 #include <iostream>
 #include <unordered_map>
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 
 namespace pimsim {
 

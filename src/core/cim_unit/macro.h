@@ -9,7 +9,7 @@
 #include "base_component/fsm.h"
 #include "base_component/submodule_socket.h"
 #include "config/config.h"
-#include "pim_payload.h"
+#include "payload.h"
 
 namespace pimsim {
 
@@ -28,7 +28,7 @@ public:
     static void waitAndStartNextSubmodule(const MacroSubmodulePayload& cur_payload,
                                           SubmoduleSocket<MacroSubmodulePayload>& next_submodule_socket);
 
-    void setFinishRunFunction(std::function<void()> finish_func);
+    void setFinishInsFunction(std::function<void()> finish_func);
 
     void setActivationElementColumn(const std::vector<unsigned char>& macros_activation_element_col_mask,
                                     int start_index = 0);
@@ -70,7 +70,7 @@ private:
     EnergyCounter result_adder_energy_counter_;
 
     // for test
-    std::function<void()> finish_run_func_{};
+    std::function<void()> finish_ins_func_{};
 };
 
 }  // namespace pimsim

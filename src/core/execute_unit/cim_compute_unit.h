@@ -5,12 +5,12 @@
 #pragma once
 #include <vector>
 
-#include "base_component/memory_socket.h"
 #include "base_component/submodule_socket.h"
-#include "cim_unit.h"
 #include "config/config.h"
-#include "core/execute_unit/execute_unit.h"
-#include "macro_group.h"
+#include "core/cim_unit/cim_unit.h"
+#include "execute_unit.h"
+#include "memory/memory_socket.h"
+#include "payload.h"
 
 namespace pimsim {
 
@@ -38,8 +38,8 @@ public:
 
     EnergyReporter getEnergyReporter() override;
 
-    DataConflictPayload getDataConflictInfo(const PimComputeInsPayload& payload) const;
-    DataConflictPayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
+    ResourceAllocatePayload getDataConflictInfo(const PimComputeInsPayload& payload) const;
+    ResourceAllocatePayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
 
 private:
     [[noreturn]] void processIssue();

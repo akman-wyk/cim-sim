@@ -25,7 +25,8 @@
     {"opcode": 45, "rd": 8, "imm": 2048, "asm": "S_LI 2048 to $8"},
     {"opcode": 44, "rd": 1, "imm": 1072, "asm": "G_LI 1072 to $1"},
     {"opcode": 44, "rd": 3, "imm": 3, "asm": "G_LI 3 to $3"},
-    {"opcode": 0, "rs": 1, "rt": 2, "re": 3, "GRP": true, "SP_B": true, "asm": "CIM_MVM $1 $2 $3, flags: GRP SP_B"}
+    {"opcode": 0, "rs": 1, "rt": 2, "re": 3, "GRP": true, "SP_B": true, "asm": "CIM_MVM $1 $2 $3, flags: GRP SP_B"},
+    {"opcode": 45, "rd": 0, "imm": 0, "asm": "S_LI 0 to $0"}
   ],
   "expected": {
     "time_ns": 240,

@@ -7,11 +7,11 @@
 #include <unordered_map>
 #include <utility>
 
-#include "base_component/memory_socket.h"
 #include "base_component/submodule_socket.h"
 #include "config/config.h"
-#include "core/execute_unit/execute_unit.h"
-#include "systemc.h"
+#include "execute_unit.h"
+#include "memory/memory_socket.h"
+#include "payload.h"
 
 namespace pimsim {
 
@@ -58,8 +58,8 @@ public:
 
     void bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit);
 
-    DataConflictPayload getDataConflictInfo(const SIMDInsPayload& payload) const;
-    DataConflictPayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
+    ResourceAllocatePayload getDataConflictInfo(const SIMDInsPayload& payload) const;
+    ResourceAllocatePayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
 
 private:
     static unsigned int getSIMDInstructionIdentityCode(unsigned int input_cnt, unsigned int opcode);
@@ -70,7 +70,7 @@ private:
     std::pair<const SIMDInstructionConfig*, const SIMDFunctorConfig*> getSIMDInstructionAndFunctor(
         const SIMDInsPayload& payload);
 
-    std::pair<SIMDInstructionInfo, DataConflictPayload> decodeAndGetInfo(const SIMDInstructionConfig* instruction,
+    std::pair<SIMDInstructionInfo, ResourceAllocatePayload> decodeAndGetInfo(const SIMDInstructionConfig* instruction,
                                                                          const SIMDFunctorConfig* functor,
                                                                          const SIMDInsPayload& payload) const;
 

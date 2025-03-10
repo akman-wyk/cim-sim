@@ -30,6 +30,15 @@ namespace pimsim {
         TYPE_TO_JSON_FIELD_ASSIGN(__VA_ARGS__)                                           \
     }
 
+#define DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT_INTRUSIVE(Type, ...)                       \
+    friend void from_json(const nlohmann::ordered_json& nlohmann_json_j, Type& nlohmann_json_t) { \
+        const Type nlohmann_json_default_obj{};                                                   \
+        TYPE_FROM_JSON_FIELD_ASSIGN(__VA_ARGS__)                                                  \
+    }                                                                                             \
+    friend void to_json(nlohmann::ordered_json& nlohmann_json_j, const Type& nlohmann_json_t) {   \
+        TYPE_TO_JSON_FIELD_ASSIGN(__VA_ARGS__)                                                    \
+    }
+
 #define TYPE_FROM_JSON_FIELD_ASSIGN(...) \
     NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM_WITH_DEFAULT, __VA_ARGS__))
 

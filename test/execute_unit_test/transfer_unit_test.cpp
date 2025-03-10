@@ -3,8 +3,8 @@
 //
 
 #include "../base/test_payload.h"
-#include "core/payload/payload.h"
-#include "core/transfer_unit/transfer_unit.h"
+#include "core/execute_unit/transfer_unit.h"
+#include "core/payload.h"
 #include "execute_unit_test.h"
 
 namespace pimsim {
@@ -17,6 +17,9 @@ struct TransferTestInfo {
     std::vector<TransferTestInstruction> code{};
     TestExpectedInfo expected{};
 };
+
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(TransferInsPayload, ins, type, src_address_byte, dst_address_byte,
+                                               size_byte, src_id, dst_id, transfer_id_tag)
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(TransferTestInstruction, payload)
 
@@ -47,7 +50,8 @@ int sc_main(int argc, char* argv[]) {
                                           config.chip_config.core_config.transfer_unit_config,
                                           config,
                                           clk,
-                                          std::move(test_info.code), ExecuteUnitType::transfer};
+                                          std::move(test_info.code),
+                                          ExecuteUnitType::transfer};
     };
     return pimsim_unit_test<TransferUnitTestModule>(argc, argv, initializer);
 }

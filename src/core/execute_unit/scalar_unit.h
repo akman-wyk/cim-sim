@@ -6,11 +6,12 @@
 #include <string>
 #include <unordered_map>
 
-#include "base_component/memory_socket.h"
-#include "base_component/reg_unit_socket.h"
 #include "base_component/submodule_socket.h"
 #include "config/config.h"
-#include "core/execute_unit/execute_unit.h"
+#include "core/reg_unit/reg_unit.h"
+#include "execute_unit.h"
+#include "memory/memory_socket.h"
+#include "payload.h"
 
 namespace pimsim {
 
@@ -35,7 +36,7 @@ private:
     SubmoduleSocket<ScalarInsPayload> execute_socket_;
 
     MemorySocket local_memory_socket_;
-    RegUnitSocket reg_unit_socket_;
+    RegUnit* reg_unit_{nullptr};
 };
 
 }  // namespace pimsim
