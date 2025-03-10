@@ -3,8 +3,7 @@
 //
 
 #include "../base/test_payload.h"
-#include "core/payload/payload.h"
-#include "core/pim_unit/pim_compute_unit.h"
+#include "core/execute_unit/cim_compute_unit.h"
 #include "execute_unit_test.h"
 
 namespace pimsim {

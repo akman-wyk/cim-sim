@@ -5,7 +5,7 @@
 #include "local_memory_unit.h"
 
 #include "core/core.h"
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "util/util.h"
 
 namespace pimsim {

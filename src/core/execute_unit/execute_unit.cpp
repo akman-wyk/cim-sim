@@ -18,11 +18,24 @@ ExecuteUnit::ExecuteUnit(const char* name, const SimConfig& sim_config, Core* co
     SC_METHOD(checkInst)
     sensitive << ports_.id_ex_payload_port_;
 
-    SC_METHOD(finishInstruction)
-    sensitive << finish_ins_trigger_;
+    SC_METHOD(processReleaseResource)
+    sensitive << release_resource_trigger_;
 
-    SC_METHOD(finishRun)
+    SC_METHOD(processFinishRun)
     sensitive << finish_run_trigger_;
+
+    SC_METHOD(processIdFinish)
+    sensitive << ports_.id_finish_port_;
+}
+
+void ExecuteUnit::processIdFinish() {
+    if (ports_.id_finish_port_.read()) {
+        finish_decode_ = true;
+        if (running_ins_cnt_ == 0) {
+            finish_run_ = true;
+            finish_run_trigger_.notify(SC_ZERO_TIME);
+        }
+    }
 }
 
 void ExecuteUnit::checkInst() {
@@ -34,38 +47,35 @@ void ExecuteUnit::checkInst() {
     }
 }
 
-void ExecuteUnit::finishInstruction() {
-    ports_.finish_ins_port_.write(finish_ins_);
-    ports_.finish_ins_id_port_.write(finish_ins_id_);
+void ExecuteUnit::processReleaseResource() {
+    ports_.resource_release_.write(ResourceReleasePayload{.ins_id = release_resource_ins_id_});
 }
 
-void ExecuteUnit::finishRun() {
-    ports_.finish_run_port_.write(finish_run_);
+void ExecuteUnit::processFinishRun() {
+    ports_.unit_finish_port_.write(finish_run_);
 }
 
-DataConflictPayload ExecuteUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) {
+ResourceAllocatePayload ExecuteUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) {
     return {.ins_id = payload->ins.ins_id, .unit_type = payload->ins.unit_type};
 }
 
 void ExecuteUnit::readyForNextExecute() {
-    ports_.busy_port_.write(false);
+    ports_.ready_port_.write(true);
     fsm_.finish_exec_.notify(SC_ZERO_TIME);
 }
 
-void ExecuteUnit::triggerFinishInstruction(int ins_id) {
-    finish_ins_ = true;
-    finish_ins_id_ = ins_id;
-    finish_ins_trigger_.notify(SC_ZERO_TIME);
+void ExecuteUnit::releaseResource(int ins_id) {
+    release_resource_ins_id_ = ins_id;
+    release_resource_trigger_.notify(SC_ZERO_TIME);
 }
 
-void ExecuteUnit::triggerFinishRun() {
-    finish_run_ = true;
-    finish_run_trigger_.notify(SC_ZERO_TIME);
-}
-
-void ExecuteUnit::triggerFinishRun(double t) {
-    finish_run_ = true;
-    finish_run_trigger_.notify(t, SC_NS);
+void ExecuteUnit::finishInstruction(double t) {
+    wait(t, SC_NS);
+    running_ins_cnt_--;
+    if (running_ins_cnt_ == 0 && finish_decode_) {
+        finish_run_ = true;
+        finish_run_trigger_.notify(SC_ZERO_TIME);
+    }
 }
 
 }  // namespace pimsim

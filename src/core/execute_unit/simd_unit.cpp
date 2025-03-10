@@ -4,7 +4,7 @@
 
 #include "simd_unit.h"
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "util/log.h"
 #include "util/util.h"
 
@@ -49,7 +49,7 @@ void SIMDUnit::processIssue() {
 
         // Decode instruction
         const auto& [ins_info, conflict_payload] = decodeAndGetInfo(instruction, functor, *payload);
-        ports_.data_conflict_port_.write(conflict_payload);
+        ports_.resource_allocate_.write(conflict_payload);
 
         int vector_total_len = ins_info.vector_inputs.empty() ? 1 : payload->len;
         int process_times = IntDivCeil(vector_total_len, functor->functor_cnt);
@@ -134,7 +134,7 @@ void SIMDUnit::processWriteSubmodule() {
                         payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
 
         if (payload.batch_info.last_batch) {
-            triggerFinishInstruction(payload.ins_info.ins.ins_id);
+            releaseResource(payload.ins_info.ins.ins_id);
         }
 
         int address_byte = payload.ins_info.output.start_address_byte +
@@ -150,11 +150,11 @@ void SIMDUnit::processWriteSubmodule() {
             cur_ins_next_batch_.notify();
         }
 
-        write_submodule_socket_.finish();
-
-        if (payload.batch_info.last_batch && isEndPC(payload.ins_info.ins.pc) && sim_mode_ == +SimMode::run_one_round) {
-            triggerFinishRun();
+        if (payload.batch_info.last_batch) {
+            finishInstruction();
         }
+
+        write_submodule_socket_.finish();
     }
 }
 
@@ -200,9 +200,8 @@ std::pair<const SIMDInstructionConfig*, const SIMDFunctorConfig*> SIMDUnit::getS
     return {ins_config, nullptr};
 }
 
-std::pair<SIMDInstructionInfo, DataConflictPayload> SIMDUnit::decodeAndGetInfo(const SIMDInstructionConfig* instruction,
-                                                                               const SIMDFunctorConfig* functor,
-                                                                               const SIMDInsPayload& payload) const {
+std::pair<SIMDInstructionInfo, ResourceAllocatePayload> SIMDUnit::decodeAndGetInfo(
+    const SIMDInstructionConfig* instruction, const SIMDFunctorConfig* functor, const SIMDInsPayload& payload) const {
     SIMDInputOutputInfo output = {payload.output_bit_width, payload.output_address_byte};
     std::vector<SIMDInputOutputInfo> vector_inputs;
     std::vector<SIMDInputOutputInfo> scalar_inputs;
@@ -216,7 +215,7 @@ std::pair<SIMDInstructionInfo, DataConflictPayload> SIMDUnit::decodeAndGetInfo(c
         }
     }
 
-    DataConflictPayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::simd};
+    ResourceAllocatePayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::simd};
     for (const auto& vector_input : vector_inputs) {
         conflict_payload.addReadMemoryId(
             local_memory_socket_.getLocalMemoryIdByAddress(vector_input.start_address_byte));
@@ -235,8 +234,8 @@ std::pair<SIMDInstructionInfo, DataConflictPayload> SIMDUnit::decodeAndGetInfo(c
     return {ins_info, std::move(conflict_payload)};
 }
 
-DataConflictPayload SIMDUnit::getDataConflictInfo(const SIMDInsPayload& payload) const {
-    DataConflictPayload cur_ins_conflict_info{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::simd};
+ResourceAllocatePayload SIMDUnit::getDataConflictInfo(const SIMDInsPayload& payload) const {
+    ResourceAllocatePayload cur_ins_conflict_info{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::simd};
     for (unsigned int i = 0; i < payload.input_cnt; i++) {
         cur_ins_conflict_info.addReadMemoryId(
             local_memory_socket_.getLocalMemoryIdByAddress(payload.inputs_address_byte[i]));
@@ -245,7 +244,7 @@ DataConflictPayload SIMDUnit::getDataConflictInfo(const SIMDInsPayload& payload)
     return std::move(cur_ins_conflict_info);
 }
 
-DataConflictPayload SIMDUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) {
+ResourceAllocatePayload SIMDUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) {
     return getDataConflictInfo(*std::dynamic_pointer_cast<SIMDInsPayload>(payload));
 }
 

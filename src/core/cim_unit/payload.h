@@ -6,13 +6,11 @@
 
 #include <vector>
 
-#include "better-enums/enum.h"
-
 namespace pimsim {
 
 struct PimInsInfo {
     int ins_pc{-1}, sub_ins_num{-1};
-    bool last_ins{false}, last_sub_ins{false};
+    bool last_sub_ins{false};
     int ins_id{-1};
 };
 
@@ -39,7 +37,6 @@ struct MacroSubInsInfo {
 
     int simulated_group_cnt{1};
     int simulated_macro_cnt{1};
-
 };
 
 struct MacroBatchInfo {

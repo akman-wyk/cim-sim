@@ -27,10 +27,10 @@ int RegUnit::getSpecialBoundGeneralId(int special_id) const {
 }
 
 void RegUnit::writeRegister(const pimsim::RegUnitWritePayload &write_req) {
-    if (write_req.write_special_register) {
-        special_regs_[write_req.reg_id] = write_req.reg_value;
+    if (write_req.special) {
+        special_regs_[write_req.id] = write_req.value;
     } else {
-        general_regs_[write_req.reg_id] = write_req.reg_value;
+        general_regs_[write_req.id] = write_req.value;
     }
 }
 

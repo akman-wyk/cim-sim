@@ -7,8 +7,7 @@
 #include <vector>
 
 #include "base_component/base_module.h"
-#include "core/payload/payload.h"
-#include "core/pim_unit/cim_unit.h"
+#include "core/cim_unit/cim_unit.h"
 #include "memory/memory.h"
 
 namespace pimsim {

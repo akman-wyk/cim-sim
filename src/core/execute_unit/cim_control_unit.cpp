@@ -2,10 +2,9 @@
 // Created by wyk on 2024/8/1.
 //
 
-#include "pim_control_unit.h"
+#include "cim_control_unit.h"
 
 #include "fmt/format.h"
-#include "pim_compute_unit.h"
 #include "util/log.h"
 #include "util/util.h"
 
@@ -39,7 +38,7 @@ void PimControlUnit::processIssue() {
         auto payload = waitForExecuteAndGetPayload<PimControlInsPayload>();
         LOG(fmt::format("Pim set start, pc: {}", payload->ins.pc));
 
-        ports_.data_conflict_port_.write(getDataConflictInfo(*payload));
+        ports_.resource_allocate_.write(getDataConflictInfo(*payload));
 
         execute_socket_.waitUntilFinishIfBusy();
         execute_socket_.payload = *payload;
@@ -64,9 +63,7 @@ void PimControlUnit::processExecute() {
             default: break;
         }
 
-        if (isEndPC(payload.ins.pc) && sim_mode_ == +SimMode::run_one_round) {
-            triggerFinishRun();
-        }
+        finishInstruction();
 
         execute_socket_.finish();
     }
@@ -78,7 +75,7 @@ void PimControlUnit::processSetActivation(const PimControlInsPayload &payload) {
         IntDivCeil(1 * macro_size_.element_cnt_per_compartment * config_.macro_group_size, BYTE_TO_BIT);
     auto mask_byte_data = local_memory_socket_.readData(payload.ins, payload.mask_addr_byte, mask_size_byte);
 
-    triggerFinishInstruction(payload.ins.ins_id);
+    releaseResource(payload.ins.ins_id);
 
     if (cim_unit_ != nullptr) {
         cim_unit_->setMacroGroupActivationElementColumn(mask_byte_data, payload.group_broadcast, payload.group_id);
@@ -86,7 +83,7 @@ void PimControlUnit::processSetActivation(const PimControlInsPayload &payload) {
 }
 
 void PimControlUnit::processOnlyOutput(const PimControlInsPayload &payload) {
-    triggerFinishInstruction(payload.ins.ins_id);
+    releaseResource(payload.ins.ins_id);
 
     int size_byte =
         IntDivCeil(payload.output_bit_width * payload.output_cnt_per_group * payload.activation_group_num, BYTE_TO_BIT);
@@ -114,7 +111,7 @@ void PimControlUnit::processOutputSum(const PimControlInsPayload &payload) {
     double sum_stall_ns = (config_.result_adder.latency_cycle - 1) * period_ns_;
     wait(sum_stall_ns, SC_NS);
 
-    triggerFinishInstruction(payload.ins.ins_id);
+    releaseResource(payload.ins.ins_id);
 
     // write to memory
     int valid_output_cnt_per_group = payload.output_cnt_per_group - sum_times_per_group;
@@ -135,17 +132,18 @@ void PimControlUnit::processOutputSumMove(const PimControlInsPayload &payload) {
     double sum_stall_ns = (config_.result_adder.latency_cycle - 1) * period_ns_;
     wait(sum_stall_ns, SC_NS);
 
-    triggerFinishInstruction(payload.ins.ins_id);
+    releaseResource(payload.ins.ins_id);
 
     // write to memory
     int valid_output_cnt_per_group = sum_times_per_group;
     int size_byte =
         IntDivCeil(payload.output_bit_width * valid_output_cnt_per_group * payload.activation_group_num, BYTE_TO_BIT);
+    LOG(fmt::format("size_byte: {}", size_byte));
     local_memory_socket_.writeData(payload.ins, payload.output_addr_byte, size_byte, {});
 }
 
-DataConflictPayload PimControlUnit::getDataConflictInfo(const PimControlInsPayload &payload) const {
-    DataConflictPayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::pim_control};
+ResourceAllocatePayload PimControlUnit::getDataConflictInfo(const PimControlInsPayload &payload) const {
+    ResourceAllocatePayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::pim_control};
     switch (payload.op) {
         case PimControlOperator::set_activation: {
             conflict_payload.addReadMemoryId({local_memory_socket_.getLocalMemoryIdByAddress(payload.mask_addr_byte),
@@ -168,7 +166,7 @@ DataConflictPayload PimControlUnit::getDataConflictInfo(const PimControlInsPaylo
     return std::move(conflict_payload);
 }
 
-DataConflictPayload PimControlUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload> &payload) {
+ResourceAllocatePayload PimControlUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload> &payload) {
     return getDataConflictInfo(*std::dynamic_pointer_cast<PimControlInsPayload>(payload));
 }
 

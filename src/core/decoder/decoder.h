@@ -33,7 +33,7 @@ public:
     // bool checkInsStat(const std::string& expected_ins_stat_file) const;
 
     virtual std::shared_ptr<ExecuteInsPayload> decode(const Inst& ins, int pc, int& pc_increment,
-                                                      DataConflictPayload& conflict_info) = 0;
+                                                      ResourceAllocatePayload& conflict_info) = 0;
 
 private:
     virtual std::shared_ptr<ExecuteInsPayload> decodePimIns(const Inst& ins) const = 0;
@@ -60,7 +60,7 @@ public:
     bool checkInsStat(const std::string& expected_ins_stat_file) const;
 
     std::shared_ptr<ExecuteInsPayload> decode(const InstV1& ins, int pc, int& pc_increment,
-                                              DataConflictPayload& conflict_info) override;
+                                              ResourceAllocatePayload& conflict_info) override;
 
 private:
     std::shared_ptr<ExecuteInsPayload> decodePimIns(const InstV1& ins) const override;
@@ -80,7 +80,7 @@ class DecoderV2 : public Decoder<InstV2> {
 public:
     using Decoder::Decoder;
     std::shared_ptr<ExecuteInsPayload> decode(const InstV2& ins, int pc, int& pc_increment,
-                                              DataConflictPayload& conflict_info) override;
+                                              ResourceAllocatePayload& conflict_info) override;
 
 private:
     std::shared_ptr<ExecuteInsPayload> decodePimIns(const InstV2& ins) const override;
@@ -94,7 +94,7 @@ class DecoderV3 : public Decoder<InstV3> {
 public:
     using Decoder::Decoder;
     std::shared_ptr<ExecuteInsPayload> decode(const InstV3& ins, int pc, int& pc_increment,
-                                              DataConflictPayload& conflict_info) override;
+                                              ResourceAllocatePayload& conflict_info) override;
 
 private:
     std::shared_ptr<ExecuteInsPayload> decodePimIns(const InstV3& ins) const override;

@@ -5,8 +5,8 @@
 #include "../base/test_macro.h"
 #include "base_component/base_module.h"
 #include "config/config.h"
-#include "core/pim_unit/macro.h"
-#include "core/pim_unit/pim_payload.h"
+#include "core/cim_unit/macro.h"
+#include "core/cim_unit/payload.h"
 #include "util/macro_scope.h"
 #include "util/util.h"
 
@@ -45,10 +45,13 @@ public:
 
         SC_THREAD(issue)
 
-        macro_.setFinishRunFunction([&]() {
-            wait(SC_ZERO_TIME);
-            this->running_time_ = sc_core::sc_time_stamp();
-            sc_stop();
+        macro_.setFinishInsFunction([&]() {
+            running_ins_cnt_--;
+            if (id_finish_ && running_ins_cnt_ == 0) {
+                wait(SC_ZERO_TIME);
+                this->running_time_ = sc_core::sc_time_stamp();
+                sc_stop();
+            }
         });
     }
 
@@ -67,13 +70,30 @@ private:
     void issue() {
         wait(10, SC_NS);
 
-        for (const auto& macro_ins : macro_ins_list_) {
+        bool next_new_ins = true;
+        for (int i = 0; i < macro_ins_list_.size(); i++) {
+            auto& macro_ins = macro_ins_list_[i];
             macro_.waitUntilFinishIfBusy();
+
+            if (next_new_ins) {
+                running_ins_cnt_++;
+                next_new_ins = false;
+            }
+            if (macro_ins.payload.pim_ins_info.last_sub_ins) {
+                next_new_ins = true;
+            }
+
             macro_.setActivationElementColumn(macro_ins.activation_element_col_mask);
             macro_.startExecute(macro_ins.payload);
+
+            if (i == macro_ins_list_.size() - 1) {
+                break;
+            }
+
             double latency = macro_ins.payload.input_bit_width * period_ns_;
             wait(latency, SC_NS);
         }
+        id_finish_ = true;
     }
 
 private:
@@ -83,10 +103,13 @@ private:
     // modules
     Macro macro_;
 
+    int running_ins_cnt_{0};
+    bool id_finish_{false};
+
     sc_core::sc_time running_time_;
 };
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimInsInfo, ins_pc, sub_ins_num, last_ins, last_sub_ins)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimInsInfo, ins_pc, sub_ins_num, last_sub_ins)
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(MacroPayload, pim_ins_info, row, input_bit_width, bit_sparse, inputs)
 

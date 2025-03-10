@@ -4,9 +4,8 @@
 
 #include "transfer_unit.h"
 
-#include "fmt/core.h"
+#include "fmt/format.h"
 #include "network/switch.h"
-#include "systemc.h"
 #include "util/log.h"
 #include "util/util.h"
 
@@ -28,7 +27,7 @@ void TransferUnit::processIssue() {
         auto payload = waitForExecuteAndGetPayload<TransferInsPayload>();
 
         const auto& [ins_info, conflict_payload] = decodeAndGetInfo(*payload);
-        ports_.data_conflict_port_.write(conflict_payload);
+        ports_.resource_allocate_.write(conflict_payload);
 
         if (payload->type == +TransferType::send) {
             processSendHandshake(payload->dst_id, payload->transfer_id_tag);
@@ -95,7 +94,7 @@ void TransferUnit::processWriteSubmodule() {
                         payload.batch_info.batch_num));
 
         if (payload.batch_info.last_batch) {
-            triggerFinishInstruction(payload.ins_info.ins.ins_id);
+            releaseResource(payload.ins_info.ins.ins_id);
         }
 
         int address_byte = payload.ins_info.dst_start_address_byte +
@@ -116,11 +115,11 @@ void TransferUnit::processWriteSubmodule() {
             cur_ins_next_batch_.notify();
         }
 
-        write_submodule_socket_.finish();
-
-        if (payload.batch_info.last_batch && isEndPC(payload.ins_info.ins.pc) && sim_mode_ == +SimMode::run_one_round) {
-            triggerFinishRun();
+        if (payload.batch_info.last_batch) {
+            finishInstruction();
         }
+
+        write_submodule_socket_.finish();
     }
 }
 
@@ -144,7 +143,7 @@ void TransferUnit::waitAndStartNextSubmodule(pimsim::TransferSubmodulePayload& c
     next_submodule_socket.start_exec.notify();
 }
 
-std::pair<TransferInstructionInfo, DataConflictPayload> TransferUnit::decodeAndGetInfo(
+std::pair<TransferInstructionInfo, ResourceAllocatePayload> TransferUnit::decodeAndGetInfo(
     const TransferInsPayload& payload) const {
     TransferInstructionInfo ins_info;
     if (payload.type == +TransferType::local_trans) {
@@ -176,8 +175,8 @@ std::pair<TransferInstructionInfo, DataConflictPayload> TransferUnit::decodeAndG
     return {ins_info, getDataConflictInfo(payload)};
 }
 
-DataConflictPayload TransferUnit::getDataConflictInfo(const TransferInsPayload& payload) const {
-    DataConflictPayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::transfer};
+ResourceAllocatePayload TransferUnit::getDataConflictInfo(const TransferInsPayload& payload) const {
+    ResourceAllocatePayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::transfer};
     if (payload.type == +TransferType::local_trans || payload.type == +TransferType::send ||
         payload.type == +TransferType::global_store) {
         conflict_payload.addReadMemoryId(local_memory_socket_.getLocalMemoryIdByAddress(payload.src_address_byte));
@@ -189,7 +188,7 @@ DataConflictPayload TransferUnit::getDataConflictInfo(const TransferInsPayload& 
     return std::move(conflict_payload);
 }
 
-DataConflictPayload TransferUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) {
+ResourceAllocatePayload TransferUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) {
     return getDataConflictInfo(*std::dynamic_pointer_cast<TransferInsPayload>(payload));
 }
 

@@ -4,7 +4,7 @@
 #include "reporter.h"
 
 #include "base_component/energy_counter.h"
-#include "fmt/core.h"
+#include "fmt/format.h"
 
 namespace pimsim {
 
@@ -184,9 +184,8 @@ void Reporter::report(std::ostream& os, bool detail) {
 
 void Reporter::reportEnergyForm(std::ostream& os) {
     auto energy_report_items = energy_reporter_.getEnergyReportItem(module_name_, total_energy_, latency_ * 1e6, 0);
-    energy_report_items.insert(
-        energy_report_items.begin(),
-        EnergyReportItem{"module", "total energy", "static energy", "dynamic energy", "activity time"});
+    energy_report_items.insert(energy_report_items.begin(), EnergyReportItem{"module", "total energy", "static energy",
+                                                                             "dynamic energy", "activity time"});
 
     unsigned int name_width = 0, total_width = 0, static_width = 0, dynamic_width = 0, activity_width = 0;
     for (const auto& [name, total_energy, static_energy, dynamic_energy, activity_time] : energy_report_items) {
@@ -204,7 +203,6 @@ void Reporter::reportEnergyForm(std::ostream& os) {
         os << fmt::format("    {:<{}}\n", activity_time, activity_width);
     }
 }
-
 
 double Reporter::getAveragePowerMW() const {
     return average_power_;

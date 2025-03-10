@@ -23,13 +23,4 @@ const std::string& BaseModule::getName() const {
     return name;
 }
 
-void BaseModule::setEndPC(int pc) {
-    end_pc_ = pc;
-}
-
-bool BaseModule::isEndPC(int pc) const {
-    return pc == end_pc_;
-}
-
-
 }  // namespace pimsim

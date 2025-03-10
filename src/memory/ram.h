@@ -6,10 +6,9 @@
 #include <cstdint>
 #include <vector>
 
-#include "../base_component/base_module.h"
-#include "../base_component/energy_counter.h"
-#include "../config/config.h"
-#include "../core/payload/payload.h"
+#include "base_component/base_module.h"
+#include "base_component/energy_counter.h"
+#include "config/config.h"
 #include "memory_hardware.h"
 
 namespace pimsim {

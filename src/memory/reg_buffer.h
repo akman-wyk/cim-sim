@@ -4,7 +4,6 @@
 
 #pragma once
 #include "base_component/base_module.h"
-#include "core/payload/payload.h"
 #include "memory_hardware.h"
 
 namespace pimsim {

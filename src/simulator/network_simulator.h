@@ -10,7 +10,6 @@
 
 #include "fmt/format.h"
 #include "nlohmann/json.hpp"
-#include "systemc.h"
 #include "util/reporter.h"
 
 #define TEST_PASSED           0

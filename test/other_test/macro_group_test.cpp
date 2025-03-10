@@ -6,8 +6,8 @@
 
 #include "../base/test_macro.h"
 #include "base_component/base_module.h"
-#include "core/pim_unit/macro_group.h"
-#include "core/pim_unit/pim_payload.h"
+#include "core/cim_unit/macro_group.h"
+#include "core/cim_unit/payload.h"
 #include "nlohmann/json.hpp"
 #include "util/macro_scope.h"
 #include "util/util.h"
@@ -42,10 +42,13 @@ public:
 
         SC_THREAD(issue)
 
-        macro_group_.setFinishRunFunc([&]() {
-            wait(SC_ZERO_TIME);
-            running_time_ = sc_core::sc_time_stamp();
-            sc_stop();
+        macro_group_.setFinishInsFunc([&]() {
+            running_ins_cnt_--;
+            if (id_finish_ && running_ins_cnt_ == 0) {
+                wait(SC_ZERO_TIME);
+                this->running_time_ = sc_core::sc_time_stamp();
+                sc_stop();
+            }
         });
     }
 
@@ -63,12 +66,24 @@ public:
 private:
     void issue() {
         wait(10, SC_NS);
+
+        bool next_new_ins = true;
         for (auto& macro_group_ins : macro_group_ins_list_) {
             macro_group_.waitUntilFinishIfBusy();
+
+            if (next_new_ins) {
+                running_ins_cnt_++;
+                next_new_ins = false;
+            }
+            if (macro_group_ins.payload.pim_ins_info.last_sub_ins) {
+                next_new_ins = true;
+            }
+
             macro_group_.setMacrosActivationElementColumn(macro_group_ins.macros_activation_element_col_mask);
             macro_group_.startExecute(std::move(macro_group_ins.payload));
             wait(SC_ZERO_TIME);
         }
+        id_finish_ = true;
     }
 
 private:
@@ -76,10 +91,13 @@ private:
 
     MacroGroup macro_group_;
 
+    int running_ins_cnt_{0};
+    bool id_finish_{false};
+
     sc_core::sc_time running_time_;
 };
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimInsInfo, ins_pc, sub_ins_num, last_ins, last_sub_ins)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimInsInfo, ins_pc, sub_ins_num, last_sub_ins)
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(MacroGroupPayload, pim_ins_info, last_group, row, input_bit_width,
                                                bit_sparse, macro_inputs)

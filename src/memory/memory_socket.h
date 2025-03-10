@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <vector>
 
-#include "core/payload/payload.h"
+#include "payload.h"
 #include "systemc.h"
 
 namespace pimsim {

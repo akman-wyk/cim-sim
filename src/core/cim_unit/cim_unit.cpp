@@ -54,7 +54,6 @@ const AddressSpaceConfig& CimUnit::getAddressSpaceConfig() const {
     return config_.address_space;
 }
 
-
 sc_core::sc_time CimUnit::accessAndGetDelay(MemoryAccessPayload& payload) {
     if (payload.address_byte < 0 || payload.address_byte + payload.size_byte > cim_byte_size_) {
         std::cerr << fmt::format("Core id: {}, Invalid memory access with ins NO.'{}': address {} overflow, size: {}, "
@@ -130,11 +129,11 @@ void CimUnit::runMacroGroup(int group_id, MacroGroupPayload group_payload) {
     macro_group->startExecute(std::move(group_payload));
 }
 
-void CimUnit::bindCimComputeUnit(const std::function<void(int)>& finish_ins_func,
-                                           const std::function<void()>& finish_run_func) {
+void CimUnit::bindCimComputeUnit(const std::function<void(int)>& release_resource_func,
+                                 const std::function<void()>& finish_ins_func) {
     for (auto* macro_group : macro_group_list_) {
+        macro_group->setReleaseResourceFunc(release_resource_func);
         macro_group->setFinishInsFunc(finish_ins_func);
-        macro_group->setFinishRunFunc(finish_run_func);
     }
 }
 
@@ -145,6 +144,5 @@ void CimUnit::bindLocalMemoryUnit(int local_memory_id) {
 int CimUnit::getLocalMemoryId() const {
     return local_memory_id_;
 }
-
 
 }  // namespace pimsim

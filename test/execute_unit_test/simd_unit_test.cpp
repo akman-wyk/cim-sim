@@ -3,8 +3,8 @@
 //
 
 #include "../base/test_payload.h"
-#include "core/payload/payload.h"
-#include "core/simd_unit/simd_unit.h"
+#include "core/execute_unit/simd_unit.h"
+#include "core/payload.h"
 #include "execute_unit_test.h"
 
 namespace pimsim {
@@ -17,6 +17,9 @@ struct SIMDTestInfo {
     std::vector<SIMDTestInstruction> code{};
     TestExpectedInfo expected{};
 };
+
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(SIMDInsPayload, ins, input_cnt, opcode, inputs_bit_width,
+                                               output_bit_width, inputs_address_byte, output_address_byte, len)
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(SIMDTestInstruction, payload)
 

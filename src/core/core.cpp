@@ -11,8 +11,8 @@
 
 namespace pimsim {
 
-ExecuteUnitRegistration::ExecuteUnitRegistration(ExecuteUnitType type, ExecuteUnit *execute_unit,
-                                                 sc_event &decode_new_ins_trigger)
+Core::ExecuteUnitRegistration::ExecuteUnitRegistration(ExecuteUnitType type, ExecuteUnit *execute_unit,
+                                                       sc_event &decode_new_ins_trigger)
     : type(type), execute_unit(execute_unit), stall_handler(decode_new_ins_trigger, type) {}
 
 Core::Core(int core_id, const char *name, const Config &config, Clock *clk, std::vector<Instruction> ins_list,
@@ -91,7 +91,7 @@ int Core::getCoreId() const {
     while (true) {
         if (!id_stall_.read()) {
             ins_index_ += pc_increment_;
-            cur_ins_conflict_info_ = DataConflictPayload{.ins_id = -1, .unit_type = ExecuteUnitType::none};
+            cur_ins_conflict_info_ = ResourceAllocatePayload{.ins_id = -1, .unit_type = ExecuteUnitType::none};
         }
         wait(period_ns_, SC_NS);
     }
@@ -124,9 +124,9 @@ void Core::processIdExEnable() {
 }
 
 void Core::processFinishRun() {
-    if (std::any_of(execute_unit_list_.begin(), execute_unit_list_.end(),
+    if (std::all_of(execute_unit_list_.begin(), execute_unit_list_.end(),
                     [](const std::shared_ptr<ExecuteUnitRegistration> &registration) {
-                        return registration->signals.finish_run_.read();
+                        return registration->signals.unit_finish_.read();
                     })) {
         LOG(fmt::format("finish run"));
         finish_run_call_();
@@ -139,10 +139,11 @@ void Core::registerExecuteUnit(ExecuteUnitType type, ExecuteUnit *execute_unit) 
 
     // bind handler of processStall and processFinishRun
     sensitive << processStall_handle_ << registration->conflict_signal;
-    sensitive << processFinishRun_handle_ << registration->signals.finish_run_;
+    sensitive << processFinishRun_handle_ << registration->signals.unit_finish_;
 
     // bind exeunit ports
     registration->execute_unit->ports_.bind(registration->signals);
+    registration->execute_unit->ports_.id_finish_port_.bind(id_finish_);
 
     // bind stall handler
     registration->stall_handler.bind(registration->signals, registration->conflict_signal, &cur_ins_conflict_info_);
@@ -155,22 +156,17 @@ void Core::bindModules() {
     int end_pc = static_cast<int>(ins_list_.size());
     scalar_unit_.bindLocalMemoryUnit(&local_memory_unit_);
     scalar_unit_.bindRegUnit(&reg_unit_);
-    scalar_unit_.setEndPC(end_pc);
 
     simd_unit_.bindLocalMemoryUnit(&local_memory_unit_);
-    simd_unit_.setEndPC(end_pc);
 
     transfer_unit_.bindLocalMemoryUnit(&local_memory_unit_);
     transfer_unit_.bindSwitch(&core_switch_);
-    transfer_unit_.setEndPC(end_pc);
 
     pim_compute_unit_.bindLocalMemoryUnit(&local_memory_unit_);
     pim_compute_unit_.bindCimUnit(&cim_unit_);
-    pim_compute_unit_.setEndPC(end_pc);
 
     pim_control_unit_.bindLocalMemoryUnit(&local_memory_unit_);
     pim_control_unit_.bindCimUnit(&cim_unit_);
-    pim_control_unit_.setEndPC(end_pc);
 
     local_memory_unit_.bindCimUnit(&cim_unit_);
 

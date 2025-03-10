@@ -8,9 +8,7 @@
 #include <vector>
 
 #include "base_component/base_module.h"
-#include "base_component/register.h"
 #include "config/config.h"
-#include "core/payload/payload.h"
 
 namespace pimsim {
 
@@ -21,6 +19,11 @@ BETTER_ENUM(SpecialRegId, int,  // NOLINT(*-explicit-constructor, *-no-recursion
 
             simd_input_1_bit_width = 16, simd_input_2_bit_width = 17, simd_input_3_bit_width = 18,
             simd_input_4_bit_width = 19, simd_output_bit_width = 20, input_3_address = 21, input_4_address = 22)
+
+struct RegUnitWritePayload {
+    int id{0}, value{0};
+    bool special{false};
+};
 
 class RegUnit : public BaseModule {
 public:

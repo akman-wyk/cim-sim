@@ -10,8 +10,6 @@
 
 namespace pimsim {
 
-#define LOG(msg)
-
 Macro::Macro(const char *name, const pimsim::PimUnitConfig &config, const pimsim::SimConfig &sim_config,
              pimsim::Core *core, pimsim::Clock *clk, bool independent_ipu,
              SubmoduleSocket<MacroGroupSubmodulePayload> *result_adder_socket_ptr)
@@ -85,8 +83,8 @@ void Macro::waitAndStartNextSubmodule(const pimsim::MacroSubmodulePayload &cur_p
     next_submodule_socket.start_exec.notify();
 }
 
-void Macro::setFinishRunFunction(std::function<void()> finish_func) {
-    finish_run_func_ = std::move(finish_func);
+void Macro::setFinishInsFunction(std::function<void()> finish_func) {
+    finish_ins_func_ = std::move(finish_func);
 }
 
 void Macro::setActivationElementColumn(const std::vector<unsigned char> &macros_activation_element_col_mask,
@@ -277,8 +275,8 @@ void Macro::processShiftAdderSubmodule() {
                 latency, dynamic_power_mW * payload.sub_ins_info.simulated_macro_cnt);
         }
 
-        if (pim_ins_info.last_ins && pim_ins_info.last_sub_ins && payload.batch_info.last_batch && finish_run_func_) {
-            finish_run_func_();
+        if (finish_ins_func_ && pim_ins_info.last_sub_ins && payload.batch_info.last_batch) {
+            finish_ins_func_();
         }
 
         shift_adder_socket_.finish();
@@ -308,7 +306,5 @@ std::pair<int, int> Macro::getBatchCountAndActivationCompartmentCount(const Macr
 
     return {batch_num, activation_compartment_num};
 }
-
-#undef LOG
 
 }  // namespace pimsim

@@ -8,7 +8,7 @@
 #include "base_component/base_module.h"
 #include "base_component/submodule_socket.h"
 #include "config/config.h"
-#include "pim_payload.h"
+#include "payload.h"
 
 namespace pimsim {
 

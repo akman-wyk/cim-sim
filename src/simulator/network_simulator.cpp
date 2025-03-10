@@ -4,6 +4,7 @@
 
 #include "network_simulator.h"
 
+#include "systemc.h"
 #include "util/util.h"
 
 #if defined(WIN32)

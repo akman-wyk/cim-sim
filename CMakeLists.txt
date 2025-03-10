@@ -22,13 +22,6 @@ add_library(pim-simulator STATIC ""
         src/base_component/energy_counter.cpp
         src/base_component/energy_counter.h
         src/base_component/fsm.h
-        src/base_component/memory_socket.cpp
-        src/base_component/memory_socket.h
-        src/base_component/reg_unit_socket.cpp
-        src/base_component/reg_unit_socket.h
-        src/base_component/register.h
-        src/base_component/stall_handler.cpp
-        src/base_component/stall_handler.h
         src/base_component/submodule_socket.h
 
         src/chip/chip.cpp
@@ -39,48 +32,48 @@ add_library(pim-simulator STATIC ""
         src/config/config_enum.cpp
         src/config/config_enum.h
 
+        src/core/cim_unit/cim_unit.cpp
+        src/core/cim_unit/cim_unit.h
+        src/core/cim_unit/macro.cpp
+        src/core/cim_unit/macro.h
+        src/core/cim_unit/macro_group.cpp
+        src/core/cim_unit/macro_group.h
+        src/core/cim_unit/macro_group_controller.cpp
+        src/core/cim_unit/macro_group_controller.h
+        src/core/cim_unit/payload.h
+
+        src/core/conflict/conflict_handler.cpp
+        src/core/conflict/conflict_handler.h
+        src/core/conflict/payload.cpp
+        src/core/conflict/payload.h
+
         src/core/decoder/decoder.h
         src/core/decoder/decoder_v1.cpp
         src/core/decoder/decoder_v2.cpp
         src/core/decoder/decoder_v3.cpp
 
+        src/core/execute_unit/cim_compute_unit.cpp
+        src/core/execute_unit/cim_compute_unit.h
+        src/core/execute_unit/cim_control_unit.cpp
+        src/core/execute_unit/cim_control_unit.h
         src/core/execute_unit/execute_unit.cpp
         src/core/execute_unit/execute_unit.h
+        src/core/execute_unit/payload.cpp
+        src/core/execute_unit/payload.h
+        src/core/execute_unit/scalar_unit.cpp
+        src/core/execute_unit/scalar_unit.h
+        src/core/execute_unit/simd_unit.cpp
+        src/core/execute_unit/simd_unit.h
+        src/core/execute_unit/transfer_unit.cpp
+        src/core/execute_unit/transfer_unit.h
 
         src/core/local_memory_unit/local_memory_unit.cpp
         src/core/local_memory_unit/local_memory_unit.h
 
-        src/core/payload/payload.cpp
-        src/core/payload/payload.h
-        src/core/payload/payload_enum.cpp
-        src/core/payload/payload_enum.h
-
-        src/core/pim_unit/cim_unit.cpp
-        src/core/pim_unit/cim_unit.h
-        src/core/pim_unit/macro.cpp
-        src/core/pim_unit/macro.h
-        src/core/pim_unit/macro_group.cpp
-        src/core/pim_unit/macro_group.h
-        src/core/pim_unit/macro_group_controller.cpp
-        src/core/pim_unit/macro_group_controller.h
-        src/core/pim_unit/pim_compute_unit.cpp
-        src/core/pim_unit/pim_compute_unit.h
-        src/core/pim_unit/pim_control_unit.cpp
-        src/core/pim_unit/pim_control_unit.h
-        src/core/pim_unit/pim_payload.h
-
         src/core/reg_unit/reg_unit.cpp
         src/core/reg_unit/reg_unit.h
 
-        src/core/scalar_unit/scalar_unit.cpp
-        src/core/scalar_unit/scalar_unit.h
-
-        src/core/simd_unit/simd_unit.cpp
-        src/core/simd_unit/simd_unit.h
-
-        src/core/transfer_unit/transfer_unit.cpp
-        src/core/transfer_unit/transfer_unit.h
-
+        src/core/payload.h
         src/core/core.cpp
         src/core/core.h
 
@@ -98,6 +91,9 @@ add_library(pim-simulator STATIC ""
         src/memory/memory.cpp
         src/memory/memory.h
         src/memory/memory_hardware.h
+        src/memory/memory_socket.cpp
+        src/memory/memory_socket.h
+        src/memory/payload.h
         src/memory/ram.cpp
         src/memory/ram.h
         src/memory/reg_buffer.cpp

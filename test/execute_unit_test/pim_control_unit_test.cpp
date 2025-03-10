@@ -2,9 +2,9 @@
 // Created by wyk on 2024/8/2.
 //
 
-#include "core/payload/payload.h"
-#include "core/pim_unit/cim_unit.h"
-#include "core/pim_unit/pim_control_unit.h"
+#include "core/cim_unit/cim_unit.h"
+#include "core/execute_unit/cim_control_unit.h"
+#include "core/payload.h"
 #include "execute_unit_test.h"
 
 namespace pimsim {

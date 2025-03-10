@@ -3,8 +3,8 @@
 //
 
 #pragma once
-#include "../base_component/base_module.h"
-#include "../core/payload/payload.h"
+#include "base_component/base_module.h"
+#include "payload.h"
 
 namespace pimsim {
 

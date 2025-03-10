@@ -5,10 +5,10 @@
 #pragma once
 #include <queue>
 
-#include "../base_component/base_module.h"
-#include "../config/config.h"
-#include "../core/payload/payload.h"
+#include "base_component/base_module.h"
+#include "config/config.h"
 #include "memory_hardware.h"
+#include "payload.h"
 
 namespace pimsim {
 
