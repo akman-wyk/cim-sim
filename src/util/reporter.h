@@ -10,7 +10,7 @@
 
 #include "nlohmann/json.hpp"
 
-namespace pimsim {
+namespace cimsim {
 
 #define ENERGY_REPORT_INDENT_SPACE_NUM 4
 
@@ -113,4 +113,4 @@ private:
                                                 OP_count_, module_name_, energy_reporter_)
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

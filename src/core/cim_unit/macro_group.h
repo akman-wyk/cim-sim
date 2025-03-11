@@ -10,13 +10,13 @@
 #include "macro.h"
 #include "macro_group_controller.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class MacroGroup : public BaseModule {
 public:
     SC_HAS_PROCESS(MacroGroup);
 
-    MacroGroup(const char* name, const PimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk,
+    MacroGroup(const char* name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk,
                bool macro_simulation = false);
 
     void startExecute(MacroGroupPayload payload);
@@ -36,8 +36,8 @@ private:
     [[noreturn]] void processResultAdderSubmodule();
 
 private:
-    const PimUnitConfig& config_;
-    const PimMacroSizeConfig& macro_size_;
+    const CimUnitConfig& config_;
+    const CimMacroSizeConfig& macro_size_;
 
     MacroGroupController controller_;
     std::vector<Macro*> macro_list_;
@@ -52,4 +52,4 @@ private:
     sc_core::sc_event next_sub_ins_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

@@ -12,7 +12,7 @@
 #include "util/macro_scope.h"
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
 struct MacroGroupExpectedInfo {
     double time_ns{0.0};
@@ -36,7 +36,7 @@ public:
     MacroGroupTestModule(const char* name, const Config& config, Clock* clk,
                          std::vector<MacroGroupTestInstruction> codes)
         : BaseModule(name, config.sim_config, nullptr, clk)
-        , macro_group_("MacroGroup_0", config.chip_config.core_config.pim_unit_config, config.sim_config, nullptr,
+        , macro_group_("MacroGroup_0", config.chip_config.core_config.cim_unit_config, config.sim_config, nullptr,
                        clk) {
         macro_group_ins_list_ = std::move(codes);
 
@@ -75,7 +75,7 @@ private:
                 running_ins_cnt_++;
                 next_new_ins = false;
             }
-            if (macro_group_ins.payload.pim_ins_info.last_sub_ins) {
+            if (macro_group_ins.payload.cim_ins_info.last_sub_ins) {
                 next_new_ins = true;
             }
 
@@ -97,9 +97,9 @@ private:
     sc_core::sc_time running_time_;
 };
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimInsInfo, ins_pc, sub_ins_num, last_sub_ins)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CimInsInfo, ins_pc, sub_ins_num, last_sub_ins)
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(MacroGroupPayload, pim_ins_info, last_group, row, input_bit_width,
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(MacroGroupPayload, cim_ins_info, last_group, row, input_bit_width,
                                                bit_sparse, macro_inputs)
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(MacroGroupExpectedInfo, time_ns, energy_pj)
@@ -108,9 +108,9 @@ DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(MacroGroupTestInstruction, payloa
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(MacroGroupTestInfo, code, expected)
 
-}  // namespace pimsim
+}  // namespace cimsim
 
-using namespace pimsim;
+using namespace cimsim;
 
 int sc_main(int argc, char* argv[]) {
     sc_core::sc_report_handler::set_actions(sc_core::SC_WARNING, sc_core::SC_DO_NOTHING);

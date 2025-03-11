@@ -8,10 +8,10 @@
 #include "util/log.h"
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
-Macro::Macro(const char *name, const pimsim::PimUnitConfig &config, const pimsim::SimConfig &sim_config,
-             pimsim::Core *core, pimsim::Clock *clk, bool independent_ipu,
+Macro::Macro(const char *name, const cimsim::CimUnitConfig &config, const cimsim::SimConfig &sim_config,
+             cimsim::Core *core, cimsim::Clock *clk, bool independent_ipu,
              SubmoduleSocket<MacroGroupSubmodulePayload> *result_adder_socket_ptr)
     : BaseModule(name, sim_config, core, clk)
     , config_(config)
@@ -48,7 +48,7 @@ Macro::Macro(const char *name, const pimsim::PimUnitConfig &config, const pimsim
     result_adder_energy_counter_.setStaticPowerMW(config_.result_adder.static_power_mW * result_adder_cnt);
 }
 
-void Macro::startExecute(pimsim::MacroPayload payload) {
+void Macro::startExecute(cimsim::MacroPayload payload) {
     macro_socket_.payload = std::move(payload);
     macro_socket_.start_exec.notify();
 }
@@ -73,8 +73,8 @@ EnergyReporter Macro::getEnergyReporter() {
     return std::move(macro_reporter);
 }
 
-void Macro::waitAndStartNextSubmodule(const pimsim::MacroSubmodulePayload &cur_payload,
-                                      SubmoduleSocket<pimsim::MacroSubmodulePayload> &next_submodule_socket) {
+void Macro::waitAndStartNextSubmodule(const cimsim::MacroSubmodulePayload &cur_payload,
+                                      SubmoduleSocket<cimsim::MacroSubmodulePayload> &next_submodule_socket) {
     next_submodule_socket.waitUntilFinishIfBusy();
     if (cur_payload.batch_info.first_batch) {
         next_submodule_socket.payload.sub_ins_info = cur_payload.sub_ins_info;
@@ -110,12 +110,12 @@ void Macro::processIPUAndIssue() {
 
         if (activation_element_col_cnt_ > 0) {
             const auto &payload = macro_socket_.payload;
-            const auto &pim_ins_info = payload.pim_ins_info;
-            LOG(fmt::format("{} start, ins pc: {}, sub ins num: {}", getName(), pim_ins_info.ins_pc,
-                            pim_ins_info.sub_ins_num));
+            const auto &cim_ins_info = payload.cim_ins_info;
+            LOG(fmt::format("{} start, ins pc: {}, sub ins num: {}", getName(), cim_ins_info.ins_pc,
+                            cim_ins_info.sub_ins_num));
 
             auto [batch_cnt, activation_compartment_num] = getBatchCountAndActivationCompartmentCount(payload);
-            MacroSubInsInfo sub_ins_info{.pim_ins_info = pim_ins_info,
+            MacroSubInsInfo sub_ins_info{.cim_ins_info = cim_ins_info,
                                          .compartment_num = activation_compartment_num,
                                          .bit_sparse = payload.bit_sparse,
                                          .activation_element_col_cnt = activation_element_col_cnt_,
@@ -128,7 +128,7 @@ void Macro::processIPUAndIssue() {
                 submodule_payload.batch_info = {
                     .batch_num = batch, .first_batch = (batch == 0), .last_batch = (batch == batch_cnt - 1)};
                 LOG(fmt::format("{} start ipu and issue, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                                pim_ins_info.ins_pc, pim_ins_info.sub_ins_num, submodule_payload.batch_info.batch_num));
+                                cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, submodule_payload.batch_info.batch_num));
 
                 double dynamic_power_mW = config_.ipu.dynamic_power_mW;
                 double latency = config_.ipu.latency_cycle * period_ns_;
@@ -148,9 +148,9 @@ void Macro::processSRAMSubmodule() {
         sram_socket_.waitUntilStart();
 
         const auto &payload = sram_socket_.payload;
-        const auto &pim_ins_info = payload.sub_ins_info.pim_ins_info;
-        LOG(fmt::format("{} start sram read, ins pc: {}, sub ins num: {}, batch: {}", getName(), pim_ins_info.ins_pc,
-                        pim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+        const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
+        LOG(fmt::format("{} start sram read, ins pc: {}, sub ins num: {}, batch: {}", getName(), cim_ins_info.ins_pc,
+                        cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double dynamic_power_mW = config_.sram.read_dynamic_power_per_bit_mW * macro_size_.bit_width_per_row * 1 *
                                   macro_size_.element_cnt_per_compartment * macro_size_.compartment_cnt_per_macro;
@@ -169,10 +169,10 @@ void Macro::processPostProcessSubmodule() {
         post_process_socket_.waitUntilStart();
 
         const auto &payload = post_process_socket_.payload;
-        const auto &pim_ins_info = payload.sub_ins_info.pim_ins_info;
+        const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
         if (config_.bit_sparse && payload.sub_ins_info.bit_sparse) {
             LOG(fmt::format("{} start post process, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                            pim_ins_info.ins_pc, pim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+                            cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
             if (payload.batch_info.first_batch) {
                 int meta_size_byte = config_.bit_sparse_config.mask_bit_width *
@@ -204,9 +204,9 @@ void Macro::processAdderTreeSubmodule1() {
         adder_tree_socket_1_.waitUntilStart();
 
         const auto &payload = adder_tree_socket_1_.payload;
-        const auto &pim_ins_info = payload.sub_ins_info.pim_ins_info;
+        const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
         LOG(fmt::format("{} start adder tree stage 1, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                        pim_ins_info.ins_pc, pim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+                        cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double dynamic_power_mW = config_.adder_tree.dynamic_power_mW;
         double latency = period_ns_;
@@ -229,9 +229,9 @@ void Macro::processAdderTreeSubmodule2() {
         adder_tree_socket_2_.waitUntilStart();
 
         const auto &payload = adder_tree_socket_2_.payload;
-        const auto &pim_ins_info = payload.sub_ins_info.pim_ins_info;
+        const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
         LOG(fmt::format("{} start adder tree stage 2, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                        pim_ins_info.ins_pc, pim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+                        cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double dynamic_power_mW = config_.adder_tree.dynamic_power_mW;
         double latency = period_ns_;
@@ -254,9 +254,9 @@ void Macro::processShiftAdderSubmodule() {
         shift_adder_socket_.waitUntilStart();
 
         const auto &payload = shift_adder_socket_.payload;
-        const auto &pim_ins_info = payload.sub_ins_info.pim_ins_info;
-        LOG(fmt::format("{} start shift adder, ins pc: {}, sub ins num: {}, batch: {}", getName(), pim_ins_info.ins_pc,
-                        pim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+        const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
+        LOG(fmt::format("{} start shift adder, ins pc: {}, sub ins num: {}, batch: {}", getName(), cim_ins_info.ins_pc,
+                        cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double dynamic_power_mW =
             config_.shift_adder.dynamic_power_mW * payload.sub_ins_info.activation_element_col_cnt;
@@ -275,7 +275,7 @@ void Macro::processShiftAdderSubmodule() {
                 latency, dynamic_power_mW * payload.sub_ins_info.simulated_macro_cnt);
         }
 
-        if (finish_ins_func_ && pim_ins_info.last_sub_ins && payload.batch_info.last_batch) {
+        if (finish_ins_func_ && cim_ins_info.last_sub_ins && payload.batch_info.last_batch) {
             finish_ins_func_();
         }
 
@@ -307,4 +307,4 @@ std::pair<int, int> Macro::getBatchCountAndActivationCompartmentCount(const Macr
     return {batch_num, activation_compartment_num};
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

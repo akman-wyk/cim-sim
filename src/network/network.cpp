@@ -8,7 +8,7 @@
 
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
 Network::Network(std::string name, const NetworkConfig& config, const SimConfig& sim_config)
     : config_(config), sim_config_(sim_config), name_(std::move(name)) {
@@ -69,4 +69,4 @@ EnergyReporter Network::getEnergyReporter() const {
     return EnergyReporter{energy_counter_};
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

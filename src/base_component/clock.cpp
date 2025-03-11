@@ -4,10 +4,9 @@
 
 #include "clock.h"
 
-namespace pimsim {
+namespace cimsim {
 
-Clock::Clock(const sc_core::sc_module_name& name, double period)
-    : sc_core::sc_module(name), period_(period) {
+Clock::Clock(const sc_core::sc_module_name& name, double period) : sc_core::sc_module(name), period_(period) {
     SC_THREAD(process)
 
     SC_METHOD(endPosEdge)
@@ -44,4 +43,4 @@ void Clock::endPosEdge() {
     is_pos_edge_ = false;
 }
 
-}  // namespace pim
+}  // namespace cimsim

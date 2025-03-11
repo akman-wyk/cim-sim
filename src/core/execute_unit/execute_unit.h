@@ -8,7 +8,7 @@
 #include "core/conflict/payload.h"
 #include "payload.h"
 
-namespace pimsim {
+namespace cimsim {
 
 struct ExecuteUnitSignalPorts {
     sc_core::sc_signal<ExecuteUnitPayload> id_ex_payload_;
@@ -98,4 +98,4 @@ private:
     bool finish_run_{false};
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

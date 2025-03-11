@@ -2,7 +2,7 @@ import os
 
 
 def process_test_config(network):
-    data_dir = fr'D:\code\pim-sim\data\{network}\dense'
+    data_dir = fr'D:\code\cim-sim\data\{network}\dense'
     layer_name_list = []
     for item in os.listdir(data_dir):
         if os.path.isdir(os.path.join(data_dir, item)):

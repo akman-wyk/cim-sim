@@ -8,13 +8,13 @@
 #include "systemc.h"
 #include "util/macro_scope.h"
 
-namespace pimsim {
+namespace cimsim {
 
 BETTER_ENUM(ScalarOperator, int,  // NOLINT(*-explicit-constructor)
             add = 0, sub, mul, div, sll, srl, sra, mod, min, max, s_and, s_or, eq, ne, gt, lt, lui, load, store, assign)
 DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(ScalarOperator)
 
-BETTER_ENUM(PimControlOperator, int,  // NOLINT(*-explicit-constructor, *-no-recursion)
+BETTER_ENUM(CimControlOperator, int,  // NOLINT(*-explicit-constructor, *-no-recursion)
             set_activation = 0, only_output, output_sum, output_sum_move)
 
 BETTER_ENUM(TransferType, int,  // NOLINT(*-explicit-constructor, *-no-recursion)
@@ -95,7 +95,7 @@ struct ScalarInsPayload : public ExecuteInsPayload {
                                          write_special_register)
 };
 
-struct PimComputeInsPayload : public ExecuteInsPayload {
+struct CimComputeInsPayload : public ExecuteInsPayload {
     // input info
     int input_addr_byte{0}, input_len{0}, input_bit_width{0};
 
@@ -114,13 +114,13 @@ struct PimComputeInsPayload : public ExecuteInsPayload {
     bool value_sparse{false};
     int value_sparse_mask_addr_byte{0};
 
-    DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(PimComputeInsPayload, ins, input_addr_byte, input_len, input_bit_width,
+    DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(CimComputeInsPayload, ins, input_addr_byte, input_len, input_bit_width,
                                          activation_group_num, group_input_step_byte, row, bit_sparse,
                                          bit_sparse_meta_addr_byte, value_sparse, value_sparse_mask_addr_byte)
 };
 
-struct PimControlInsPayload : public ExecuteInsPayload {
-    PimControlOperator op{PimControlOperator::set_activation};
+struct CimControlInsPayload : public ExecuteInsPayload {
+    CimControlOperator op{CimControlOperator::set_activation};
 
     // set activation
     bool group_broadcast{false};
@@ -131,9 +131,9 @@ struct PimControlInsPayload : public ExecuteInsPayload {
     int activation_group_num{0};
     int output_addr_byte{0}, output_cnt_per_group{0}, output_bit_width{0}, output_mask_addr_byte{0};
 
-    DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(PimControlInsPayload, ins, op, group_broadcast, group_id, mask_addr_byte,
+    DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(CimControlInsPayload, ins, op, group_broadcast, group_id, mask_addr_byte,
                                          activation_group_num, output_addr_byte, output_cnt_per_group, output_bit_width,
                                          output_mask_addr_byte)
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

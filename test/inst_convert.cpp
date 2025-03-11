@@ -12,10 +12,10 @@
 #include "isa/isa.h"
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
-InstV2 convertPimInstV1toV2(const InstV1& inst_v1) {
-    if (inst_v1.type == PIMInstType::compute) {
+InstV2 convertCimInstV1toV2(const InstV1& inst_v1) {
+    if (inst_v1.type == CIMInstType::compute) {
         return InstV2{.opcode = OPCODE::CIM_MVM,
                       .rs = inst_v1.rs1,
                       .rt = inst_v1.rs2,
@@ -24,7 +24,7 @@ InstV2 convertPimInstV1toV2(const InstV1& inst_v1) {
                       .SP_V = (inst_v1.value_sparse != 0),
                       .SP_B = inst_v1.bit_sparse != 0};
     }
-    if (inst_v1.type == PIMInstType::set) {
+    if (inst_v1.type == CIMInstType::set) {
         return InstV2{
             .opcode = OPCODE::CIM_CFG, .rs = inst_v1.rs1, .rt = inst_v1.rs2, .GRP_B = (inst_v1.group_broadcast != 0)};
     }
@@ -123,8 +123,8 @@ InstV2 convertControlInstV1toV2(const InstV1& inst_v1) {
 }
 
 InstV2 convertInstV1toV2(const InstV1& inst_v1) {
-    if (inst_v1.class_code == InstClass::pim) {
-        return convertPimInstV1toV2(inst_v1);
+    if (inst_v1.class_code == InstClass::cim) {
+        return convertCimInstV1toV2(inst_v1);
     }
     if (inst_v1.class_code == InstClass::simd) {
         return convertSIMDInstV1toV2(inst_v1);
@@ -214,7 +214,7 @@ void convertChipCodeV1toV2(const char* v1_file, const char* v2_file) {
     ofs.close();
 }
 
-}  // namespace pimsim
+}  // namespace cimsim
 
 int main(int argc, char* argv[]) {
     std::string exec_file_name{argv[0]};
@@ -228,9 +228,9 @@ int main(int argc, char* argv[]) {
     auto* v2_file = argv[3];
 
     if (mode == "chip") {
-        pimsim::convertChipCodeV1toV2(v1_file, v2_file);
+        cimsim::convertChipCodeV1toV2(v1_file, v2_file);
     } else {
-        pimsim::convertCoreCodeV1toV2(v1_file, v2_file);
+        cimsim::convertCoreCodeV1toV2(v1_file, v2_file);
     }
     return 0;
 }

@@ -8,10 +8,10 @@
 #include "fmt/format.h"
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
-RAM::RAM(const char *name, const pimsim::RAMConfig &config, const pimsim::SimConfig &sim_config, pimsim::Core *core,
-         pimsim::Clock *clk)
+RAM::RAM(const char *name, const cimsim::RAMConfig &config, const cimsim::SimConfig &sim_config, cimsim::Core *core,
+         cimsim::Clock *clk)
     : MemoryHardware(name, sim_config, core, clk), config_(config) {
     if (data_mode_ == +DataMode::real_data) {
         initialData();
@@ -20,7 +20,7 @@ RAM::RAM(const char *name, const pimsim::RAMConfig &config, const pimsim::SimCon
     static_energy_counter_.setStaticPowerMW(config_.static_power_mW);
 }
 
-sc_core::sc_time RAM::accessAndGetDelay(pimsim::MemoryAccessPayload &payload) {
+sc_core::sc_time RAM::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
     if (payload.address_byte < 0 || payload.address_byte + payload.size_byte > config_.size_byte) {
         std::cerr << fmt::format("Core id: {}, Invalid memory access with ins NO.'{}': address {} overflow, size: {}, "
                                  "config size: {}",
@@ -77,4 +77,4 @@ int RAM::getMemorySizeByte() const {
     return config_.size_byte;
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

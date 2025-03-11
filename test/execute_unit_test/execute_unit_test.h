@@ -18,7 +18,7 @@
 #include "util/log.h"
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
 template <class TestUnitModule, class TestUnit, class TestUnitConfig, class InsPayload, class TestInstruction,
           class TestExpectedInfo, class TestInfo>
@@ -112,7 +112,7 @@ private:
 
     void processResourceRelease() {
         if (auto ins_id = signals_.resource_release_.read().ins_id; ins_id != -1) {
-            LOG(fmt::format("pim set ins finish, pc: {}", ins_id));
+            LOG(fmt::format("cim set ins finish, pc: {}", ins_id));
         }
     }
 
@@ -152,7 +152,7 @@ protected:
 };
 
 template <class TestUnitModule>
-int pimsim_unit_test(
+int cimsim_unit_test(
     int argc, char* argv[],
     std::function<TestUnitModule*(const Config& config, Clock* clk, typename TestUnitModule::TestInfoType& test_info)>
         test_module_initializer) {
@@ -197,4 +197,4 @@ int pimsim_unit_test(
     }
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

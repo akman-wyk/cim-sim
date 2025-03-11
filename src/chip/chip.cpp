@@ -7,7 +7,7 @@
 #include "core/core.h"
 #include "fmt/format.h"
 
-namespace pimsim {
+namespace cimsim {
 
 Chip::Chip(const char* name, const Config& config, const std::vector<std::vector<Instruction>>& core_ins_list)
     : BaseModule(name, config.sim_config, nullptr, nullptr)
@@ -65,4 +65,4 @@ void Chip::processFinishRun() {
     }
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

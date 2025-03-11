@@ -8,11 +8,11 @@
 #include "util/log.h"
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
-PimComputeUnit::PimComputeUnit(const char *name, const pimsim::PimUnitConfig &config,
-                               const pimsim::SimConfig &sim_config, pimsim::Core *core, pimsim::Clock *clk)
-    : ExecuteUnit(name, sim_config, core, clk, ExecuteUnitType::pim_compute)
+CimComputeUnit::CimComputeUnit(const char *name, const cimsim::CimUnitConfig &config,
+                               const cimsim::SimConfig &sim_config, cimsim::Core *core, cimsim::Clock *clk)
+    : ExecuteUnit(name, sim_config, core, clk, ExecuteUnitType::cim_compute)
     , config_(config)
     , macro_size_(config.macro_size) {
     SC_THREAD(processIssue)
@@ -28,38 +28,38 @@ PimComputeUnit::PimComputeUnit(const char *name, const pimsim::PimUnitConfig &co
     }
 }
 
-void PimComputeUnit::bindLocalMemoryUnit(pimsim::LocalMemoryUnit *local_memory_unit) {
+void CimComputeUnit::bindLocalMemoryUnit(cimsim::LocalMemoryUnit *local_memory_unit) {
     local_memory_socket_.bindLocalMemoryUnit(local_memory_unit);
 }
 
-void PimComputeUnit::bindCimUnit(CimUnit *cim_unit) {
+void CimComputeUnit::bindCimUnit(CimUnit *cim_unit) {
     cim_unit_ = cim_unit;
     cim_unit_->bindCimComputeUnit([this](int ins_id) { releaseResource(ins_id); }, [this]() { finishInstruction(); });
 }
 
-EnergyReporter PimComputeUnit::getEnergyReporter() {
-    EnergyReporter pim_compute_reporter;
+EnergyReporter CimComputeUnit::getEnergyReporter() {
+    EnergyReporter cim_compute_reporter;
     if (config_.value_sparse) {
-        pim_compute_reporter.addSubModule("value sparsity network",
+        cim_compute_reporter.addSubModule("value sparsity network",
                                           EnergyReporter{value_sparse_network_energy_counter_});
     }
     if (config_.bit_sparse) {
-        pim_compute_reporter.addSubModule("meta buffer", EnergyReporter{meta_buffer_energy_counter_});
+        cim_compute_reporter.addSubModule("meta buffer", EnergyReporter{meta_buffer_energy_counter_});
     }
-    pim_compute_reporter.accumulate(cim_unit_->getEnergyReporter(), true);
-    return std::move(pim_compute_reporter);
+    cim_compute_reporter.accumulate(cim_unit_->getEnergyReporter(), true);
+    return std::move(cim_compute_reporter);
 }
 
-void PimComputeUnit::processIssue() {
+void CimComputeUnit::processIssue() {
     while (true) {
-        auto payload = waitForExecuteAndGetPayload<PimComputeInsPayload>();
+        auto payload = waitForExecuteAndGetPayload<CimComputeInsPayload>();
 
-        LOG(fmt::format("Pim compute start, pc: {}", payload->ins.pc));
+        LOG(fmt::format("Cim compute start, pc: {}", payload->ins.pc));
         ports_.resource_allocate_.write(getDataConflictInfo(*payload));
 
         process_sub_ins_socket_.waitUntilFinishIfBusy();
         process_sub_ins_socket_.payload = {
-            .pim_ins_info = {.ins_pc = payload->ins.pc,
+            .cim_ins_info = {.ins_pc = payload->ins.pc,
                              .sub_ins_num = 1,
                              .last_sub_ins = true,
                              .ins_id = payload->ins.ins_id},
@@ -67,7 +67,7 @@ void PimComputeUnit::processIssue() {
             .group_max_activation_macro_cnt = cim_unit_->getMacroGroupMaxActivationMacroCount()};
         process_sub_ins_socket_.start_exec.notify();
 
-        if (!process_sub_ins_socket_.payload.pim_ins_info.last_sub_ins) {
+        if (!process_sub_ins_socket_.payload.cim_ins_info.last_sub_ins) {
             wait(next_sub_ins_);
         }
 
@@ -75,21 +75,21 @@ void PimComputeUnit::processIssue() {
     }
 }
 
-void PimComputeUnit::processSubIns() {
+void CimComputeUnit::processSubIns() {
     while (true) {
         process_sub_ins_socket_.waitUntilStart();
 
         this->energy_counter_.addDynamicEnergyPJ(8 * period_ns_, 0);
 
         const auto &sub_ins_payload = process_sub_ins_socket_.payload;
-        const auto &pim_ins_info = sub_ins_payload.pim_ins_info;
-        LOG(fmt::format("Pim compute sub ins start, pc: {}, sub ins: {}", pim_ins_info.ins_pc,
-                        pim_ins_info.sub_ins_num));
+        const auto &cim_ins_info = sub_ins_payload.cim_ins_info;
+        LOG(fmt::format("Cim compute sub ins start, pc: {}, sub ins: {}", cim_ins_info.ins_pc,
+                        cim_ins_info.sub_ins_num));
 
         processSubInsReadData(sub_ins_payload);
         processSubInsCompute(sub_ins_payload);
 
-        if (!pim_ins_info.last_sub_ins) {
+        if (!cim_ins_info.last_sub_ins) {
             next_sub_ins_.notify();
         }
 
@@ -97,7 +97,7 @@ void PimComputeUnit::processSubIns() {
     }
 }
 
-void PimComputeUnit::processSubInsReadData(const pimsim::PimComputeSubInsPayload &sub_ins_payload) {
+void CimComputeUnit::processSubInsReadData(const cimsim::CimComputeSubInsPayload &sub_ins_payload) {
     const auto &payload = sub_ins_payload.ins_payload;
 
     // start reading data in parallel
@@ -129,7 +129,7 @@ void PimComputeUnit::processSubInsReadData(const pimsim::PimComputeSubInsPayload
     read_bit_sparse_meta_socket_.waitUntilFinishIfBusy();
 }
 
-void PimComputeUnit::processSubInsCompute(const PimComputeSubInsPayload &sub_ins_payload) {
+void CimComputeUnit::processSubInsCompute(const CimComputeSubInsPayload &sub_ins_payload) {
     const auto &payload = sub_ins_payload.ins_payload;
 
     // process groups list
@@ -144,7 +144,7 @@ void PimComputeUnit::processSubInsCompute(const PimComputeSubInsPayload &sub_ins
     int total_activation_macro_cnt =
         cim_unit_->isMacroSimulation() ? total_activation_group_cnt * config_.macro_group_size : 1;
     for (int group_id = 0; group_id < group_cnt; group_id++) {
-        MacroGroupPayload group_payload{.pim_ins_info = sub_ins_payload.pim_ins_info,
+        MacroGroupPayload group_payload{.cim_ins_info = sub_ins_payload.cim_ins_info,
                                         .last_group = group_id == group_cnt - 1,
                                         .row = payload.row,
                                         .input_bit_width = payload.input_bit_width,
@@ -168,8 +168,8 @@ void PimComputeUnit::processSubInsCompute(const PimComputeSubInsPayload &sub_ins
     wait(SC_ZERO_TIME);
 }
 
-std::vector<std::vector<unsigned long long>> PimComputeUnit::getMacroGroupInputs(
-    int group_id, int addr_byte, int size_byte, const pimsim::PimComputeSubInsPayload &sub_ins_payload) {
+std::vector<std::vector<unsigned long long>> CimComputeUnit::getMacroGroupInputs(
+    int group_id, int addr_byte, int size_byte, const cimsim::CimComputeSubInsPayload &sub_ins_payload) {
     const auto &payload = sub_ins_payload.ins_payload;
 
     auto read_data = local_memory_socket_.readData(payload.ins, addr_byte, size_byte);
@@ -209,7 +209,7 @@ std::vector<std::vector<unsigned long long>> PimComputeUnit::getMacroGroupInputs
     return std::move(macro_group_inputs);
 }
 
-void PimComputeUnit::readValueSparseMaskSubmodule() {
+void CimComputeUnit::readValueSparseMaskSubmodule() {
     while (true) {
         read_value_sparse_mask_socket_.waitUntilStart();
 
@@ -220,7 +220,7 @@ void PimComputeUnit::readValueSparseMaskSubmodule() {
     }
 }
 
-void PimComputeUnit::readBitSparseMetaSubmodule() {
+void CimComputeUnit::readBitSparseMetaSubmodule() {
     while (true) {
         read_bit_sparse_meta_socket_.waitUntilStart();
 
@@ -235,8 +235,8 @@ void PimComputeUnit::readBitSparseMetaSubmodule() {
     }
 }
 
-ResourceAllocatePayload PimComputeUnit::getDataConflictInfo(const pimsim::PimComputeInsPayload &payload) const {
-    ResourceAllocatePayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::pim_compute};
+ResourceAllocatePayload CimComputeUnit::getDataConflictInfo(const cimsim::CimComputeInsPayload &payload) const {
+    ResourceAllocatePayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::cim_compute};
 
     int input_memory_id = local_memory_socket_.getLocalMemoryIdByAddress(payload.input_addr_byte);
     conflict_payload.addReadMemoryId({input_memory_id, cim_unit_->getLocalMemoryId()});
@@ -254,8 +254,8 @@ ResourceAllocatePayload PimComputeUnit::getDataConflictInfo(const pimsim::PimCom
     return std::move(conflict_payload);
 }
 
-ResourceAllocatePayload PimComputeUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload> &payload) {
-    return getDataConflictInfo(*std::dynamic_pointer_cast<PimComputeInsPayload>(payload));
+ResourceAllocatePayload CimComputeUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload> &payload) {
+    return getDataConflictInfo(*std::dynamic_pointer_cast<CimComputeInsPayload>(payload));
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

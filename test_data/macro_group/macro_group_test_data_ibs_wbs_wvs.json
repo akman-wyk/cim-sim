@@ -2,7 +2,7 @@
   "code": [
     {
       "payload": {
-        "pim_ins_info": {
+        "cim_ins_info": {
           "ins_pc": 1,
           "sub_ins_num": 1,
           "last_ins": false,
@@ -22,7 +22,7 @@
     },
     {
       "payload": {
-        "pim_ins_info": {
+        "cim_ins_info": {
           "ins_pc": 1,
           "sub_ins_num": 2,
           "last_ins": false,
@@ -42,7 +42,7 @@
     },
     {
       "payload": {
-        "pim_ins_info": {
+        "cim_ins_info": {
           "ins_pc": 2,
           "sub_ins_num": 1,
           "last_ins": false,
@@ -62,7 +62,7 @@
     },
     {
       "payload": {
-        "pim_ins_info": {
+        "cim_ins_info": {
           "ins_pc": 2,
           "sub_ins_num": 2,
           "last_ins": false,
@@ -82,7 +82,7 @@
     },
     {
       "payload": {
-        "pim_ins_info": {
+        "cim_ins_info": {
           "ins_pc": 3,
           "sub_ins_num": 1,
           "last_ins": true,
@@ -102,7 +102,7 @@
     },
     {
       "payload": {
-        "pim_ins_info": {
+        "cim_ins_info": {
           "ins_pc": 3,
           "sub_ins_num": 2,
           "last_ins": true,

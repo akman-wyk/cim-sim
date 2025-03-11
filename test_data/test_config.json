@@ -1,5 +1,5 @@
 {
-  "root_dir": "/mnt/d/Dropbox/Dropbox/Workspace/code/pim-sim",
+  "root_dir": "/mnt/d/Dropbox/Dropbox/Workspace/code/cim-sim",
   "unit_test_list": [
     {
       "name": "SIMDUnitTest",
@@ -104,78 +104,78 @@
       ]
     },
     {
-      "name": "PimControlUnitTest",
+      "name": "CimControlUnitTest",
       "test_cases": [
         {
           "comments": "Test for set activation 1",
-          "config_file": "config/test/pim_control_unit_test_config_set_activation.json",
-          "instruction_file": "test_data/pim_control/pim_control_unit_test_data_1.json",
-          "report_file": "report/PimControlUnit_test_report.txt"
+          "config_file": "config/test/cim_control_unit_test_config_set_activation.json",
+          "instruction_file": "test_data/cim_control/cim_control_unit_test_data_1.json",
+          "report_file": "report/CimControlUnit_test_report.txt"
         },
         {
           "comments": "Test for set activation 2",
-          "config_file": "config/test/pim_control_unit_test_config_set_activation.json",
-          "instruction_file": "test_data/pim_control/pim_control_unit_test_data_2.json",
-          "report_file": "report/PimControlUnit_test_report.txt"
+          "config_file": "config/test/cim_control_unit_test_config_set_activation.json",
+          "instruction_file": "test_data/cim_control/cim_control_unit_test_data_2.json",
+          "report_file": "report/CimControlUnit_test_report.txt"
         },
         {
           "comments": "Test for set activation 3",
-          "config_file": "config/test/pim_control_unit_test_config_set_activation.json",
-          "instruction_file": "test_data/pim_control/pim_control_unit_test_data_3.json",
-          "report_file": "report/PimControlUnit_test_report.txt"
+          "config_file": "config/test/cim_control_unit_test_config_set_activation.json",
+          "instruction_file": "test_data/cim_control/cim_control_unit_test_data_3.json",
+          "report_file": "report/CimControlUnit_test_report.txt"
         },
         {
           "comments": "Test for set activation 4",
-          "config_file": "config/test/pim_control_unit_test_config_set_activation.json",
-          "instruction_file": "test_data/pim_control/pim_control_unit_test_data_4.json",
-          "report_file": "report/PimControlUnit_test_report.txt"
+          "config_file": "config/test/cim_control_unit_test_config_set_activation.json",
+          "instruction_file": "test_data/cim_control/cim_control_unit_test_data_4.json",
+          "report_file": "report/CimControlUnit_test_report.txt"
         },
         {
           "comments": "Test for set activation 5",
-          "config_file": "config/test/pim_control_unit_test_config_set_activation.json",
-          "instruction_file": "test_data/pim_control/pim_control_unit_test_data_5.json",
-          "report_file": "report/PimControlUnit_test_report.txt"
+          "config_file": "config/test/cim_control_unit_test_config_set_activation.json",
+          "instruction_file": "test_data/cim_control/cim_control_unit_test_data_5.json",
+          "report_file": "report/CimControlUnit_test_report.txt"
         },
         {
           "comments": "Test for set activation 6",
-          "config_file": "config/test/pim_control_unit_test_config_set_activation.json",
-          "instruction_file": "test_data/pim_control/pim_control_unit_test_data_6.json",
-          "report_file": "report/PimControlUnit_test_report.txt"
+          "config_file": "config/test/cim_control_unit_test_config_set_activation.json",
+          "instruction_file": "test_data/cim_control/cim_control_unit_test_data_6.json",
+          "report_file": "report/CimControlUnit_test_report.txt"
         },
         {
-          "comments": "Test for pim output",
-          "config_file": "config/test/pim_control_unit_test_config_output.json",
-          "instruction_file": "test_data/pim_control/pim_control_unit_test_data_7.json",
-          "report_file": "report/PimControlUnit_test_report.txt"
+          "comments": "Test for cim output",
+          "config_file": "config/test/cim_control_unit_test_config_output.json",
+          "instruction_file": "test_data/cim_control/cim_control_unit_test_data_7.json",
+          "report_file": "report/CimControlUnit_test_report.txt"
         }
       ]
     },
     {
-      "name": "PimComputeUnitTest",
+      "name": "CimComputeUnitTest",
       "test_cases": [
         {
           "comments": "Test for comfig without any sparsity",
-          "config_file": "config/test/pim_compute_unit_test_config_base.json",
-          "instruction_file": "test_data/pim_compute/pim_compute_unit_test_data_base.json",
-          "report_file": "report/PimComputeUnit_test_report.txt"
+          "config_file": "config/test/cim_compute_unit_test_config_base.json",
+          "instruction_file": "test_data/cim_compute/cim_compute_unit_test_data_base.json",
+          "report_file": "report/CimComputeUnit_test_report.txt"
         },
         {
           "comments": "Test for comfig with input bit sparsity and weight bit sparsity",
-          "config_file": "config/test/pim_compute_unit_test_config_bs.json",
-          "instruction_file": "test_data/pim_compute/pim_compute_unit_test_data_bs.json",
-          "report_file": "report/PimComputeUnit_test_report.txt"
+          "config_file": "config/test/cim_compute_unit_test_config_bs.json",
+          "instruction_file": "test_data/cim_compute/cim_compute_unit_test_data_bs.json",
+          "report_file": "report/CimComputeUnit_test_report.txt"
         },
         {
           "comments": "Test for comfig with weight value sparsity",
-          "config_file": "config/test/pim_compute_unit_test_config_vs.json",
-          "instruction_file": "test_data/pim_compute/pim_compute_unit_test_data_vs.json",
-          "report_file": "report/PimComputeUnit_test_report.txt"
+          "config_file": "config/test/cim_compute_unit_test_config_vs.json",
+          "instruction_file": "test_data/cim_compute/cim_compute_unit_test_data_vs.json",
+          "report_file": "report/CimComputeUnit_test_report.txt"
         },
         {
           "comments": "Test for comfig with input bit sparsity, weight bit sparsity and weight value sparsity",
-          "config_file": "config/test/pim_compute_unit_test_config_bs_vs.json",
-          "instruction_file": "test_data/pim_compute/pim_compute_unit_test_data_bs_vs.json",
-          "report_file": "report/PimComputeUnit_test_report.txt"
+          "config_file": "config/test/cim_compute_unit_test_config_bs_vs.json",
+          "instruction_file": "test_data/cim_compute/cim_compute_unit_test_data_bs_vs.json",
+          "report_file": "report/CimComputeUnit_test_report.txt"
         }
       ]
     },
@@ -195,44 +195,44 @@
           "report_file": "report/Core_test_report.txt"
         },
         {
-          "comments": "Test for Pim Load instructions",
-          "config_file": "config/test/Transfer_test_config_load_pim.json",
+          "comments": "Test for Cim Load instructions",
+          "config_file": "config/test/Transfer_test_config_load_cim.json",
           "instruction_file": "test_data/core_v2/core_test_data_3.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
-          "comments": "Test for Pim Set instructions",
-          "config_file": "config/test/pim_control_unit_test_config_set_activation.json",
+          "comments": "Test for Cim Set instructions",
+          "config_file": "config/test/cim_control_unit_test_config_set_activation.json",
           "instruction_file": "test_data/core_v2/core_test_data_4.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
-          "comments": "Test for Pim Output instructions",
-          "config_file": "config/test/pim_control_unit_test_config_output.json",
+          "comments": "Test for Cim Output instructions",
+          "config_file": "config/test/cim_control_unit_test_config_output.json",
           "instruction_file": "test_data/core_v2/core_test_data_5.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
-          "comments": "Test for Pim Compute instructions without any sparsity",
-          "config_file": "config/test/pim_compute_unit_test_config_base.json",
+          "comments": "Test for Cim Compute instructions without any sparsity",
+          "config_file": "config/test/cim_compute_unit_test_config_base.json",
           "instruction_file": "test_data/core_v2/core_test_data_6.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
-          "comments": "Test for Pim Compute instructions with input bit sparsity and weight bit sparsity",
-          "config_file": "config/test/pim_compute_unit_test_config_bs.json",
+          "comments": "Test for Cim Compute instructions with input bit sparsity and weight bit sparsity",
+          "config_file": "config/test/cim_compute_unit_test_config_bs.json",
           "instruction_file": "test_data/core_v2/core_test_data_7.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
-          "comments": "Test for Pim Compute instructions with weight value sparsity",
-          "config_file": "config/test/pim_compute_unit_test_config_vs.json",
+          "comments": "Test for Cim Compute instructions with weight value sparsity",
+          "config_file": "config/test/cim_compute_unit_test_config_vs.json",
           "instruction_file": "test_data/core_v2/core_test_data_8.json",
           "report_file": "report/Core_test_report.txt"
         },
         {
-          "comments": "Test for Pim Compute instructions with input bit sparsity, weight bit sparsity and weight value sparsity",
-          "config_file": "config/test/pim_compute_unit_test_config_bs_vs.json",
+          "comments": "Test for Cim Compute instructions with input bit sparsity, weight bit sparsity and weight value sparsity",
+          "config_file": "config/test/cim_compute_unit_test_config_bs_vs.json",
           "instruction_file": "test_data/core_v2/core_test_data_9.json",
           "report_file": "report/Core_test_report.txt"
         },
@@ -255,7 +255,7 @@
           "report_file": "report/Core_test_report.txt"
         },
         {
-          "comments": "Test for Pim Compute instructions with macro simulation config",
+          "comments": "Test for Cim Compute instructions with macro simulation config",
           "config_file": "config/test/macro_simulation_test_config.json",
           "instruction_file": "test_data/core_v2/core_test_data_13.json",
           "report_file": "report/Core_test_report.txt"

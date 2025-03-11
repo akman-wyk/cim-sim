@@ -8,7 +8,7 @@
 #include "fmt/format.h"
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
 const std::string GLOBAL_MEMORY_NAME = "global";
 
@@ -101,9 +101,9 @@ std::vector<std::vector<Instruction>> LayerSimulator::getCoreInstructionList() c
     return std::move(core_inst_list);
 }
 
-}  // namespace pimsim
+}  // namespace cimsim
 
-struct PimArguments {
+struct CimArguments {
     std::string config_file;
     std::string instruction_file;
     // std::string global_image_file;
@@ -119,7 +119,7 @@ struct PimArguments {
     bool list_every_core_energy;
 };
 
-PimArguments parsePimArguments(int argc, char* argv[]) {
+CimArguments parseCimArguments(int argc, char* argv[]) {
     argparse::ArgumentParser parser("ChipTest");
     parser.add_argument("config").help("config file");
     parser.add_argument("inst").help("instruction file");
@@ -152,7 +152,7 @@ PimArguments parsePimArguments(int argc, char* argv[]) {
 
     std::string simulation_report_file = parser.is_used("--sim_report") ? parser.get("--sim_report") : "";
     std::string report_json_file = parser.is_used("--report_json") ? parser.get("--report_json") : "";
-    return PimArguments{.config_file = parser.get("config"),
+    return CimArguments{.config_file = parser.get("config"),
                         .instruction_file = parser.get("inst"),
                         // .global_image_file = parser.get("global"),
                         // .expected_ins_stat_file = parser.get("stat"),
@@ -168,9 +168,9 @@ PimArguments parsePimArguments(int argc, char* argv[]) {
 int sc_main(int argc, char* argv[]) {
     sc_core::sc_report_handler::set_actions(sc_core::SC_WARNING, sc_core::SC_DO_NOTHING);
 
-    auto args = parsePimArguments(argc, argv);
+    auto args = parseCimArguments(argc, argv);
 
-    pimsim::LayerSimulator layer_simulator{args.config_file, args.instruction_file,
+    cimsim::LayerSimulator layer_simulator{args.config_file, args.instruction_file,
                                            // args.global_image_file,
                                            // args.expected_ins_stat_file,
                                            // args.expected_reg_file,

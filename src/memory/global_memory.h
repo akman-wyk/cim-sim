@@ -6,7 +6,7 @@
 #include "memory.h"
 #include "network/switch.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class GlobalMemory {
 public:
@@ -24,4 +24,4 @@ private:
     Switch switch_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

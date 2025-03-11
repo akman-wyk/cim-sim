@@ -1,5 +1,5 @@
 {
-  "comments": "test fot Pim Compute instructions with macro simulation config",
+  "comments": "test fot Cim Compute instructions with macro simulation config",
   "code": [
     {"opcode": 44, "rd": 0, "imm": 4096, "asm": "G_LI 4096 to $0"},
     {"opcode": 45, "rd": 0, "imm": 8, "asm": "S_LI 8 to $0"},

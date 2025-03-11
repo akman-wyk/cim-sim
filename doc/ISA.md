@@ -16,7 +16,7 @@
 
 + 专用寄存器个数：32
 
-  + 0-15：pim单元专用寄存器
+  + 0-15：cim单元专用寄存器
     - 0：input bit width，输入的bit长度
     - 1：output bit width，输出的bit长度
     - 2：weight bit width，权重的bit长度
@@ -54,7 +54,7 @@
   
 + 指令类别码：class，[31, 30]或[31, 29]，2或3bit长
 
-  + 00：Pim指令
+  + 00：Cim指令
 
   + 01：SIMD指令
 
@@ -84,8 +84,8 @@
 }
 ```
 
-+ PIM单元的地址空间同样使用统一编址，格式如下所示
-  + PIM单元的地址连续顺序，两种模式，group内先连续和group间先连续
++ CIM单元的地址空间同样使用统一编址，格式如下所示
+  + CIM单元的地址连续顺序，两种模式，group内先连续和group间先连续
     + group内先连续：先行再group
       + 首先是group1的macro1的第1整行，然后是macro2的第1整行，一直到macroN的第1整行；
       + 然后是group1的macro1到macroN的第2整行
@@ -99,7 +99,7 @@
 
 ```json
 {
-    "pim_unit_config": {
+    "cim_unit_config": {
         "address_space": {
             "offset_byte": 0,
             "size_byte": 1024
@@ -112,16 +112,16 @@
 
 
 
-### Pim指令
+### Cim指令
 
 指令类型码：type，[29, 28]，2bit长
 
-+ 00：pim运算
-+ 01：pim设置
-+ 10：pim输出
-+ 11：pim数据传输
++ 00：cim运算
++ 01：cim设置
++ 10：cim输出
++ 11：cim数据传输
 
-#### pim计算：pim-compute
+#### cim计算：cim-compute
 
 指令字段划分：
 
@@ -151,9 +151,9 @@
 + 7：value sparse mask addr：值稀疏掩码Mask的起始地址
 + 8：bit sparse meta addr：Bit级稀疏Meta数据的起始地址
 
-#### pim设置：pim-set
+#### cim设置：cim-set
 
-设置pim单元的一些参数，以每个MacroGroup为单位进行设置，设置的参数包括每个macro激活的element列等
+设置cim单元的一些参数，以每个MacroGroup为单位进行设置，设置的参数包括每个macro激活的element列等
 
 + [31, 30]，2bit：class，指令类别码，值为00
 + [29, 28]，2bit：type，指令类型码，值为01
@@ -167,9 +167,9 @@
   + 每个Macro的mask从前到后依次排布，连续存储
 + [9, 0]，10bit：reserve，保留字段
 
-#### pim输出：pim-output
+#### cim输出：cim-output
 
-将PIM单元内部寄存器里暂存的结果，输出到本地存储器中，需要等待前一条pim-compute或pim-batch执行完成后才能执行。该指令对激活的每个group执行相同的操作。
+将CIM单元内部寄存器里暂存的结果，输出到本地存储器中，需要等待前一条cim-compute或cim-batch执行完成后才能执行。该指令对激活的每个group执行相同的操作。
 
 指令字段划分：
 
@@ -181,7 +181,7 @@
 
 + [21, 20]，2bit：flag，功能字段
 
-  + [21]，1bit：outsum-move，针对连续的阈值为2的权重，是否对【pim运算结果】应用部分和加法以及移动，涉及到的运算结果数量由寄存器rs1给出
+  + [21]，1bit：outsum-move，针对连续的阈值为2的权重，是否对【cim运算结果】应用部分和加法以及移动，涉及到的运算结果数量由寄存器rs1给出
 
     + 设指针B为数据起始地址，则该flag为1则表示需要额外进行以下运算：
   
@@ -191,7 +191,7 @@
     }
     ```
   
-  + [20]，1bit：outsum，是否对【使用”基于CSD编码的bit-level sparsity“算法的pim运算结果】应用部分和加法，加法掩码的长度（即涉及到的运算结果数量）和地址由寄存器rs1和rs2给出
+  + [20]，1bit：outsum，是否对【使用”基于CSD编码的bit-level sparsity“算法的cim运算结果】应用部分和加法，加法掩码的长度（即涉及到的运算结果数量）和地址由寄存器rs1和rs2给出
   
     + 掩码的意义：1表示需要和后一个输出加起来，0则不需要任何操作
 
@@ -208,9 +208,9 @@
 + output bit width：输出的bit长度
 + activation group num：激活的group的数量
 
-#### pim数据传输：pim-transfer
+#### cim数据传输：cim-transfer
 
-该指令针对【使用”基于CSD编码的bit-level sparsity“算法的pim运算结果】，在阈值有1和2的情况下，在output reg buffer中不规则、不连续的问题，专门用于搬运pim运算结果，且该指令需要使用缓冲区
+该指令针对【使用”基于CSD编码的bit-level sparsity“算法的cim运算结果】，在阈值有1和2的情况下，在output reg buffer中不规则、不连续的问题，专门用于搬运cim运算结果，且该指令需要使用缓冲区
 
 指令字段划分：
 
@@ -229,9 +229,9 @@
 
 > 后续扩展指令
 >
-> #### pim批处理：pim-batch
+> #### cim批处理：cim-batch
 >
-> pim-batch指令进行批处理的预处理，即设置批处理的部分参数，后需要紧跟一条pim-compute开启批处理运算
+> cim-batch指令进行批处理的预处理，即设置批处理的部分参数，后需要紧跟一条cim-compute开启批处理运算
 >
 > 指令字段划分：
 >

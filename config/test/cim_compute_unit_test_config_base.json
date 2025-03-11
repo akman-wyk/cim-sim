@@ -2,9 +2,9 @@
   "chip_config": {
     "core_cnt": 1,
     "core_config": {
-      "pim_unit_config": {
-        "macro_total_cnt": 64,
-        "macro_group_size": 16,
+      "cim_unit_config": {
+        "macro_total_cnt": 8,
+        "macro_group_size": 2,
         "macro_size": {
           "compartment_cnt_per_macro": 16,
           "element_cnt_per_compartment": 16,
@@ -13,7 +13,7 @@
         },
         "address_space": {
           "offset_byte": 0,
-          "size_byte": 2048
+          "size_byte": 1024
         },
         "ipu": {
           "latency_cycle": 1,
@@ -21,11 +21,10 @@
           "dynamic_power_mW": 1.0
         },
         "sram": {
-          "as_mode": "intergroup",
           "write_latency_cycle": 1,
           "read_latency_cycle": 1,
           "static_power_mW": 1.0,
-          "write_dynamic_power_per_bit_mW": 0.01,
+          "write_dynamic_power_per_bit_mW": 1.0,
           "read_dynamic_power_per_bit_mW": 1.0
         },
         "adder_tree": {
@@ -66,10 +65,28 @@
       "local_memory_unit_config": {
         "local_memory_list": [
           {
+            "name": "cim input reg buffer",
+            "type": "reg_buffer",
+            "addressing": {
+              "offset_byte": 1024,
+              "size_byte": 1024
+            },
+            "hardware_config": {
+              "size_byte": 512,
+              "read_max_width_byte": 128,
+              "write_max_width_byte": 128,
+              "rw_min_unit_byte": 128,
+              "static_power_mW": 1.0,
+              "rw_dynamic_power_per_unit_mW": 1,
+              "has_image": true,
+              "image_file": "../test_data/cim_compute/base_input_buffer_image.bin"
+            }
+          },
+          {
             "name": "local memory",
             "type": "ram",
             "addressing": {
-              "offset_byte": 2048,
+              "offset_byte": 4096,
               "size_byte": 1024
             },
             "hardware_config": {
@@ -77,9 +94,11 @@
               "width_byte": 128,
               "write_latency_cycle": 1,
               "read_latency_cycle": 1,
-              "static_power_mW": 1.0,
-              "write_dynamic_power_mW": 1.0,
-              "read_dynamic_power_mW": 1.0
+              "static_power_mW": 0.0,
+              "write_dynamic_power_mW": 0.0,
+              "read_dynamic_power_mW": 0.0,
+              "has_image": true,
+              "image_file": "../test_data/core/act_col_mask_image.bin"
             }
           }
         ]

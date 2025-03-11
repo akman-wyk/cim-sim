@@ -10,7 +10,7 @@
 
 #include "fmt/format.h"
 
-namespace pimsim {
+namespace cimsim {
 
 template <class T>
 bool check_positive(const T& t) {
@@ -139,7 +139,7 @@ bool SIMDDataWidthConfig::checkDataWidth(const int width) {
     return width == 1 || width == 2 || width == 4 || width == 8 || width == 16 || width == 32 || width == 64;
 }
 
-bool SIMDDataWidthConfig::inputBitWidthMatch(const pimsim::SIMDDataWidthConfig& other) const {
+bool SIMDDataWidthConfig::inputBitWidthMatch(const cimsim::SIMDDataWidthConfig& other) const {
     return inputs == other.inputs;
 }
 
@@ -336,11 +336,11 @@ bool SIMDUnitConfig::checkValid() const {
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(SIMDUnitConfig, pipeline, functor_list, instruction_list)
 
-// PimUnit
-bool PimMacroSizeConfig::checkValid() const {
+// CimUnit
+bool CimMacroSizeConfig::checkValid() const {
     if (!check_positive(compartment_cnt_per_macro, element_cnt_per_compartment, row_cnt_per_element,
                         bit_width_per_row)) {
-        std::cerr << "PimMacroSizeConfig not valid, 'compartment_cnt_per_macro, element_cnt_per_compartment, "
+        std::cerr << "CimMacroSizeConfig not valid, 'compartment_cnt_per_macro, element_cnt_per_compartment, "
                      "row_cnt_per_element, bit_width_per_row' must be positive"
                   << std::endl;
         return false;
@@ -348,12 +348,12 @@ bool PimMacroSizeConfig::checkValid() const {
     return true;
 }
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimMacroSizeConfig, compartment_cnt_per_macro,
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CimMacroSizeConfig, compartment_cnt_per_macro,
                                                element_cnt_per_compartment, row_cnt_per_element, bit_width_per_row)
 
-bool PimModuleConfig::checkValid(const std::string& module_name) const {
+bool CimModuleConfig::checkValid(const std::string& module_name) const {
     if (!check_not_negative(latency_cycle, static_power_mW, dynamic_power_mW)) {
-        std::cerr << fmt::format("PimModuleConfig of '{}' not valid, 'latency_cycle, static_power_mW, "
+        std::cerr << fmt::format("CimModuleConfig of '{}' not valid, 'latency_cycle, static_power_mW, "
                                  "dynamic_power_mW' must be non-negative",
                                  module_name.c_str())
                   << std::endl;
@@ -362,16 +362,16 @@ bool PimModuleConfig::checkValid(const std::string& module_name) const {
     return true;
 }
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimModuleConfig, latency_cycle, static_power_mW, dynamic_power_mW)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CimModuleConfig, latency_cycle, static_power_mW, dynamic_power_mW)
 
-bool PimSRAMConfig::checkValid() const {
+bool CimSRAMConfig::checkValid() const {
     if (as_mode == +CimASMode::other) {
-        std::cerr << "PimSRAMConfig not valid, 'as_mode' must be 'intergroup' or 'intragroup'" << std::endl;
+        std::cerr << "CimSRAMConfig not valid, 'as_mode' must be 'intergroup' or 'intragroup'" << std::endl;
         return false;
     }
     if (!check_not_negative(write_latency_cycle, read_latency_cycle, static_power_mW, write_dynamic_power_per_bit_mW,
                             read_dynamic_power_per_bit_mW)) {
-        std::cerr << "PimSRAMConfig not valid, 'write_latency_cycle, read_latency_cycle, static_power_mW, "
+        std::cerr << "CimSRAMConfig not valid, 'write_latency_cycle, read_latency_cycle, static_power_mW, "
                      "write_dynamic_power_per_bit_mW, read_dynamic_power_per_bit_mW' must be non-negative"
                   << std::endl;
         return false;
@@ -379,36 +379,36 @@ bool PimSRAMConfig::checkValid() const {
     return true;
 }
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimSRAMConfig, as_mode, write_latency_cycle, read_latency_cycle,
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CimSRAMConfig, as_mode, write_latency_cycle, read_latency_cycle,
                                                static_power_mW, write_dynamic_power_per_bit_mW,
                                                read_dynamic_power_per_bit_mW)
 
-bool PimValueSparseConfig::checkValid() const {
+bool CimValueSparseConfig::checkValid() const {
     if (!check_positive(mask_bit_width, output_macro_group_cnt)) {
-        std::cerr << "PimValueSparseConfig not valid, 'mask_bit_width, output_macro_group_cnt' must be positive"
+        std::cerr << "CimValueSparseConfig not valid, 'mask_bit_width, output_macro_group_cnt' must be positive"
                   << std::endl;
         return false;
     }
     if (!check_not_negative(latency_cycle, static_power_mW, dynamic_power_mW)) {
         std::cerr
-            << "PimValueSparseConfig not valid, 'latency_cycle, static_power_mW, dynamic_power_mW' must be non-negative"
+            << "CimValueSparseConfig not valid, 'latency_cycle, static_power_mW, dynamic_power_mW' must be non-negative"
             << std::endl;
         return false;
     }
     return true;
 }
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimValueSparseConfig, mask_bit_width, latency_cycle, static_power_mW,
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CimValueSparseConfig, mask_bit_width, latency_cycle, static_power_mW,
                                                dynamic_power_mW, output_macro_group_cnt)
 
-bool PimBitSparseConfig::checkValid() const {
+bool CimBitSparseConfig::checkValid() const {
     if (!check_positive(mask_bit_width, unit_byte)) {
-        std::cerr << "PimBitSparseConfig not valid, 'mask_bit_width, unit_byte' must be positive" << std::endl;
+        std::cerr << "CimBitSparseConfig not valid, 'mask_bit_width, unit_byte' must be positive" << std::endl;
         return false;
     }
     if (!check_not_negative(latency_cycle, static_power_mW, dynamic_power_mW, reg_buffer_static_power_mW,
                             reg_buffer_dynamic_power_mW_per_unit)) {
-        std::cerr << "PimBitSparseConfig not valid, 'latency_cycle, static_power_mW, dynamic_power_mW, "
+        std::cerr << "CimBitSparseConfig not valid, 'latency_cycle, static_power_mW, dynamic_power_mW, "
                      "reg_buffer_static_power_mW, reg_buffer_dynamic_power_mW' must be non-negative"
                   << std::endl;
         return false;
@@ -416,19 +416,19 @@ bool PimBitSparseConfig::checkValid() const {
     return true;
 }
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimBitSparseConfig, mask_bit_width, latency_cycle, static_power_mW,
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CimBitSparseConfig, mask_bit_width, latency_cycle, static_power_mW,
                                                dynamic_power_mW, unit_byte, reg_buffer_static_power_mW,
                                                reg_buffer_dynamic_power_mW_per_unit)
 
-bool PimUnitConfig::checkValid() const {
+bool CimUnitConfig::checkValid() const {
     if (!check_positive(macro_total_cnt, macro_group_size)) {
-        std::cerr << "PimUnitConfig not valid, 'macro_total_cnt, macro_group_size_configurable_values' must be positive"
+        std::cerr << "CimUnitConfig not valid, 'macro_total_cnt, macro_group_size_configurable_values' must be positive"
                   << std::endl;
         return false;
     }
 
     if (macro_group_size == 0 || macro_total_cnt % macro_group_size != 0) {
-        std::cerr << fmt::format("PimUnitConfig not valid, macro group size '{}' cannot divide macro total count '{}'",
+        std::cerr << fmt::format("CimUnitConfig not valid, macro group size '{}' cannot divide macro total count '{}'",
                                  macro_group_size, macro_total_cnt)
                   << std::endl;
         return false;
@@ -440,7 +440,7 @@ bool PimUnitConfig::checkValid() const {
                            (!value_sparse || value_sparse_config.checkValid()) &&
                            (!bit_sparse || bit_sparse_config.checkValid());
         !valid) {
-        std::cerr << "PimUnitConfig not valid" << std::endl;
+        std::cerr << "CimUnitConfig not valid" << std::endl;
         return false;
     }
 
@@ -448,13 +448,13 @@ bool PimUnitConfig::checkValid() const {
                                     macro_size.element_cnt_per_compartment * macro_size.row_cnt_per_element *
                                     macro_size.bit_width_per_row / BYTE_TO_BIT;
         total_byte_size > address_space.size_byte) {
-        std::cerr << "PimUnitConfig not valid, hardware size is greater than address space size" << std::endl;
+        std::cerr << "CimUnitConfig not valid, hardware size is greater than address space size" << std::endl;
         return false;
     }
     return true;
 }
 
-void to_json(nlohmann::ordered_json& j, const PimUnitConfig& t) {
+void to_json(nlohmann::ordered_json& j, const CimUnitConfig& t) {
     j["macro_total_cnt"] = t.macro_total_cnt;
     j["macro_group_size"] = t.macro_group_size;
     j["macro_size"] = t.macro_size;
@@ -475,7 +475,7 @@ void to_json(nlohmann::ordered_json& j, const PimUnitConfig& t) {
     j["input_bit_sparse"] = t.input_bit_sparse;
 }
 
-DEFINE_TYPE_FROM_JSON_FUNCTION_WITH_DEFAULT(PimUnitConfig, macro_total_cnt, macro_group_size, macro_size, address_space,
+DEFINE_TYPE_FROM_JSON_FUNCTION_WITH_DEFAULT(CimUnitConfig, macro_total_cnt, macro_group_size, macro_size, address_space,
                                             ipu, sram, adder_tree, shift_adder, result_adder, value_sparse,
                                             value_sparse_config, bit_sparse, bit_sparse_config, input_bit_sparse)
 
@@ -641,7 +641,7 @@ DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(TransferUnitConfig, pipeline)
 bool CoreConfig::checkValid() const {
     if (const bool valid = control_unit_config.checkValid() && register_unit_config.checkValid() &&
                            scalar_unit_config.checkValid() && simd_unit_config.checkValid() &&
-                           pim_unit_config.checkValid() && local_memory_unit_config.checkValid() &&
+                           cim_unit_config.checkValid() && local_memory_unit_config.checkValid() &&
                            transfer_unit_config.checkValid();
         !valid) {
         std::cerr << "CoreConfig not valid" << std::endl;
@@ -649,8 +649,8 @@ bool CoreConfig::checkValid() const {
     }
 
     // check if address space overlap
-    LocalMemoryConfig pim_memory_config{"PimUnit", LocalMemoryType::ram, pim_unit_config.address_space, {}, {}};
-    std::vector<const LocalMemoryConfig*> memory_check_list{&pim_memory_config};
+    LocalMemoryConfig cim_memory_config{"CimUnit", LocalMemoryType::ram, cim_unit_config.address_space, {}, {}};
+    std::vector<const LocalMemoryConfig*> memory_check_list{&cim_memory_config};
     std::transform(local_memory_unit_config.local_memory_list.begin(), local_memory_unit_config.local_memory_list.end(),
                    std::inserter(memory_check_list, memory_check_list.end()),
                    [](const LocalMemoryConfig& config) { return &config; });
@@ -671,7 +671,7 @@ bool CoreConfig::checkValid() const {
 }
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CoreConfig, control_unit_config, register_unit_config,
-                                               scalar_unit_config, simd_unit_config, pim_unit_config,
+                                               scalar_unit_config, simd_unit_config, cim_unit_config,
                                                local_memory_unit_config, transfer_unit_config)
 
 // NetworkConfig
@@ -747,4 +747,4 @@ bool Config::checkValid() const {
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(Config, chip_config, sim_config)
 
-}  // namespace pimsim
+}  // namespace cimsim

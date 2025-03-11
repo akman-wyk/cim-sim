@@ -7,7 +7,7 @@
 #include "core/payload.h"
 #include "execute_unit_test.h"
 
-namespace pimsim {
+namespace cimsim {
 
 struct TransferTestInstruction {
     TransferInsPayload payload;
@@ -39,9 +39,9 @@ public:
     }
 };
 
-}  // namespace pimsim
+}  // namespace cimsim
 
-using namespace pimsim;
+using namespace cimsim;
 
 int sc_main(int argc, char* argv[]) {
     auto initializer = [](const Config& config, Clock* clk, TransferTestInfo& test_info) {
@@ -53,5 +53,5 @@ int sc_main(int argc, char* argv[]) {
                                           std::move(test_info.code),
                                           ExecuteUnitType::transfer};
     };
-    return pimsim_unit_test<TransferUnitTestModule>(argc, argv, initializer);
+    return cimsim_unit_test<TransferUnitTestModule>(argc, argv, initializer);
 }

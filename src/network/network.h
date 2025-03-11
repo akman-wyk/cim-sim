@@ -12,7 +12,7 @@
 #include "nlohmann/json.hpp"
 #include "util/reporter.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class Switch;
 
@@ -43,4 +43,4 @@ private:
     EnergyCounter energy_counter_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

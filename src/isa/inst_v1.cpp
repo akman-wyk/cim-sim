@@ -4,7 +4,7 @@
 
 #include "inst_v1.h"
 
-namespace pimsim {
+namespace cimsim {
 
 void from_json(const nlohmann::ordered_json& j, InstV1& t) {
     const InstV1 obj{};
@@ -52,4 +52,4 @@ DEFINE_TYPE_TO_JSON_FUNCTION_WITH_DEFAULT(InstV1, class_code, type, opcode, rs1,
                                           value_sparse, bit_sparse, group, group_input_mode, group_broadcast,
                                           outsum_move, outsum, input_num, offset_mask, rd1, rd2, reg_id, reg_len)
 
-}  // namespace pimsim
+}  // namespace cimsim

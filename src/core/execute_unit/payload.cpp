@@ -4,7 +4,7 @@
 
 #include "payload.h"
 
-namespace pimsim {
+namespace cimsim {
 
 void to_json(nlohmann::ordered_json& j, const ScalarOperator& m) {
     j = m._to_string();
@@ -52,4 +52,4 @@ std::stringstream& operator<<(std::stringstream& out, const std::unordered_map<i
     return out;
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

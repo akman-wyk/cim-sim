@@ -6,7 +6,7 @@
 
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
 std::stringstream& operator<<(std::stringstream& out, const std::unordered_set<int>& set) {
     for (auto it = set.begin(); it != set.end(); ++it) {
@@ -18,7 +18,7 @@ std::stringstream& operator<<(std::stringstream& out, const std::unordered_set<i
     return out;
 }
 
-DEFINE_PIM_PAYLOAD_FUNCTIONS(ResourceAllocatePayload, ins_id, unit_type, read_memory_id, write_memory_id, used_memory_id)
+DEFINE_CIM_PAYLOAD_FUNCTIONS(ResourceAllocatePayload, ins_id, unit_type, read_memory_id, write_memory_id, used_memory_id)
 
 void ResourceAllocatePayload::addReadMemoryId(int memory_id) {
     read_memory_id.insert(memory_id);
@@ -49,7 +49,7 @@ bool ResourceAllocatePayload::checkDataConflict(const ResourceAllocatePayload& i
     return SetsIntersection(unit_conflict_payload.used_memory_id, ins_conflict_payload.used_memory_id);
 }
 
-ResourceAllocatePayload& ResourceAllocatePayload::operator+=(const pimsim::ResourceAllocatePayload& other) {
+ResourceAllocatePayload& ResourceAllocatePayload::operator+=(const cimsim::ResourceAllocatePayload& other) {
     this->read_memory_id.insert(other.read_memory_id.begin(), other.read_memory_id.end());
     this->write_memory_id.insert(other.write_memory_id.begin(), other.write_memory_id.end());
     this->used_memory_id.insert(other.used_memory_id.begin(), other.used_memory_id.end());
@@ -57,6 +57,6 @@ ResourceAllocatePayload& ResourceAllocatePayload::operator+=(const pimsim::Resou
     return *this;
 }
 
-DEFINE_PIM_PAYLOAD_FUNCTIONS(ResourceReleasePayload, ins_id)
+DEFINE_CIM_PAYLOAD_FUNCTIONS(ResourceReleasePayload, ins_id)
 
-}  // namespace pimsim
+}  // namespace cimsim

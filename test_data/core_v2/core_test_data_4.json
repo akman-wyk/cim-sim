@@ -1,5 +1,5 @@
 {
-  "comments": "test fot Pim Set instructions",
+  "comments": "test fot Cim Set instructions",
   "code": [
     {"opcode": 44, "rd": 0, "imm": 0, "asm": "G_LI 0 to $0"},
     {"opcode": 44, "rd": 1, "imm": 2144, "asm": "G_LI 2144 to $1"},

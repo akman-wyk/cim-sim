@@ -10,13 +10,13 @@
 #include "memory/memory_socket.h"
 #include "payload.h"
 
-namespace pimsim {
+namespace cimsim {
 
-class PimControlUnit : public ExecuteUnit {
+class CimControlUnit : public ExecuteUnit {
 public:
-    SC_HAS_PROCESS(PimControlUnit);
+    SC_HAS_PROCESS(CimControlUnit);
 
-    PimControlUnit(const char* name, const PimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    CimControlUnit(const char* name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
     void bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit);
 
@@ -24,23 +24,23 @@ public:
 
     EnergyReporter getEnergyReporter() override;
 
-    ResourceAllocatePayload getDataConflictInfo(const PimControlInsPayload& payload) const;
+    ResourceAllocatePayload getDataConflictInfo(const CimControlInsPayload& payload) const;
     ResourceAllocatePayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
 
 private:
     [[noreturn]] void processIssue();
     [[noreturn]] void processExecute();
 
-    void processSetActivation(const PimControlInsPayload& payload);
-    void processOnlyOutput(const PimControlInsPayload& payload);
-    void processOutputSum(const PimControlInsPayload& payload);
-    void processOutputSumMove(const PimControlInsPayload& payload);
+    void processSetActivation(const CimControlInsPayload& payload);
+    void processOnlyOutput(const CimControlInsPayload& payload);
+    void processOutputSum(const CimControlInsPayload& payload);
+    void processOutputSumMove(const CimControlInsPayload& payload);
 
 private:
-    const PimUnitConfig& config_;
-    const PimMacroSizeConfig& macro_size_;
+    const CimUnitConfig& config_;
+    const CimMacroSizeConfig& macro_size_;
 
-    SubmoduleSocket<PimControlInsPayload> execute_socket_;
+    SubmoduleSocket<CimControlInsPayload> execute_socket_;
 
     MemorySocket local_memory_socket_;
     CimUnit* cim_unit_{};
@@ -48,4 +48,4 @@ private:
     EnergyCounter result_adder_energy_counter_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

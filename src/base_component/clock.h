@@ -7,7 +7,7 @@
 
 #include "systemc.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class Clock : public sc_core::sc_module {
     SC_HAS_PROCESS(Clock);
@@ -34,4 +34,4 @@ private:
     double period_;
 };
 
-}  // namespace pim
+}  // namespace cimsim

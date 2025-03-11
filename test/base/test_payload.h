@@ -7,7 +7,7 @@
 #include "nlohmann/json.hpp"
 #include "util/macro_scope.h"
 
-namespace pimsim {
+namespace cimsim {
 
 struct TestExpectedInfo {
     double time_ns{0.0};
@@ -24,4 +24,4 @@ struct CoreTestRegisterInfo {
 
 DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(CoreTestRegisterInfo)
 
-}  // namespace pimsim
+}  // namespace cimsim

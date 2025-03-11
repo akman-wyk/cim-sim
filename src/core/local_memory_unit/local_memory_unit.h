@@ -10,7 +10,7 @@
 #include "core/cim_unit/cim_unit.h"
 #include "memory/memory.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class LocalMemoryUnit : public BaseModule {
 public:
@@ -43,4 +43,4 @@ private:
     std::vector<std::shared_ptr<Memory>> local_memory_list_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

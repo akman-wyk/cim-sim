@@ -20,7 +20,7 @@
 #include <sys/wait.h>
 #endif
 
-namespace pimsim {
+namespace cimsim {
 
 struct TestArguments {
     std::string config_file;
@@ -138,10 +138,10 @@ bool test(const TestArguments& args) {
     return all_test_units_passed;
 }
 
-}  // namespace pimsim
+}  // namespace cimsim
 
 int main(int argc, char* argv[]) {
-    if (auto args = pimsim::parseTestArguments(argc, argv); pimsim::test(args)) {
+    if (auto args = cimsim::parseTestArguments(argc, argv); cimsim::test(args)) {
         std::cout << "All Tests Passed!" << std::endl;
     } else {
         std::cout << "Some Tests Failed!!!!" << std::endl;

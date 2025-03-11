@@ -9,7 +9,7 @@
 #include "switch_socket.h"
 #include "util/log.h"
 
-namespace pimsim {
+namespace cimsim {
 
 Switch::Switch(const char* name, const SimConfig& sim_config, Core* core, Clock* clk, int core_id)
     : BaseModule(name, sim_config, core, clk), core_id_(core_id) {
@@ -70,4 +70,4 @@ void Switch::bindNetwork(Network* network) {
     network_->registerSwitch(core_id_, this);
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

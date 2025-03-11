@@ -1,5 +1,5 @@
 {
-  "comments": "test fot Pim Load instructions",
+  "comments": "test fot Cim Load instructions",
   "code": [
     {"class_code": 2, "type": 3, "opcode": 0, "rd": 0, "imm": 2048},
     {"class_code": 2, "type": 3, "opcode": 0, "rd": 1, "imm": 256},

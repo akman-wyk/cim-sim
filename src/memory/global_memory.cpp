@@ -4,7 +4,7 @@
 
 #include "global_memory.h"
 
-namespace pimsim {
+namespace cimsim {
 
 GlobalMemory::GlobalMemory(const char* name, const GlobalMemoryConfig& config, const SimConfig& sim_config, Clock* clk)
     : memory_(name, config.hardware_config, config.addressing, sim_config, nullptr, clk)
@@ -27,4 +27,4 @@ void GlobalMemory::switchReceiveHandler(const std::shared_ptr<NetworkPayload>& p
     wait(global_trans->finish_access);
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

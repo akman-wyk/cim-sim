@@ -12,7 +12,7 @@
 #include "nlohmann/json.hpp"
 #include "util/macro_scope.h"
 
-namespace pimsim {
+namespace cimsim {
 
 static constexpr int GENERAL_REG_NUM = 32;
 static constexpr int SPECIAL_REG_NUM = 32;
@@ -132,7 +132,7 @@ struct SIMDUnitConfig {
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(SIMDUnitConfig)
 };
 
-struct PimMacroSizeConfig {
+struct CimMacroSizeConfig {
     // macro 4-dim size (H, W, m, n)
     int compartment_cnt_per_macro{};    // H, element row cnt
     int element_cnt_per_compartment{};  // W, element column cnt
@@ -140,23 +140,23 @@ struct PimMacroSizeConfig {
     int bit_width_per_row{};            // n, element column size
 
     [[nodiscard]] bool checkValid() const;
-    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(PimMacroSizeConfig)
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(CimMacroSizeConfig)
 };
 
-struct PimModuleConfig {
+struct CimModuleConfig {
     int latency_cycle{1};          // cycle
     double static_power_mW{1.0};   // mW
     double dynamic_power_mW{1.0};  // mW
 
     [[nodiscard]] bool checkValid(const std::string& module_name) const;
-    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(PimModuleConfig)
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(CimModuleConfig)
 };
 
-struct PimSRAMConfig {
-    /* Pim SRAM hardware config
-     * Pim write:
+struct CimSRAMConfig {
+    /* Cim SRAM hardware config
+     * Cim write:
      *      All Macros can be written in parallel, each Macro can only write a whole row of one Compartment or not.
-     * Pim read:
+     * Cim read:
      *      All Macros can be read in parallel, each Macro can read the same whole row of 0 to all Compartments in
      * parallel.
      *
@@ -176,24 +176,24 @@ struct PimSRAMConfig {
     double read_dynamic_power_per_bit_mW{1.0};
 
     [[nodiscard]] bool checkValid() const;
-    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(PimSRAMConfig)
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(CimSRAMConfig)
 };
 
-struct PimValueSparseConfig {
+struct CimValueSparseConfig {
     // sparse mask config
     int mask_bit_width{1};
 
-    // Input process module config: PimUnit only has one
+    // Input process module config: CimUnit only has one
     int latency_cycle{1};           // cycle
     double static_power_mW{1.0};    // mW
     double dynamic_power_mW{1.0};   // mW
     int output_macro_group_cnt{1};  // The number of macros processed at a time
 
     [[nodiscard]] bool checkValid() const;
-    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(PimValueSparseConfig)
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(CimValueSparseConfig)
 };
 
-struct PimBitSparseConfig {
+struct CimBitSparseConfig {
     // sparse mask config
     int mask_bit_width{3};
 
@@ -208,7 +208,7 @@ struct PimBitSparseConfig {
     double reg_buffer_dynamic_power_mW_per_unit{1.0};  // mW
 
     [[nodiscard]] bool checkValid() const;
-    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(PimBitSparseConfig)
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(CimBitSparseConfig)
 };
 
 struct AddressSpaceConfig {
@@ -228,36 +228,36 @@ struct AddressSpaceConfig {
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(AddressSpaceConfig)
 };
 
-struct PimUnitConfig {
+struct CimUnitConfig {
     // macro scale config
     int macro_total_cnt{0};
     int macro_group_size{0};
-    PimMacroSizeConfig macro_size{};
+    CimMacroSizeConfig macro_size{};
 
     // address space
     AddressSpaceConfig address_space{};
 
     // modules config: ipu -> SRAM -> post process modules
     // ipu(input process unit) module
-    PimModuleConfig ipu{};
+    CimModuleConfig ipu{};
     // SRAM module
-    PimSRAMConfig sram{};
+    CimSRAMConfig sram{};
     // post process modules, each Element column has one
-    PimModuleConfig adder_tree{};
-    PimModuleConfig shift_adder{};
-    PimModuleConfig result_adder{};
+    CimModuleConfig adder_tree{};
+    CimModuleConfig shift_adder{};
+    CimModuleConfig result_adder{};
 
     // extensions config
     bool value_sparse{false};
-    PimValueSparseConfig value_sparse_config{};
+    CimValueSparseConfig value_sparse_config{};
 
     bool bit_sparse{false};
-    PimBitSparseConfig bit_sparse_config{};
+    CimBitSparseConfig bit_sparse_config{};
 
     bool input_bit_sparse{false};
 
     [[nodiscard]] bool checkValid() const;
-    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(PimUnitConfig)
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(CimUnitConfig)
 };
 
 struct RAMConfig {
@@ -326,7 +326,7 @@ struct CoreConfig {
     RegisterUnitConfig register_unit_config{};
     ScalarUnitConfig scalar_unit_config{};
     SIMDUnitConfig simd_unit_config{};
-    PimUnitConfig pim_unit_config{};
+    CimUnitConfig cim_unit_config{};
     LocalMemoryUnitConfig local_memory_unit_config{};
     TransferUnitConfig transfer_unit_config{};
 
@@ -380,4 +380,4 @@ struct Config {
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(Config)
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

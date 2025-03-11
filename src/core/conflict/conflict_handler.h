@@ -9,7 +9,7 @@
 #include "payload.h"
 #include "systemc.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class ConflictHandler : public sc_core::sc_module {
 public:
@@ -48,4 +48,4 @@ private:
     sc_core::sc_event trigger_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

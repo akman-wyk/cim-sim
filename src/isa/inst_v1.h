@@ -6,7 +6,7 @@
 
 #include "util/macro_scope.h"
 
-namespace pimsim {
+namespace cimsim {
 
 struct InstV1 {
     // instruction class, type, opcode
@@ -18,13 +18,13 @@ struct InstV1 {
     int rs1{0}, rs2{0}, rs3{0}, rs4{0}, rd{0};
     int imm{0}, offset{0};
 
-    // pim compute
+    // cim compute
     int value_sparse{0}, bit_sparse{0}, group{0}, group_input_mode{0};
 
-    // pim set
+    // cim set
     int group_broadcast{0};
 
-    // pim output
+    // cim output
     int outsum_move{0}, outsum{0};
 
     // SIMD
@@ -37,4 +37,4 @@ struct InstV1 {
 
 DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(InstV1)
 
-}  // namespace pimsim
+}  // namespace cimsim

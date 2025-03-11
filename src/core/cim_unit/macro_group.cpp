@@ -8,10 +8,10 @@
 #include "util/log.h"
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
-MacroGroup::MacroGroup(const char *name, const pimsim::PimUnitConfig &config, const pimsim::SimConfig &sim_config,
-                       pimsim::Core *core, pimsim::Clock *clk, bool macro_simulation)
+MacroGroup::MacroGroup(const char *name, const cimsim::CimUnitConfig &config, const cimsim::SimConfig &sim_config,
+                       cimsim::Core *core, cimsim::Clock *clk, bool macro_simulation)
     : BaseModule(name, sim_config, core, clk)
     , config_(config)
     , macro_size_(config.macro_size)
@@ -28,7 +28,7 @@ MacroGroup::MacroGroup(const char *name, const pimsim::PimUnitConfig &config, co
     }
 }
 
-void MacroGroup::startExecute(pimsim::MacroGroupPayload payload) {
+void MacroGroup::startExecute(cimsim::MacroGroupPayload payload) {
     macro_group_socket_.payload = std::move(payload);
     macro_group_socket_.start_exec.notify();
 }
@@ -80,12 +80,12 @@ void MacroGroup::processIssue() {
         macro_group_socket_.waitUntilStart();
 
         auto &payload = macro_group_socket_.payload;
-        auto &pim_ins_info = payload.pim_ins_info;
-        LOG(fmt::format("{} start, ins pc: {}, sub ins num: {}", getName(), pim_ins_info.ins_pc,
-                        pim_ins_info.sub_ins_num));
+        auto &cim_ins_info = payload.cim_ins_info;
+        LOG(fmt::format("{} start, ins pc: {}, sub ins num: {}", getName(), cim_ins_info.ins_pc,
+                        cim_ins_info.sub_ins_num));
 
         for (int macro_id = 0; macro_id < macro_list_.size(); macro_id++) {
-            MacroPayload macro_payload{.pim_ins_info = pim_ins_info,
+            MacroPayload macro_payload{.cim_ins_info = cim_ins_info,
                                        .row = payload.row,
                                        .input_bit_width = payload.input_bit_width,
                                        .bit_sparse = payload.bit_sparse,
@@ -101,7 +101,7 @@ void MacroGroup::processIssue() {
         }
 
         controller_.waitUntilFinishIfBusy();
-        controller_.start({.pim_ins_info = pim_ins_info,
+        controller_.start({.cim_ins_info = cim_ins_info,
                            .last_group = payload.last_group,
                            .input_bit_width = payload.input_bit_width,
                            .bit_sparse = payload.bit_sparse});
@@ -116,25 +116,25 @@ void MacroGroup::processResultAdderSubmodule() {
         result_adder_socket_.waitUntilStart();
 
         auto &sub_ins_info = result_adder_socket_.payload.sub_ins_info;
-        auto &pim_ins_info = sub_ins_info.pim_ins_info;
-        LOG(fmt::format("{} start result adder, ins pc: {}, sub ins num: {}", getName(), pim_ins_info.ins_pc,
-                        pim_ins_info.sub_ins_num));
+        auto &cim_ins_info = sub_ins_info.cim_ins_info;
+        LOG(fmt::format("{} start result adder, ins pc: {}, sub ins num: {}", getName(), cim_ins_info.ins_pc,
+                        cim_ins_info.sub_ins_num));
 
-        if (sub_ins_info.last_group && pim_ins_info.last_sub_ins && release_resource_func_) {
-            release_resource_func_(pim_ins_info.ins_id);
+        if (sub_ins_info.last_group && cim_ins_info.last_sub_ins && release_resource_func_) {
+            release_resource_func_(cim_ins_info.ins_id);
         }
 
         double latency = config_.result_adder.latency_cycle * period_ns_;
         wait(latency, SC_NS);
 
-        if (finish_ins_func_ && sub_ins_info.last_group && pim_ins_info.last_sub_ins) {
+        if (finish_ins_func_ && sub_ins_info.last_group && cim_ins_info.last_sub_ins) {
             finish_ins_func_();
         }
 
-        LOG(fmt::format("{} end result adder, ins pc: {}, sub ins num: {}", getName(), pim_ins_info.ins_pc,
-                        pim_ins_info.sub_ins_num));
+        LOG(fmt::format("{} end result adder, ins pc: {}, sub ins num: {}", getName(), cim_ins_info.ins_pc,
+                        cim_ins_info.sub_ins_num));
         result_adder_socket_.finish();
     }
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

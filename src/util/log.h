@@ -5,14 +5,12 @@
 #pragma once
 #include <string>
 
-#include "systemc.h"
-
-namespace pimsim {
+namespace cimsim {
 
 class Core;
 
 void log(const std::string& msg, Core* core);
 
-}  // namespace pimsim
+}  // namespace cimsim
 
 #define LOG(msg)

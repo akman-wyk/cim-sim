@@ -6,12 +6,12 @@
 
 #include "better-enums/enum.h"
 
-namespace pimsim {
+namespace cimsim {
 
 BETTER_ENUM(InstClass, int,  // NOLINT(*-explicit-constructor)
-            pim = 0b00, simd = 0b01, scalar = 0b10, transfer = 0b110, control = 0b111)
+            cim = 0b00, simd = 0b01, scalar = 0b10, transfer = 0b110, control = 0b111)
 
-BETTER_ENUM(PIMInstType, int,  // NOLINT(*-explicit-constructor)
+BETTER_ENUM(CIMInstType, int,  // NOLINT(*-explicit-constructor)
             compute = 0b00, set = 0b01, output = 0b10)
 
 BETTER_ENUM(ScalarInstType, int,  // NOLINT(*-explicit-constructor)
@@ -39,4 +39,4 @@ BETTER_ENUM(ScalarSLInstOpcode, int,  // NOLINT(*-explicit-constructor)
 BETTER_ENUM(ScalarAssignInstOpcode, int,  // NOLINT(*-explicit-constructor)
             li_general = 0b00, li_special = 0b01, assign_general_to_special = 0b10, assign_special_to_general = 0b11)
 
-}  // namespace pimsim
+}  // namespace cimsim

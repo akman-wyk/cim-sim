@@ -11,7 +11,7 @@
 #include "isa/inst_v3.h"
 #include "util/ins_stat.h"
 
-namespace pimsim {
+namespace cimsim {
 
 template <class Inst>
 class Decoder : public BaseModule {
@@ -36,7 +36,7 @@ public:
                                                       ResourceAllocatePayload& conflict_info) = 0;
 
 private:
-    virtual std::shared_ptr<ExecuteInsPayload> decodePimIns(const Inst& ins) const = 0;
+    virtual std::shared_ptr<ExecuteInsPayload> decodeCimIns(const Inst& ins) const = 0;
     virtual std::shared_ptr<ExecuteInsPayload> decodeSIMDIns(const Inst& ins) const = 0;
     virtual std::shared_ptr<ExecuteInsPayload> decodeScalarIns(const Inst& ins) const = 0;
     virtual std::shared_ptr<ExecuteInsPayload> decodeTransferIns(const Inst& ins) const = 0;
@@ -63,7 +63,7 @@ public:
                                               ResourceAllocatePayload& conflict_info) override;
 
 private:
-    std::shared_ptr<ExecuteInsPayload> decodePimIns(const InstV1& ins) const override;
+    std::shared_ptr<ExecuteInsPayload> decodeCimIns(const InstV1& ins) const override;
     std::shared_ptr<ExecuteInsPayload> decodeSIMDIns(const InstV1& ins) const override;
     std::shared_ptr<ExecuteInsPayload> decodeScalarIns(const InstV1& ins) const override;
     std::shared_ptr<ExecuteInsPayload> decodeTransferIns(const InstV1& ins) const override;
@@ -83,7 +83,7 @@ public:
                                               ResourceAllocatePayload& conflict_info) override;
 
 private:
-    std::shared_ptr<ExecuteInsPayload> decodePimIns(const InstV2& ins) const override;
+    std::shared_ptr<ExecuteInsPayload> decodeCimIns(const InstV2& ins) const override;
     std::shared_ptr<ExecuteInsPayload> decodeSIMDIns(const InstV2& ins) const override;
     std::shared_ptr<ExecuteInsPayload> decodeScalarIns(const InstV2& ins) const override;
     std::shared_ptr<ExecuteInsPayload> decodeTransferIns(const InstV2& ins) const override;
@@ -97,7 +97,7 @@ public:
                                               ResourceAllocatePayload& conflict_info) override;
 
 private:
-    std::shared_ptr<ExecuteInsPayload> decodePimIns(const InstV3& ins) const override;
+    std::shared_ptr<ExecuteInsPayload> decodeCimIns(const InstV3& ins) const override;
     std::shared_ptr<ExecuteInsPayload> decodeSIMDIns(const InstV3& ins) const override;
     std::shared_ptr<ExecuteInsPayload> decodeScalarIns(const InstV3& ins) const override;
     std::shared_ptr<ExecuteInsPayload> decodeTransferIns(const InstV3& ins) const override;
@@ -119,4 +119,4 @@ private:
     };
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

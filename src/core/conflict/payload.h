@@ -6,7 +6,7 @@
 #include "core/payload.h"
 #include "systemc.h"
 
-namespace pimsim {
+namespace cimsim {
 
 std::stringstream& operator<<(std::stringstream& out, const std::unordered_set<int>& set);
 
@@ -20,7 +20,7 @@ struct ResourceAllocatePayload {
     std::unordered_set<int> write_memory_id;
     std::unordered_set<int> used_memory_id;
 
-    DECLARE_PIM_PAYLOAD_FUNCTIONS(ResourceAllocatePayload)
+    DECLARE_CIM_PAYLOAD_FUNCTIONS(ResourceAllocatePayload)
 
     void addReadMemoryId(int memory_id);
     void addReadMemoryId(const std::initializer_list<int>& memory_id_list);
@@ -38,7 +38,7 @@ struct ResourceReleasePayload {
 
     int ins_id{-1};
 
-    DECLARE_PIM_PAYLOAD_FUNCTIONS(ResourceReleasePayload)
+    DECLARE_CIM_PAYLOAD_FUNCTIONS(ResourceReleasePayload)
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

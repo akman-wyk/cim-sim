@@ -4,7 +4,7 @@
 
 #include "base_module.h"
 
-namespace pimsim {
+namespace cimsim {
 
 BaseModule::BaseModule(const char* name, const SimConfig& sim_config, Core* core, Clock* clk)
     : sc_core::sc_module(name)
@@ -23,4 +23,4 @@ const std::string& BaseModule::getName() const {
     return name;
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

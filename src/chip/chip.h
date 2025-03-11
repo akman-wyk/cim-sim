@@ -7,7 +7,7 @@
 #include "core/core.h"
 #include "memory/global_memory.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class Chip : public BaseModule {
 public:
@@ -34,4 +34,4 @@ private:
     sc_core::sc_time running_time_{};
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

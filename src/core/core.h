@@ -20,7 +20,7 @@
 #include "local_memory_unit/local_memory_unit.h"
 #include "payload.h"
 
-namespace pimsim {
+namespace cimsim {
 
 using DecoderImpl = DecoderV2;
 using Instruction = DecoderImpl::Instruction;
@@ -86,8 +86,8 @@ private:
     ScalarUnit scalar_unit_;
     SIMDUnit simd_unit_;
     TransferUnit transfer_unit_;
-    PimComputeUnit pim_compute_unit_;
-    PimControlUnit pim_control_unit_;
+    CimComputeUnit cim_compute_unit_;
+    CimControlUnit cim_control_unit_;
 
     // execute unit manage
     sc_process_handle processStall_handle_;
@@ -106,4 +106,4 @@ private:
     std::function<void()> finish_run_call_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

@@ -6,7 +6,7 @@
 
 #include "better-enums/enum.h"
 
-namespace pimsim {
+namespace cimsim {
 
 BETTER_ENUM(OPCODE_CLASS, int,  // NOLINT(*-explicit-constructor)
             CIM = 0b000000, VEC_OP = 0b010000, SC = 0b100000, TRANS = 0b110000, CONTROL = 0b111000)
@@ -42,4 +42,4 @@ BETTER_ENUM(SC_RI_FUNCT, int,  // NOLINT(*-explicit-constructor)
             SC_ANDI = 0b001010, SC_ORI = 0b001011, SC_EQI = 0b001100, SC_NEI = 0b001101, SC_GTI = 0b001110,
             SC_LTI = 0b001111)
 
-}  // namespace pimsim
+}  // namespace cimsim

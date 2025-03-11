@@ -8,7 +8,7 @@
 #include <iostream>
 #include <string>
 
-namespace pimsim {
+namespace cimsim {
 
 int BytesToInt(const std::vector<unsigned char>& bytes, bool little_endian) {
     unsigned int result = 0;
@@ -67,4 +67,4 @@ bool check_text_file_same(const std::string& file1, const std::string& file2) {
     }
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

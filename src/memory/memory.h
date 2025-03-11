@@ -10,7 +10,7 @@
 #include "memory_hardware.h"
 #include "payload.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class Memory : public BaseModule {
 public:
@@ -50,4 +50,4 @@ private:
     sc_core::sc_event start_process_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

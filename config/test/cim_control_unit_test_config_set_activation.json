@@ -2,7 +2,7 @@
   "chip_config": {
     "core_cnt": 1,
     "core_config": {
-      "pim_unit_config": {
+      "cim_unit_config": {
         "macro_total_cnt": 64,
         "macro_group_size": 16,
         "macro_size": {
@@ -80,23 +80,7 @@
               "write_dynamic_power_mW": 1.0,
               "read_dynamic_power_mW": 1.0,
               "has_image": true,
-              "image_file": "/mnt/d/Dropbox/Dropbox/Workspace/code/pim-sim/test_data/pim_control/local_memory_image_2.bin"
-            }
-          },
-          {
-            "name": "pim output reg buffer",
-            "type": "reg_buffer",
-            "addressing": {
-              "offset_byte": 3072,
-              "size_byte": 4096
-            },
-            "hardware_config": {
-              "size_byte": 4096,
-              "read_max_width_byte": 128,
-              "write_max_width_byte": 4096,
-              "rw_min_unit_byte": 4,
-              "static_power_mW": 1.0,
-              "rw_dynamic_power_per_unit_mW": 0.1
+              "image_file": "../test_data/cim_control/local_memory_image_1.bin"
             }
           }
         ]

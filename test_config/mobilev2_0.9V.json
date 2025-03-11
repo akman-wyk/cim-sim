@@ -1,6 +1,6 @@
 {
-  "data_root_dir": "/mnt/d/code/pim-sim/data",
-  "report_root_dir": "/mnt/d/code/pim-sim/report",
+  "data_root_dir": "/mnt/d/code/cim-sim/data",
+  "report_root_dir": "/mnt/d/code/cim-sim/report",
   "network": "MobileNetV2",
   "OP_count": 586001040,
 

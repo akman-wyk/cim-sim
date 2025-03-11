@@ -16,7 +16,7 @@
 #define CHECK_INS_STAT_FAILED 4
 #define CHECK_REG_FAILED      5
 
-namespace pimsim {
+namespace cimsim {
 
 class LayerSimulator {
 public:
@@ -45,4 +45,4 @@ private:
     bool check_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

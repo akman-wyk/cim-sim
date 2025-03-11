@@ -7,7 +7,7 @@
 #include "fmt/format.h"
 #include "util/log.h"
 
-namespace pimsim {
+namespace cimsim {
 
 ExecuteUnit::ExecuteUnit(const char* name, const SimConfig& sim_config, Core* core, Clock* clk, ExecuteUnitType type)
     : BaseModule(name, sim_config, core, clk), type_(type), fsm_("FSM", clk) {
@@ -78,4 +78,4 @@ void ExecuteUnit::finishInstruction(double t) {
     }
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

@@ -9,7 +9,7 @@
 #include "payload.h"
 #include "base_component/base_module.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class SwitchSocket;
 
@@ -42,4 +42,4 @@ private:
     Network* network_{nullptr};
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

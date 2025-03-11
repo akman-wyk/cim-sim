@@ -7,9 +7,9 @@
 #include "core/payload.h"
 #include "execute_unit_test.h"
 
-namespace pimsim {
+namespace cimsim {
 
-struct PimControlTestExpectedInfo {
+struct CimControlTestExpectedInfo {
     double time_ns{0.0};
     double energy_pj{0.0};
 
@@ -17,44 +17,44 @@ struct PimControlTestExpectedInfo {
     std::vector<int> groups_activation_element_col_cnt{};
 };
 
-struct PimControlTestInstruction {
-    PimControlInsPayload payload;
+struct CimControlTestInstruction {
+    CimControlInsPayload payload;
 };
 
-struct PimControlTestInfo {
-    std::vector<PimControlTestInstruction> code{};
-    PimControlTestExpectedInfo expected{};
+struct CimControlTestInfo {
+    std::vector<CimControlTestInstruction> code{};
+    CimControlTestExpectedInfo expected{};
 };
 
-void to_json(nlohmann::ordered_json& j, const PimControlOperator& m) {
+void to_json(nlohmann::ordered_json& j, const CimControlOperator& m) {
     j = m._to_string();
 }
 
-void from_json(const nlohmann::ordered_json& j, PimControlOperator& m) {
+void from_json(const nlohmann::ordered_json& j, CimControlOperator& m) {
     const auto str = j.get<std::string>();
-    m = PimControlOperator::_from_string(str.c_str());
+    m = CimControlOperator::_from_string(str.c_str());
 }
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimControlTestExpectedInfo, time_ns, energy_pj,
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CimControlTestExpectedInfo, time_ns, energy_pj,
                                                groups_activation_macro_cnt, groups_activation_element_col_cnt)
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimControlInsPayload, ins, op, group_broadcast, group_id, mask_addr_byte,
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CimControlInsPayload, ins, op, group_broadcast, group_id, mask_addr_byte,
                                                activation_group_num, output_addr_byte, output_cnt_per_group,
                                                output_bit_width, output_mask_addr_byte)
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimControlTestInstruction, payload)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CimControlTestInstruction, payload)
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimControlTestInfo, code, expected)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CimControlTestInfo, code, expected)
 
-class PimControlUnitTestModule
-    : public ExecuteUnitTestModule<PimControlUnitTestModule, PimControlUnit, PimUnitConfig, PimControlInsPayload,
-                                   PimControlTestInstruction, PimControlTestExpectedInfo, PimControlTestInfo> {
+class CimControlUnitTestModule
+    : public ExecuteUnitTestModule<CimControlUnitTestModule, CimControlUnit, CimUnitConfig, CimControlInsPayload,
+                                   CimControlTestInstruction, CimControlTestExpectedInfo, CimControlTestInfo> {
 public:
-    PimControlUnitTestModule(const char* name, const char* test_unit_name, const PimUnitConfig& test_unit_config,
-                             const Config& config, Clock* clk, std::vector<PimControlTestInstruction> codes)
+    CimControlUnitTestModule(const char* name, const char* test_unit_name, const CimUnitConfig& test_unit_config,
+                             const Config& config, Clock* clk, std::vector<CimControlTestInstruction> codes)
         : TestBaseModule(name, test_unit_name, test_unit_config, config, clk, std::move(codes),
-                         ExecuteUnitType::pim_control)
-        , cim_unit_("CimUnit", config.chip_config.core_config.pim_unit_config, config.sim_config, nullptr, clk) {
+                         ExecuteUnitType::cim_control)
+        , cim_unit_("CimUnit", config.chip_config.core_config.cim_unit_config, config.sim_config, nullptr, clk) {
         test_unit_.bindCimUnit(&cim_unit_);
         local_memory_unit_.bindCimUnit(&cim_unit_);
     }
@@ -66,7 +66,7 @@ public:
         return std::move(reporter);
     }
 
-    bool checkTestResult(const pimsim::PimControlTestExpectedInfo& expected) override {
+    bool checkTestResult(const cimsim::CimControlTestExpectedInfo& expected) override {
         for (int group_id = 0; group_id < expected.groups_activation_element_col_cnt.size(); group_id++) {
             if (cim_unit_.getMacroGroupActivationElementColumnCount(group_id) !=
                 expected.groups_activation_element_col_cnt[group_id]) {
@@ -94,16 +94,16 @@ private:
     CimUnit cim_unit_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim
 
-using namespace pimsim;
+using namespace cimsim;
 
 int sc_main(int argc, char* argv[]) {
-    auto pim_control_unit_test_module_initializer = [](const Config& config, Clock* clk,
-                                                       PimControlTestInfo& test_info) {
-        return new PimControlUnitTestModule{
-            "PimControlUnitTestModule", "PimControlUnit", config.chip_config.core_config.pim_unit_config, config, clk,
+    auto cim_control_unit_test_module_initializer = [](const Config& config, Clock* clk,
+                                                       CimControlTestInfo& test_info) {
+        return new CimControlUnitTestModule{
+            "CimControlUnitTestModule", "CimControlUnit", config.chip_config.core_config.cim_unit_config, config, clk,
             std::move(test_info.code)};
     };
-    return pimsim_unit_test<PimControlUnitTestModule>(argc, argv, pim_control_unit_test_module_initializer);
+    return cimsim_unit_test<CimControlUnitTestModule>(argc, argv, cim_control_unit_test_module_initializer);
 }

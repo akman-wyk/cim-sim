@@ -6,7 +6,7 @@
 #include "clock.h"
 #include "systemc.h"
 
-namespace pimsim {
+namespace cimsim {
 
 template <class T>
 struct FSMPayload {
@@ -95,4 +95,4 @@ private:
     T value_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

@@ -5,7 +5,7 @@
 #pragma once
 #include "systemc.h"
 
-namespace pimsim {
+namespace cimsim {
 
 template <class PayloadType>
 struct SubmoduleSocket {
@@ -31,4 +31,4 @@ struct SubmoduleSocket {
     }
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

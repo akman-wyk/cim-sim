@@ -9,7 +9,7 @@
 #include "payload.h"
 #include "systemc.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class LocalMemoryUnit;
 
@@ -35,4 +35,4 @@ private:
     sc_core::sc_event finish_write_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

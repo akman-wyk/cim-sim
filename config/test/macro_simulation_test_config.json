@@ -2,7 +2,7 @@
   "chip_config": {
     "core_cnt": 1,
     "core_config": {
-      "pim_unit_config": {
+      "cim_unit_config": {
         "macro_total_cnt": 8,
         "macro_group_size": 2,
         "macro_size": {
@@ -65,7 +65,7 @@
       "local_memory_unit_config": {
         "local_memory_list": [
           {
-            "name": "pim input reg buffer",
+            "name": "cim input reg buffer",
             "type": "reg_buffer",
             "addressing": {
               "offset_byte": 1024,
@@ -79,7 +79,7 @@
               "static_power_mW": 1.0,
               "rw_dynamic_power_per_unit_mW": 1,
               "has_image": true,
-              "image_file": "/mnt/d/Dropbox/Dropbox/Workspace/code/pim-sim/test_data/pim_compute/base_input_buffer_image.bin"
+              "image_file": "../test_data/cim_compute/base_input_buffer_image.bin"
             }
           },
           {
@@ -98,7 +98,7 @@
               "write_dynamic_power_mW": 0.0,
               "read_dynamic_power_mW": 0.0,
               "has_image": true,
-              "image_file": "/mnt/d/Dropbox/Dropbox/Workspace/code/pim-sim/test_data/core/act_col_mask_image.bin"
+              "image_file": "../test_data/core/act_col_mask_image.bin"
             }
           }
         ]

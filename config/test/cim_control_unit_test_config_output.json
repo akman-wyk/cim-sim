@@ -2,9 +2,9 @@
   "chip_config": {
     "core_cnt": 1,
     "core_config": {
-      "pim_unit_config": {
-        "macro_total_cnt": 8,
-        "macro_group_size": 2,
+      "cim_unit_config": {
+        "macro_total_cnt": 64,
+        "macro_group_size": 16,
         "macro_size": {
           "compartment_cnt_per_macro": 16,
           "element_cnt_per_compartment": 16,
@@ -13,7 +13,7 @@
         },
         "address_space": {
           "offset_byte": 0,
-          "size_byte": 1024
+          "size_byte": 2048
         },
         "ipu": {
           "latency_cycle": 1,
@@ -42,7 +42,7 @@
           "static_power_mW": 1.0,
           "dynamic_power_mW": 1.0
         },
-        "value_sparse": true,
+        "value_sparse": false,
         "value_sparse_config": {
           "mask_bit_width": 1,
           "latency_cycle": 1,
@@ -50,7 +50,7 @@
           "dynamic_power_mW": 1.0,
           "output_macro_group_cnt": 1
         },
-        "bit_sparse": true,
+        "bit_sparse": false,
         "bit_sparse_config": {
           "mask_bit_width": 3,
           "latency_cycle": 0,
@@ -60,67 +60,15 @@
           "reg_buffer_static_power_mW": 1.0,
           "reg_buffer_dynamic_power_mW_per_unit": 1.0
         },
-        "input_bit_sparse": true
+        "input_bit_sparse": false
       },
       "local_memory_unit_config": {
         "local_memory_list": [
           {
-            "name": "pim input reg buffer",
-            "type": "reg_buffer",
-            "addressing": {
-              "offset_byte": 1024,
-              "size_byte": 1024
-            },
-            "hardware_config": {
-              "size_byte": 512,
-              "read_max_width_byte": 128,
-              "write_max_width_byte": 128,
-              "rw_min_unit_byte": 128,
-              "static_power_mW": 1.0,
-              "rw_dynamic_power_per_unit_mW": 1,
-              "has_image": true,
-              "image_file": "/mnt/d/Dropbox/Dropbox/Workspace/code/pim-sim/test_data/pim_compute/bs_vs_input_buffer_image.bin"
-            }
-          },
-          {
-            "name": "pim meta data reg buffer",
-            "type": "reg_buffer",
-            "addressing": {
-              "offset_byte": 2048,
-              "size_byte": 1024
-            },
-            "hardware_config": {
-              "size_byte": 768,
-              "read_max_width_byte": 192,
-              "write_max_width_byte": 96,
-              "rw_min_unit_byte": 96,
-              "static_power_mW": 1.0,
-              "rw_dynamic_power_per_unit_mW": 1
-            }
-          },
-          {
-            "name": "pim mask reg buffer",
-            "type": "reg_buffer",
-            "addressing": {
-              "offset_byte": 3072,
-              "size_byte": 1024
-            },
-            "hardware_config": {
-              "size_byte": 1024,
-              "read_max_width_byte": 256,
-              "write_max_width_byte": 128,
-              "rw_min_unit_byte": 16,
-              "static_power_mW": 1.0,
-              "rw_dynamic_power_per_unit_mW": 1,
-              "has_image": true,
-              "image_file": "/mnt/d/Dropbox/Dropbox/Workspace/code/pim-sim/test_data/pim_compute/bs_vs_mask_buffer_image.bin"
-            }
-          },
-          {
             "name": "local memory",
             "type": "ram",
             "addressing": {
-              "offset_byte": 4096,
+              "offset_byte": 2048,
               "size_byte": 1024
             },
             "hardware_config": {
@@ -128,11 +76,27 @@
               "width_byte": 128,
               "write_latency_cycle": 1,
               "read_latency_cycle": 1,
-              "static_power_mW": 0.0,
-              "write_dynamic_power_mW": 0.0,
-              "read_dynamic_power_mW": 0.0,
+              "static_power_mW": 1.0,
+              "write_dynamic_power_mW": 1.0,
+              "read_dynamic_power_mW": 1.0,
               "has_image": true,
-              "image_file": "/mnt/d/Dropbox/Dropbox/Workspace/code/pim-sim/test_data/core/act_col_mask_image.bin"
+              "image_file": "../test_data/cim_control/local_memory_image_2.bin"
+            }
+          },
+          {
+            "name": "cim output reg buffer",
+            "type": "reg_buffer",
+            "addressing": {
+              "offset_byte": 3072,
+              "size_byte": 4096
+            },
+            "hardware_config": {
+              "size_byte": 4096,
+              "read_max_width_byte": 128,
+              "write_max_width_byte": 4096,
+              "rw_min_unit_byte": 4,
+              "static_power_mW": 1.0,
+              "rw_dynamic_power_per_unit_mW": 0.1
             }
           }
         ]

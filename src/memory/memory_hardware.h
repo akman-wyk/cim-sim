@@ -6,7 +6,7 @@
 #include "base_component/base_module.h"
 #include "payload.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class MemoryHardware : public BaseModule {
 public:
@@ -21,4 +21,4 @@ public:
     [[nodiscard]] virtual int getMemorySizeByte() const = 0;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

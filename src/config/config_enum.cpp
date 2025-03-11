@@ -6,7 +6,7 @@
 
 #include <string>
 
-namespace pimsim {
+namespace cimsim {
 
 DEFINE_ENUM_FROM_TO_JSON_FUNCTION(SimMode, run_until_time, run_one_round, other)
 
@@ -18,4 +18,4 @@ DEFINE_ENUM_FROM_TO_JSON_FUNCTION(SIMDInputType, vector, scalar, other)
 
 DEFINE_ENUM_FROM_TO_JSON_FUNCTION(CimASMode, intergroup, intragroup, other)
 
-}  // namespace pimsim
+}  // namespace cimsim

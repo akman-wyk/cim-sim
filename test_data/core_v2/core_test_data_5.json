@@ -1,5 +1,5 @@
 {
-  "comments": "test fot Pim Output instructions",
+  "comments": "test fot Cim Output instructions",
   "code": [
     {"opcode": 45, "rd": 1, "imm": 32, "asm": "S_LI 32 to $1"},
     {"opcode": 45, "rd": 4, "imm": 4, "asm": "S_LI 4 to $4"},

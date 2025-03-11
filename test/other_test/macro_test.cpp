@@ -10,7 +10,7 @@
 #include "util/macro_scope.h"
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
 struct MacroTestConfig {
     bool independent_ipu{false};
@@ -39,7 +39,7 @@ public:
     MacroTestModule(const char* name, const Config& config, Clock* clk, std::vector<MacroTestInstruction> codes,
                     const MacroTestConfig& test_config)
         : BaseModule(name, config.sim_config, nullptr, clk)
-        , macro_("macro", config.chip_config.core_config.pim_unit_config, config.sim_config, nullptr, clk,
+        , macro_("macro", config.chip_config.core_config.cim_unit_config, config.sim_config, nullptr, clk,
                  test_config.independent_ipu) {
         macro_ins_list_ = std::move(codes);
 
@@ -79,7 +79,7 @@ private:
                 running_ins_cnt_++;
                 next_new_ins = false;
             }
-            if (macro_ins.payload.pim_ins_info.last_sub_ins) {
+            if (macro_ins.payload.cim_ins_info.last_sub_ins) {
                 next_new_ins = true;
             }
 
@@ -109,9 +109,9 @@ private:
     sc_core::sc_time running_time_;
 };
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimInsInfo, ins_pc, sub_ins_num, last_sub_ins)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CimInsInfo, ins_pc, sub_ins_num, last_sub_ins)
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(MacroPayload, pim_ins_info, row, input_bit_width, bit_sparse, inputs)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(MacroPayload, cim_ins_info, row, input_bit_width, bit_sparse, inputs)
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(MacroTestConfig, independent_ipu)
 
@@ -121,9 +121,9 @@ DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(MacroTestInstruction, payload, ac
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(MacroTestInfo, code, config, expected)
 
-}  // namespace pimsim
+}  // namespace cimsim
 
-using namespace pimsim;
+using namespace cimsim;
 
 int sc_main(int argc, char* argv[]) {
     sc_core::sc_report_handler::set_actions(sc_core::SC_WARNING, sc_core::SC_DO_NOTHING);

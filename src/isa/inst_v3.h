@@ -8,7 +8,7 @@
 
 #include "util/macro_scope.h"
 
-namespace pimsim {
+namespace cimsim {
 
 struct InstV3 {
     uint32_t binary_{};
@@ -97,4 +97,4 @@ private:
 
 DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(InstV3)
 
-}  // namespace pimsim
+}  // namespace cimsim
