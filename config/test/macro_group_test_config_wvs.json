@@ -25,7 +25,7 @@
         "functor_list": [],
         "instruction_list": []
       },
-      "pim_unit_config": {
+      "cim_unit_config": {
         "macro_total_cnt": 2,
         "macro_group_size": 2,
         "macro_size": {

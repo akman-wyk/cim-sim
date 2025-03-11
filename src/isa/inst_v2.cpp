@@ -8,35 +8,35 @@
 
 #include "fmt/format.h"
 
-namespace pimsim {
+namespace cimsim {
 
 #define TO_STRING_WRITE_FLAG(flag) \
     if (flag) {                    \
         ss << " " << #flag;        \
     }
 
-#define TO_STRING_WRITE_FLAGS(...) PIM_PASTE(TO_STRING_WRITE_FLAG, DELIMITER_SPACE, __VA_ARGS__)
+#define TO_STRING_WRITE_FLAGS(...) CIM_PASTE(TO_STRING_WRITE_FLAG, DELIMITER_SPACE, __VA_ARGS__)
 
 #define TYPE_TO_JSON_WRITE_FLAG(flag)                  \
     if (nlohmann_json_t.flag) {                        \
         nlohmann_json_j[#flag] = nlohmann_json_t.flag; \
     }
 
-#define TYPE_TO_JSON_WRITE_FLAGS(...) PIM_PASTE(TYPE_TO_JSON_WRITE_FLAG, DELIMITER_SPACE, __VA_ARGS__)
+#define TYPE_TO_JSON_WRITE_FLAGS(...) CIM_PASTE(TYPE_TO_JSON_WRITE_FLAG, DELIMITER_SPACE, __VA_ARGS__)
 
 #define INST_V2_TO_JSON_STR_WRITE_REG(reg)            \
     if (reg >= 0) {                                   \
         ss << fmt::format(", \"{}\": {}", #reg, reg); \
     }
 
-#define INST_V2_TO_JSON_STR_WRITE_REGS(...) PIM_PASTE(INST_V2_TO_JSON_STR_WRITE_REG, DELIMITER_SPACE, __VA_ARGS__)
+#define INST_V2_TO_JSON_STR_WRITE_REGS(...) CIM_PASTE(INST_V2_TO_JSON_STR_WRITE_REG, DELIMITER_SPACE, __VA_ARGS__)
 
 #define INST_V2_TO_JSON_STR_WRITE_FLAG(flag)          \
     if (flag) {                                       \
         ss << fmt::format(", \"{}\": {}", #flag, flag); \
     }
 
-#define INST_V2_TO_JSON_STR_WRITE_FLAGS(...) PIM_PASTE(INST_V2_TO_JSON_STR_WRITE_FLAG, DELIMITER_SPACE, __VA_ARGS__)
+#define INST_V2_TO_JSON_STR_WRITE_FLAGS(...) CIM_PASTE(INST_V2_TO_JSON_STR_WRITE_FLAG, DELIMITER_SPACE, __VA_ARGS__)
 
 OPCODE_CLASS InstV2::getOpcodeClass() const {
     if ((opcode & OPCODE_MASK::INST_CLASS_2BIT) != OPCODE_CLASS::TRANS) {
@@ -175,4 +175,4 @@ void to_json(nlohmann::ordered_json& nlohmann_json_j, const InstV2& nlohmann_jso
     TYPE_TO_JSON_WRITE_FLAGS(GRP, GRP_I, SP_V, SP_B, GRP_B, OSUM, OSUM_MOV)
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

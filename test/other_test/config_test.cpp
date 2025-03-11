@@ -9,7 +9,7 @@
 #include "config/config.h"
 #include "util/util.h"
 
-using namespace pimsim;
+using namespace cimsim;
 
 const std::string CONFIG_FILE = "../config/config_template.json";
 const std::string TEST_CONFIG_FILE = "../config/config1.json";
@@ -32,11 +32,11 @@ Config get_config() {
     instruction_config.functor_binding_list.emplace_back(binding_config);
     config.chip_config.core_config.simd_unit_config.instruction_list.emplace_back(instruction_config);
 
-    config.chip_config.core_config.pim_unit_config.address_space =
+    config.chip_config.core_config.cim_unit_config.address_space =
         AddressSpaceConfig{.offset_byte = 0, .size_byte = 1024};
-    config.chip_config.core_config.pim_unit_config.macro_group_size = 16;
-    config.chip_config.core_config.pim_unit_config.value_sparse = true;
-    config.chip_config.core_config.pim_unit_config.bit_sparse = true;
+    config.chip_config.core_config.cim_unit_config.macro_group_size = 16;
+    config.chip_config.core_config.cim_unit_config.value_sparse = true;
+    config.chip_config.core_config.cim_unit_config.bit_sparse = true;
 
     LocalMemoryConfig l1{.name = "l1",
                          .type = LocalMemoryType::ram,

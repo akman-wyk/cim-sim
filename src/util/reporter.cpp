@@ -6,7 +6,7 @@
 #include "base_component/energy_counter.h"
 #include "fmt/format.h"
 
-namespace pimsim {
+namespace cimsim {
 
 #define MAX(a, b) (a) > (b) ? (a) : (b)
 #define TERA      1e12
@@ -291,4 +291,4 @@ void Reporter::setOPCount(double OP_count) {
 
 #undef MAX
 
-}  // namespace pimsim
+}  // namespace cimsim

@@ -10,10 +10,10 @@
 #include "base_component/base_module.h"
 #include "config/config.h"
 
-namespace pimsim {
+namespace cimsim {
 
 BETTER_ENUM(SpecialRegId, int,  // NOLINT(*-explicit-constructor, *-no-recursion)
-            pim_input_bit_width = 0, pim_output_bit_width = 1, pimm_weight_bit_width = 2, group_size = 3,
+            cim_input_bit_width = 0, cim_output_bit_width = 1, cim_weight_bit_width = 2, group_size = 3,
             activation_group_num = 4, activation_element_col_num = 5, group_input_step = 6, value_sparse_mask_addr = 7,
             bit_sparse_meta_addr = 8,
 
@@ -50,4 +50,4 @@ private:
     std::array<int, SPECIAL_REG_NUM> special_regs_{};
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

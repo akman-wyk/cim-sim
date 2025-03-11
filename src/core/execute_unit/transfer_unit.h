@@ -12,7 +12,7 @@
 #include "network/switch_socket.h"
 #include "payload.h"
 
-namespace pimsim {
+namespace cimsim {
 
 struct TransferInstructionInfo {
     InstructionPayload ins{};
@@ -107,4 +107,4 @@ private:
     sc_event finish_write_global_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

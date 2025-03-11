@@ -7,12 +7,12 @@
 #include "fmt/format.h"
 #include "util/log.h"
 
-namespace pimsim {
+namespace cimsim {
 
-MacroGroupController::MacroGroupController(const std::string &name, const pimsim::PimUnitConfig &config,
-                                           const pimsim::SimConfig &sim_config, pimsim::Core *core, pimsim::Clock *clk,
+MacroGroupController::MacroGroupController(const std::string &name, const cimsim::CimUnitConfig &config,
+                                           const cimsim::SimConfig &sim_config, cimsim::Core *core, cimsim::Clock *clk,
                                            sc_core::sc_event &next_sub_ins,
-                                           SubmoduleSocket<pimsim::MacroGroupSubmodulePayload> &result_adder_socket)
+                                           SubmoduleSocket<cimsim::MacroGroupSubmodulePayload> &result_adder_socket)
     : BaseModule(name.c_str(), sim_config, core, clk)
     , config_(config)
     , next_sub_ins_(next_sub_ins)
@@ -25,7 +25,7 @@ MacroGroupController::MacroGroupController(const std::string &name, const pimsim
     SC_THREAD(processShiftAdderSubmodule);
 }
 
-void MacroGroupController::start(pimsim::MacroGroupControllerPayload payload) {
+void MacroGroupController::start(cimsim::MacroGroupControllerPayload payload) {
     controller_socket_.payload = payload;
     controller_socket_.start_exec.notify();
 }
@@ -35,8 +35,8 @@ void MacroGroupController::waitUntilFinishIfBusy() {
 }
 
 void MacroGroupController::waitAndStartNextSubmodule(
-    const pimsim::MacroGroupSubmodulePayload &cur_payload,
-    SubmoduleSocket<pimsim::MacroGroupSubmodulePayload> &next_submodule_socket) {
+    const cimsim::MacroGroupSubmodulePayload &cur_payload,
+    SubmoduleSocket<cimsim::MacroGroupSubmodulePayload> &next_submodule_socket) {
     next_submodule_socket.waitUntilFinishIfBusy();
     if (cur_payload.batch_info.first_batch) {
         next_submodule_socket.payload.sub_ins_info = cur_payload.sub_ins_info;
@@ -50,11 +50,11 @@ void MacroGroupController::processIPUAndIssue() {
         controller_socket_.waitUntilStart();
 
         const auto &payload = controller_socket_.payload;
-        const auto &pim_ins_info = payload.pim_ins_info;
-        LOG(fmt::format("{} start, ins pc: {}, sub ins num: {}", getName(), pim_ins_info.ins_pc,
-                        pim_ins_info.sub_ins_num));
+        const auto &cim_ins_info = payload.cim_ins_info;
+        LOG(fmt::format("{} start, ins pc: {}, sub ins num: {}", getName(), cim_ins_info.ins_pc,
+                        cim_ins_info.sub_ins_num));
 
-        MacroGroupSubmodulePayload submodule_payload{.sub_ins_info = {.pim_ins_info = pim_ins_info,
+        MacroGroupSubmodulePayload submodule_payload{.sub_ins_info = {.cim_ins_info = cim_ins_info,
                                                                       .last_group = payload.last_group,
                                                                       .bit_sparse = payload.bit_sparse}};
         int batch_count = payload.input_bit_width;
@@ -62,7 +62,7 @@ void MacroGroupController::processIPUAndIssue() {
             submodule_payload.batch_info = {
                 .batch_num = batch, .first_batch = (batch == 0), .last_batch = (batch == batch_count - 1)};
             LOG(fmt::format("{} start ipu and issue, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                            pim_ins_info.ins_pc, pim_ins_info.sub_ins_num, submodule_payload.batch_info.batch_num));
+                            cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, submodule_payload.batch_info.batch_num));
 
             double latency = config_.ipu.latency_cycle * period_ns_;
             wait(latency, SC_NS);
@@ -80,9 +80,9 @@ void MacroGroupController::processSRAMSubmodule() {
         sram_socket_.waitUntilStart();
 
         const auto &payload = sram_socket_.payload;
-        const auto &pim_ins_info = payload.sub_ins_info.pim_ins_info;
-        LOG(fmt::format("{} start sram read, ins pc: {}, sub ins num: {}, batch: {}", getName(), pim_ins_info.ins_pc,
-                        pim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+        const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
+        LOG(fmt::format("{} start sram read, ins pc: {}, sub ins num: {}, batch: {}", getName(), cim_ins_info.ins_pc,
+                        cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double latency = config_.sram.read_latency_cycle * period_ns_;
         wait(latency, SC_NS);
@@ -97,10 +97,10 @@ void MacroGroupController::processPostProcessSubmodule() {
         post_process_socket_.waitUntilStart();
 
         const auto &payload = post_process_socket_.payload;
-        const auto &pim_ins_info = payload.sub_ins_info.pim_ins_info;
+        const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
         if (config_.bit_sparse && payload.sub_ins_info.bit_sparse) {
             LOG(fmt::format("{} start post process, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                            pim_ins_info.ins_pc, pim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+                            cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
             double latency = config_.bit_sparse_config.latency_cycle * period_ns_;
             wait(latency, SC_NS);
@@ -116,9 +116,9 @@ void MacroGroupController::processAdderTreeSubmodule1() {
         adder_tree_socket_1_.waitUntilStart();
 
         const auto &payload = adder_tree_socket_1_.payload;
-        const auto &pim_ins_info = payload.sub_ins_info.pim_ins_info;
+        const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
         LOG(fmt::format("{} start adder tree stage 1, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                        pim_ins_info.ins_pc, pim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+                        cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double latency = period_ns_;
         wait(latency, SC_NS);
@@ -133,9 +133,9 @@ void MacroGroupController::processAdderTreeSubmodule2() {
         adder_tree_socket_2_.waitUntilStart();
 
         const auto &payload = adder_tree_socket_2_.payload;
-        const auto &pim_ins_info = payload.sub_ins_info.pim_ins_info;
+        const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
         LOG(fmt::format("{} start adder tree stage 2, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                        pim_ins_info.ins_pc, pim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+                        cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double latency = period_ns_;
         wait(latency, SC_NS);
@@ -150,9 +150,9 @@ void MacroGroupController::processShiftAdderSubmodule() {
         shift_adder_socket_.waitUntilStart();
 
         const auto &payload = shift_adder_socket_.payload;
-        const auto &pim_ins_info = payload.sub_ins_info.pim_ins_info;
-        LOG(fmt::format("{} start shift adder, ins pc: {}, sub ins num: {}, batch: {}", getName(), pim_ins_info.ins_pc,
-                        pim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+        const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
+        LOG(fmt::format("{} start shift adder, ins pc: {}, sub ins num: {}, batch: {}", getName(), cim_ins_info.ins_pc,
+                        cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double latency = config_.shift_adder.latency_cycle * period_ns_;
         wait(latency, SC_NS);
@@ -167,4 +167,4 @@ void MacroGroupController::processShiftAdderSubmodule() {
     }
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

@@ -5,7 +5,7 @@
 #include "core/core.h"
 #include "decoder.h"
 
-namespace pimsim {
+namespace cimsim {
 
 std::shared_ptr<ExecuteInsPayload> DecoderV2::decode(const InstV2& ins, int pc, int& pc_increment,
                                                      ResourceAllocatePayload& conflict_info) {
@@ -16,7 +16,7 @@ std::shared_ptr<ExecuteInsPayload> DecoderV2::decode(const InstV2& ins, int pc, 
     pc_increment = 1;
 
     if (auto op_class = ins.getOpcodeClass(); op_class == +OPCODE_CLASS::CIM) {
-        payload = decodePimIns(ins);
+        payload = decodeCimIns(ins);
     } else if (op_class == +OPCODE_CLASS::VEC_OP) {
         payload = decodeSIMDIns(ins);
     } else if (op_class == +OPCODE_CLASS::SC) {
@@ -40,15 +40,15 @@ std::shared_ptr<ExecuteInsPayload> DecoderV2::decode(const InstV2& ins, int pc, 
     return payload;
 }
 
-std::shared_ptr<ExecuteInsPayload> DecoderV2::decodePimIns(const InstV2& ins) const {
+std::shared_ptr<ExecuteInsPayload> DecoderV2::decodeCimIns(const InstV2& ins) const {
     std::shared_ptr<ExecuteInsPayload> payload{nullptr};
     if (auto op = ins.getOpcodeEnum(); op == +OPCODE::CIM_MVM) {
-        PimComputeInsPayload p;
-        p.ins.unit_type = ExecuteUnitType::pim_compute;
+        CimComputeInsPayload p;
+        p.ins.unit_type = ExecuteUnitType::cim_compute;
 
         p.input_addr_byte = reg_unit_->readRegister(ins.rs, false);
         p.input_len = reg_unit_->readRegister(ins.rt, false);
-        p.input_bit_width = reg_unit_->readRegister(SpecialRegId::pim_input_bit_width, true);
+        p.input_bit_width = reg_unit_->readRegister(SpecialRegId::cim_input_bit_width, true);
         p.activation_group_num = reg_unit_->readRegister(SpecialRegId::activation_group_num, true);
         p.group_input_step_byte = reg_unit_->readRegister(SpecialRegId::group_input_step, true);
         p.row = reg_unit_->readRegister(ins.re, false);
@@ -57,31 +57,31 @@ std::shared_ptr<ExecuteInsPayload> DecoderV2::decodePimIns(const InstV2& ins) co
         p.value_sparse = ins.SP_V;
         p.value_sparse_mask_addr_byte = reg_unit_->readRegister(SpecialRegId::value_sparse_mask_addr, true);
 
-        payload = std::make_shared<PimComputeInsPayload>(p);
+        payload = std::make_shared<CimComputeInsPayload>(p);
     } else if (op == +OPCODE::CIM_CFG) {
-        PimControlInsPayload p;
-        p.ins.unit_type = ExecuteUnitType::pim_control;
+        CimControlInsPayload p;
+        p.ins.unit_type = ExecuteUnitType::cim_control;
 
-        p.op = PimControlOperator::set_activation;
+        p.op = CimControlOperator::set_activation;
         p.group_broadcast = ins.GRP_B;
         p.group_id = reg_unit_->readRegister(ins.rs, false);
         p.mask_addr_byte = reg_unit_->readRegister(ins.rt, false);
 
-        payload = std::make_shared<PimControlInsPayload>(p);
+        payload = std::make_shared<CimControlInsPayload>(p);
     } else if (op == +OPCODE::CIM_OUT) {
-        PimControlInsPayload p;
-        p.ins.unit_type = ExecuteUnitType::pim_control;
+        CimControlInsPayload p;
+        p.ins.unit_type = ExecuteUnitType::cim_control;
 
-        p.op = ins.OSUM_MOV ? PimControlOperator::output_sum_move
-               : ins.OSUM   ? PimControlOperator::output_sum
-                            : PimControlOperator::only_output;
+        p.op = ins.OSUM_MOV ? CimControlOperator::output_sum_move
+               : ins.OSUM   ? CimControlOperator::output_sum
+                            : CimControlOperator::only_output;
         p.activation_group_num = reg_unit_->readRegister(SpecialRegId::activation_group_num, true);
         p.output_addr_byte = reg_unit_->readRegister(ins.rd, false);
         p.output_cnt_per_group = reg_unit_->readRegister(ins.rs, false);
-        p.output_bit_width = reg_unit_->readRegister(SpecialRegId::pim_output_bit_width, true);
+        p.output_bit_width = reg_unit_->readRegister(SpecialRegId::cim_output_bit_width, true);
         p.output_mask_addr_byte = reg_unit_->readRegister(ins.rt, false);
 
-        payload = std::make_shared<PimControlInsPayload>(p);
+        payload = std::make_shared<CimControlInsPayload>(p);
     }
     return payload;
 }
@@ -206,4 +206,4 @@ int DecoderV2::decodeControlInsAndGetPCIncrement(const InstV2& ins) const {
     return branch ? ins.imm : 1;
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

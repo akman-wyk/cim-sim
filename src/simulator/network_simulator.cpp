@@ -14,7 +14,7 @@
 #include <sys/wait.h>
 #endif
 
-namespace pimsim {
+namespace cimsim {
 
 Reporter test_network(const std::string& data_root_dir, const std::string& report_root_dir, const std::string& network,
                       const TestCaseConfig& test_case_config, const std::vector<LayerConfig>& layer_config,
@@ -138,7 +138,7 @@ void test_wrap(const std::string& test_config_file, bool& all_tests_passed) {
     network_report_ofs.close();
 }
 
-}  // namespace pimsim
+}  // namespace cimsim
 
 int sc_main(int argc, char** argv) {
     sc_core::sc_report_handler::set_actions(sc_core::SC_WARNING, sc_core::SC_DO_NOTHING);
@@ -148,7 +148,7 @@ int sc_main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
     bool all_tests_passed = true;
-    pimsim::test_wrap(argv[1], all_tests_passed);
+    cimsim::test_wrap(argv[1], all_tests_passed);
     if (all_tests_passed) {
         std::cout << "All Tests Passed!" << std::endl;
     } else {

@@ -11,7 +11,7 @@
 #include "config/config.h"
 #include "memory_hardware.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class RAM : public MemoryHardware {
 public:
@@ -39,4 +39,4 @@ private:
     EnergyCounter write_energy_counter_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

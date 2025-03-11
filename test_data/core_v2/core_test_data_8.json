@@ -1,5 +1,5 @@
 {
-  "comments": "test fot Pim Compute instructions with vs config",
+  "comments": "test fot Cim Compute instructions with vs config",
   "code": [
     {"opcode": 44, "rd": 0, "imm": 4104, "asm": "G_LI 4104 to $0"},
     {"opcode": 45, "rd": 0, "imm": 8, "asm": "S_LI 8 to $0"},

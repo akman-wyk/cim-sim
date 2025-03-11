@@ -7,7 +7,7 @@
 #include "ram.h"
 #include "reg_buffer.h"
 
-namespace pimsim {
+namespace cimsim {
 
 Memory::Memory(const char *name, const RAMConfig &ram_config, const AddressSpaceConfig &addressing,
                const SimConfig &sim_config, Core *core, Clock *clk)
@@ -81,4 +81,4 @@ void Memory::process() {
     }
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

@@ -6,7 +6,7 @@
 #include "base_component/base_module.h"
 #include "memory_hardware.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class RegBuffer : public MemoryHardware {
 public:
@@ -34,4 +34,4 @@ private:
     EnergyCounter write_energy_counter_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

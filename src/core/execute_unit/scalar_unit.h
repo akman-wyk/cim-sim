@@ -13,7 +13,7 @@
 #include "memory/memory_socket.h"
 #include "payload.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class ScalarUnit : public ExecuteUnit {
 public:
@@ -39,4 +39,4 @@ private:
     RegUnit* reg_unit_{nullptr};
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

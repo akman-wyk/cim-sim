@@ -6,16 +6,16 @@
 
 #include <vector>
 
-namespace pimsim {
+namespace cimsim {
 
-struct PimInsInfo {
+struct CimInsInfo {
     int ins_pc{-1}, sub_ins_num{-1};
     bool last_sub_ins{false};
     int ins_id{-1};
 };
 
 struct MacroPayload {
-    PimInsInfo pim_ins_info{};
+    CimInsInfo cim_ins_info{};
 
     int row{0};
     int input_bit_width{0};
@@ -28,7 +28,7 @@ struct MacroPayload {
 };
 
 struct MacroSubInsInfo {
-    PimInsInfo pim_ins_info{};
+    CimInsInfo cim_ins_info{};
     int compartment_num{0};
     bool bit_sparse{false};
 
@@ -51,7 +51,7 @@ struct MacroSubmodulePayload {
 };
 
 struct MacroGroupPayload {
-    PimInsInfo pim_ins_info{};
+    CimInsInfo cim_ins_info{};
 
     // group info
     bool last_group{false};
@@ -70,7 +70,7 @@ struct MacroGroupPayload {
 };
 
 struct MacroGroupControllerPayload {
-    PimInsInfo pim_ins_info{};
+    CimInsInfo cim_ins_info{};
 
     // group info
     bool last_group{false};
@@ -82,7 +82,7 @@ struct MacroGroupControllerPayload {
 
 struct MacroGroupSubInsInfo {
     // ins info and sub ins info
-    PimInsInfo pim_ins_info{};
+    CimInsInfo cim_ins_info{};
 
     // group info
     bool last_group{false};
@@ -96,4 +96,4 @@ struct MacroGroupSubmodulePayload {
     MacroBatchInfo batch_info{};
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

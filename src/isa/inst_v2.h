@@ -8,7 +8,7 @@
 #include "isa_v2.h"
 #include "util/macro_scope.h"
 
-namespace pimsim {
+namespace cimsim {
 
 struct InstV2 {
     int opcode{0};
@@ -28,4 +28,4 @@ struct InstV2 {
 
 DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(InstV2)
 
-}  // namespace pimsim
+}  // namespace cimsim

@@ -1,5 +1,5 @@
 {
-  "comments": "test fot Pim Load instructions",
+  "comments": "test fot Cim Load instructions",
   "code": [
     {"opcode": 44, "rd": 0, "imm": 2048, "asm": "G_LI 2048 to $0"},
     {"opcode": 44, "rd": 1, "imm": 256, "asm": "G_LI 256 to $1"},

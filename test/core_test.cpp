@@ -12,7 +12,7 @@
 #include "systemc.h"
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
 struct CoreTestInfo {
     std::vector<Instruction> code{};
@@ -22,9 +22,9 @@ struct CoreTestInfo {
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CoreTestInfo, code, expected, reg_info)
 
-}  // namespace pimsim
+}  // namespace cimsim
 
-using namespace pimsim;
+using namespace cimsim;
 
 int sc_main(int argc, char* argv[]) {
     sc_core::sc_report_handler::set_actions(sc_core::SC_WARNING, sc_core::SC_DO_NOTHING);

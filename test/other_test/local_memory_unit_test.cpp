@@ -10,7 +10,7 @@
 
 const std::string CONFIG_FILE = "../config/config_template.json";
 
-namespace pimsim {
+namespace cimsim {
 
 class TestModule : public sc_core::sc_module {
 public:
@@ -48,9 +48,9 @@ private:
     sc_core::sc_event event2;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim
 
-using namespace pimsim;
+using namespace cimsim;
 
 int sc_main(int argc, char* argv[]) {
     sc_core::sc_report_handler::set_actions(sc_core::SC_WARNING, sc_core::SC_DO_NOTHING);

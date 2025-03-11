@@ -93,7 +93,7 @@
           }
         ]
       },
-      "pim_unit_config": {
+      "cim_unit_config": {
         "macro_total_cnt": 64,
         "macro_group_size": 16,
         "macro_size": {

@@ -11,13 +11,13 @@
 #include "config/config.h"
 #include "payload.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class Macro : public BaseModule {
 public:
     SC_HAS_PROCESS(Macro);
 
-    Macro(const char* name, const PimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk,
+    Macro(const char* name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk,
           bool independent_ipu, SubmoduleSocket<MacroGroupSubmodulePayload>* result_adder_socket_ptr = nullptr);
 
     void startExecute(MacroPayload payload);
@@ -45,8 +45,8 @@ private:
     std::pair<int, int> getBatchCountAndActivationCompartmentCount(const MacroPayload& payload) const;
 
 private:
-    const PimUnitConfig& config_;
-    const PimMacroSizeConfig& macro_size_;
+    const CimUnitConfig& config_;
+    const CimMacroSizeConfig& macro_size_;
     bool independent_ipu_;
     int activation_element_col_cnt_;
     std::vector<unsigned char> activation_element_col_mask_{};
@@ -73,4 +73,4 @@ private:
     std::function<void()> finish_ins_func_{};
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

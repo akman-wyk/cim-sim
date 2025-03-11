@@ -19,7 +19,7 @@
 #define CHECK_INS_STAT_FAILED 4
 #define CHECK_REG_FAILED      5
 
-namespace pimsim {
+namespace cimsim {
 
 const std::string TEMP_REPORT_DIR_NAME = "temp";
 const std::string CODE_FILE_NAME = "final_code.json";
@@ -74,4 +74,4 @@ struct CompareResult {
     ReporterCompare compare_result;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

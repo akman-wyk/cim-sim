@@ -7,7 +7,7 @@
 #include "core/payload.h"
 #include "execute_unit_test.h"
 
-namespace pimsim {
+namespace cimsim {
 
 struct SIMDTestInstruction {
     SIMDInsPayload payload;
@@ -38,9 +38,9 @@ public:
     }
 };
 
-}  // namespace pimsim
+}  // namespace cimsim
 
-using namespace pimsim;
+using namespace cimsim;
 
 int sc_main(int argc, char* argv[]) {
     auto initializer = [](const Config& config, Clock* clk, SIMDTestInfo& test_info) {
@@ -52,5 +52,5 @@ int sc_main(int argc, char* argv[]) {
                                       std::move(test_info.code),
                                       ExecuteUnitType::simd};
     };
-    return pimsim_unit_test<SIMDUnitTestModule>(argc, argv, initializer);
+    return cimsim_unit_test<SIMDUnitTestModule>(argc, argv, initializer);
 }

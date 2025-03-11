@@ -8,7 +8,7 @@
 #include "better-enums/enum.h"
 #include "systemc.h"
 
-namespace pimsim {
+namespace cimsim {
 
 BETTER_ENUM(DataTransferStatus, int,  // NOLINT(*-explicit-constructor)
             sender_ready, receiver_ready, send_data)
@@ -51,4 +51,4 @@ struct DataTransferInfo {
     int data_size_byte;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

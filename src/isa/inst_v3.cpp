@@ -4,7 +4,7 @@
 
 #include "inst_v3.h"
 
-namespace pimsim {
+namespace cimsim {
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(InstV3, binary_, asm_)
 

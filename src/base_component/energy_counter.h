@@ -8,7 +8,7 @@
 
 #include "systemc.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class EnergyCounter {
     // energy unit -- pJ
@@ -55,4 +55,4 @@ private:
     sc_core::sc_time activity_time_tag_{0.0, SC_NS};
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

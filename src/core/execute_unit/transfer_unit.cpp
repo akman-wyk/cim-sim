@@ -9,7 +9,7 @@
 #include "util/log.h"
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
 TransferUnit::TransferUnit(const char* name, const TransferUnitConfig& config, const SimConfig& sim_config, Core* core,
                            Clock* clk, int core_id, int global_memory_switch_id)
@@ -133,8 +133,8 @@ void TransferUnit::bindSwitch(Switch* switch_) {
         [this](const std::shared_ptr<NetworkPayload>& payload) { this->switchReceiveHandler(payload); });
 }
 
-void TransferUnit::waitAndStartNextSubmodule(pimsim::TransferSubmodulePayload& cur_payload,
-                                             SubmoduleSocket<pimsim::TransferSubmodulePayload>& next_submodule_socket) {
+void TransferUnit::waitAndStartNextSubmodule(cimsim::TransferSubmodulePayload& cur_payload,
+                                             SubmoduleSocket<cimsim::TransferSubmodulePayload>& next_submodule_socket) {
     next_submodule_socket.waitUntilFinishIfBusy();
     if (cur_payload.batch_info.first_batch) {
         next_submodule_socket.payload.ins_info = cur_payload.ins_info;
@@ -344,4 +344,4 @@ void TransferUnit::processStoreGlobalData(const InstructionPayload& ins, int dst
     LOG(fmt::format("store global data end, pc: {}", ins.pc));
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

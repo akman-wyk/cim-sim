@@ -13,7 +13,7 @@
 #include "memory/memory_socket.h"
 #include "payload.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class LocalMemoryUnit;
 
@@ -87,4 +87,4 @@ private:
     SubmoduleSocket<SIMDSubmodulePayload> write_submodule_socket_{};
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

@@ -7,7 +7,7 @@
 #include "core/core.h"
 #include "isa/isa.h"
 
-namespace pimsim {
+namespace cimsim {
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(ScalarInsStat, total, rr, ri, store, load, general_li, special_li,
                                                special_general_assign)
@@ -16,24 +16,24 @@ DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(SIMDInsStat, total, ins_count)
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(TransferInsStat, total)
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(PimInsStat, total, pim_compute, pim_set, pim_output)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CimInsStat, total, cim_compute, cim_set, cim_output)
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(ControlInsStat, total, branch, jump)
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(InsStat, total, scalar, trans, ctr, pim, simd)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(InsStat, total, scalar, trans, ctr, cim, simd)
 
-DEFINE_PIM_PAYLOAD_EQUAL_OPERATOR(ScalarInsStat, total, rr, ri, store, load, general_li, special_li,
+DEFINE_CIM_PAYLOAD_EQUAL_OPERATOR(ScalarInsStat, total, rr, ri, store, load, general_li, special_li,
                                   special_general_assign)
 
-DEFINE_PIM_PAYLOAD_EQUAL_OPERATOR(SIMDInsStat, total)
+DEFINE_CIM_PAYLOAD_EQUAL_OPERATOR(SIMDInsStat, total)
 
-DEFINE_PIM_PAYLOAD_EQUAL_OPERATOR(TransferInsStat, total)
+DEFINE_CIM_PAYLOAD_EQUAL_OPERATOR(TransferInsStat, total)
 
-DEFINE_PIM_PAYLOAD_EQUAL_OPERATOR(PimInsStat, total, pim_compute, pim_set, pim_output)
+DEFINE_CIM_PAYLOAD_EQUAL_OPERATOR(CimInsStat, total, cim_compute, cim_set, cim_output)
 
-DEFINE_PIM_PAYLOAD_EQUAL_OPERATOR(ControlInsStat, total, branch, jump)
+DEFINE_CIM_PAYLOAD_EQUAL_OPERATOR(ControlInsStat, total, branch, jump)
 
-DEFINE_PIM_PAYLOAD_EQUAL_OPERATOR(InsStat, total, scalar, trans, ctr, pim, simd)
+DEFINE_CIM_PAYLOAD_EQUAL_OPERATOR(InsStat, total, scalar, trans, ctr, cim, simd)
 
 void ScalarInsStat::addInsCount(int type, int opcode) {
     total++;
@@ -80,14 +80,14 @@ void TransferInsStat::addInsCount() {
     total++;
 }
 
-void PimInsStat::addInsCount(int type) {
+void CimInsStat::addInsCount(int type) {
     total++;
-    if (type == PIMInstType::compute) {
-        pim_compute++;
-    } else if (type == PIMInstType::set) {
-        pim_set++;
-    } else if (type == PIMInstType::output) {
-        pim_output++;
+    if (type == CIMInstType::compute) {
+        cim_compute++;
+    } else if (type == CIMInstType::set) {
+        cim_set++;
+    } else if (type == CIMInstType::output) {
+        cim_output++;
     }
 }
 
@@ -102,8 +102,8 @@ void ControlInsStat::addInsCount(int type) {
 
 void InsStat::addInsCount(int class_code, int type, int opcode, const SIMDUnitConfig& simd_unit_config) {
     total++;
-    if (class_code == InstClass::pim) {
-        pim.addInsCount(type);
+    if (class_code == InstClass::cim) {
+        cim.addInsCount(type);
     } else if (class_code == InstClass::simd) {
         simd.addInsCount(opcode, simd_unit_config);
     } else if (class_code == InstClass::scalar) {
@@ -115,4 +115,4 @@ void InsStat::addInsCount(int class_code, int type, int opcode, const SIMDUnitCo
     }
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

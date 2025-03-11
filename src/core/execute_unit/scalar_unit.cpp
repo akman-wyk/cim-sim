@@ -8,10 +8,10 @@
 #include "util/log.h"
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
-ScalarUnit::ScalarUnit(const char *name, const pimsim::ScalarUnitConfig &config, const pimsim::SimConfig &sim_config,
-                       pimsim::Core *core, pimsim::Clock *clk)
+ScalarUnit::ScalarUnit(const char *name, const cimsim::ScalarUnitConfig &config, const cimsim::SimConfig &sim_config,
+                       cimsim::Core *core, cimsim::Clock *clk)
     : ExecuteUnit(name, sim_config, core, clk, ExecuteUnitType::scalar), config_(config) {
     SC_THREAD(process)
     SC_THREAD(executeInst)
@@ -48,11 +48,11 @@ void ScalarUnit::process() {
     }
 }
 
-void ScalarUnit::bindLocalMemoryUnit(pimsim::LocalMemoryUnit *local_memory_unit) {
+void ScalarUnit::bindLocalMemoryUnit(cimsim::LocalMemoryUnit *local_memory_unit) {
     local_memory_socket_.bindLocalMemoryUnit(local_memory_unit);
 }
 
-void ScalarUnit::bindRegUnit(pimsim::RegUnit *reg_unit) {
+void ScalarUnit::bindRegUnit(cimsim::RegUnit *reg_unit) {
     reg_unit_ = reg_unit;
 }
 
@@ -87,7 +87,7 @@ void ScalarUnit::executeInst() {
     }
 }
 
-RegUnitWritePayload ScalarUnit::executeAndWriteRegister(const pimsim::ScalarInsPayload &payload) {
+RegUnitWritePayload ScalarUnit::executeAndWriteRegister(const cimsim::ScalarInsPayload &payload) {
     RegUnitWritePayload write_payload{.id = payload.dst_reg, .special = false};
     switch (payload.op) {
         case ScalarOperator::add: {
@@ -186,4 +186,4 @@ RegUnitWritePayload ScalarUnit::executeAndWriteRegister(const pimsim::ScalarInsP
     return write_payload;
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

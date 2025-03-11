@@ -1,5 +1,5 @@
 {
-  "comments": "test fot Pim Compute instructions with vs config",
+  "comments": "test fot Cim Compute instructions with vs config",
   "code": [
     {"class_code": 2, "type": 3, "opcode": 0, "rd": 0, "imm": 4104},
 

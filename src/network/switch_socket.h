@@ -8,7 +8,7 @@
 #include "switch.h"
 #include "systemc.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class SwitchSocket {
 public:
@@ -29,4 +29,4 @@ private:
     Switch* switch_{nullptr};
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

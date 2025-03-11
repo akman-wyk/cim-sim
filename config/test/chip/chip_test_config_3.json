@@ -35,7 +35,7 @@
           }
         ]
       },
-      "pim_unit_config": {
+      "cim_unit_config": {
         "macro_total_cnt": 64,
         "macro_group_size": 16,
         "macro_size": {
@@ -109,7 +109,7 @@
     },
     "network_config": {
       "bus_width_byte": 16,
-      "network_config_file_path": "/mnt/d/Dropbox/Dropbox/Workspace/code/pim-sim/test_data/chip/network_config_2.json"
+      "network_config_file_path": "../test_data/chip/network_config_2.json"
     }
   },
   "sim_config": {

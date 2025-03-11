@@ -6,10 +6,10 @@
 
 #include "fmt/format.h"
 
-namespace pimsim {
+namespace cimsim {
 
-RegUnit::RegUnit(const char *name, const pimsim::RegisterUnitConfig &config, const pimsim::SimConfig &sim_config,
-                 pimsim::Core *core, pimsim::Clock *clk)
+RegUnit::RegUnit(const char *name, const cimsim::RegisterUnitConfig &config, const cimsim::SimConfig &sim_config,
+                 cimsim::Core *core, cimsim::Clock *clk)
     : BaseModule(name, sim_config, core, clk), config_(config) {
     for (const auto &[special, general] : config_.special_register_binding) {
         special_bind_map_.emplace(special, general);
@@ -26,7 +26,7 @@ int RegUnit::getSpecialBoundGeneralId(int special_id) const {
     return found->second;
 }
 
-void RegUnit::writeRegister(const pimsim::RegUnitWritePayload &write_req) {
+void RegUnit::writeRegister(const cimsim::RegUnitWritePayload &write_req) {
     if (write_req.special) {
         special_regs_[write_req.id] = write_req.value;
     } else {
@@ -78,4 +78,4 @@ std::string RegUnit::getGeneralRegistersString() const {
     return ss.str();
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

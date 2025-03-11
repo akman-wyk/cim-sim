@@ -9,7 +9,7 @@
 #include "systemc.h"
 #include "util/reporter.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class Core;
 
@@ -35,4 +35,4 @@ private:
     const std::string name;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

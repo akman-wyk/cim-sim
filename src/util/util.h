@@ -12,7 +12,7 @@
 #include "config/config.h"
 #include "nlohmann/json.hpp"
 
-namespace pimsim {
+namespace cimsim {
 
 static constexpr double delta = 1e-8;
 
@@ -56,4 +56,4 @@ Type readTypeFromJsonFile(const std::string& file) {
     return readTypeFromJsonFile<Type>(file.c_str());
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

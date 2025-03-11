@@ -2,6 +2,7 @@
 // Created by wyk on 2024/8/19.
 //
 
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -32,12 +33,26 @@ bool check_text_file_same(const std::string& file1, const std::string& file2) {
     }
 }
 
+enum class FieldLength {
+    OPCODE = 6,
+    REG = 5,
+    FUNCT_TYPE2 = 5,
+    FUNCT_TYPE3 = 5,
+    IMM_TYPE3 = 11,
+    IMM_TYPE4 = 16,
+    IMM_TYPE5 = 21,
+    IMM_TYPE6 = 26,
+};
+
 int main(int argc, char* argv[]) {
-    std::string file1(argv[1]), file2(argv[2]);
-    if (check_text_file_same(file1, file2)) {
-        std::cout << "Files same" << std::endl;
-    } else {
-        std::cout << "Files do not same" << std::endl;
-    }
+    // std::string file1(argv[1]), file2(argv[2]);
+    // if (check_text_file_same(file1, file2)) {
+    //     std::cout << "Files same" << std::endl;
+    // } else {
+    //     std::cout << "Files do not same" << std::endl;
+    // }
+
+    auto a = static_cast<uint32_t>(FieldLength::IMM_TYPE6);
+    std::cout << a << std::endl;
     return 0;
 }

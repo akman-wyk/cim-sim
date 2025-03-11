@@ -4,7 +4,7 @@
 
 #include "energy_counter.h"
 
-namespace pimsim {
+namespace cimsim {
 
 double EnergyCounter::running_time_ = 0.0;
 bool EnergyCounter::set_running_time_ = false;
@@ -104,4 +104,4 @@ EnergyCounter& EnergyCounter::operator+=(const EnergyCounter& another) {
     return *this;
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

@@ -1,5 +1,5 @@
 {
-  "comments": "test fot Pim Output instructions",
+  "comments": "test fot Cim Output instructions",
   "code": [
     {"class_code": 2, "type": 3, "opcode": 1, "rd": 1, "imm": 32},
 

@@ -6,7 +6,7 @@
 #include "core/payload.h"
 #include "systemc.h"
 
-namespace pimsim {
+namespace cimsim {
 
 BETTER_ENUM(MemoryAccessType, int, read = 1, write = 2)  // NOLINT(*-explicit-constructor, *-no-recursion)
 
@@ -20,4 +20,4 @@ struct MemoryAccessPayload {
     sc_core::sc_event& finish_access;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

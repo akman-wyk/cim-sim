@@ -1,5 +1,5 @@
 {
-    "pim_unit_config": {
+    "cim_unit_config": {
         "address_space": {
             "offset_byte": 0,
             "size_byte": 131072,
@@ -26,7 +26,7 @@
             }
         },
         {
-            "name": "pim input reg buffer 1",
+            "name": "cim input reg buffer 1",
             "type": "reg_buffer",
             "addressing": {
                 "offset_byte": 262144,
@@ -35,7 +35,7 @@
             }
         },
         {
-            "name": "pim input reg buffer 2",
+            "name": "cim input reg buffer 2",
             "type": "reg_buffer",
             "addressing": {
                 "offset_byte": 262656,
@@ -44,7 +44,7 @@
             }
         },
         {
-            "name": "pim output reg buffer",
+            "name": "cim output reg buffer",
             "type": "reg_buffer",
             "addressing": {
                 "offset_byte": 263168,
@@ -53,7 +53,7 @@
             }
         },
         {
-            "name": "pim meta data reg buffer",
+            "name": "cim meta data reg buffer",
             "type": "reg_buffer",
             "addressing": {
                 "offset_byte": 267264,
@@ -62,7 +62,7 @@
             }
         },
         {
-            "name": "pim mask reg buffer",
+            "name": "cim mask reg buffer",
             "type": "reg_buffer",
             "addressing": {
                 "offset_byte": 365568,
@@ -71,7 +71,7 @@
             }
         },
         {
-            "name": "pim output reg to output memory buffer",
+            "name": "cim output reg to output memory buffer",
             "type": "reg_buffer",
             "addressing": {
                 "offset_byte": 381952,

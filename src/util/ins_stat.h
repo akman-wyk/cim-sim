@@ -10,7 +10,7 @@
 #include "macro_scope.h"
 #include "nlohmann/json.hpp"
 
-namespace pimsim {
+namespace cimsim {
 
 struct ScalarInsStat {
     int total{0};
@@ -42,12 +42,12 @@ struct TransferInsStat {
     void addInsCount();
 };
 
-struct PimInsStat {
+struct CimInsStat {
     int total{0};
-    int pim_compute{0}, pim_set{0}, pim_output{0};
+    int cim_compute{0}, cim_set{0}, cim_output{0};
 
-    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(PimInsStat);
-    bool operator==(const PimInsStat& another) const;
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(CimInsStat);
+    bool operator==(const CimInsStat& another) const;
 
     void addInsCount(int type);
 };
@@ -68,7 +68,7 @@ struct InsStat {
     ScalarInsStat scalar{};
     TransferInsStat trans{};
     ControlInsStat ctr{};
-    PimInsStat pim{};
+    CimInsStat cim{};
     SIMDInsStat simd{};
 
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(InsStat);
@@ -77,4 +77,4 @@ struct InsStat {
     void addInsCount(int class_code, int type, int opcode, const SIMDUnitConfig& simd_unit_config);
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

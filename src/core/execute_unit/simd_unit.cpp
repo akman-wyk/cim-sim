@@ -8,7 +8,7 @@
 #include "util/log.h"
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
 SIMDUnit::SIMDUnit(const char* name, const SIMDUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk)
     : ExecuteUnit(name, sim_config, core, clk, ExecuteUnitType::simd), config_(config) {
@@ -166,8 +166,8 @@ unsigned int SIMDUnit::getSIMDInstructionIdentityCode(unsigned int input_cnt, un
     return ((input_cnt << SIMD_INSTRUCTION_OPCODE_BIT_LENGTH) | opcode);
 }
 
-void SIMDUnit::waitAndStartNextSubmodule(const pimsim::SIMDSubmodulePayload& cur_payload,
-                                         SubmoduleSocket<pimsim::SIMDSubmodulePayload>& next_submodule_socket) {
+void SIMDUnit::waitAndStartNextSubmodule(const cimsim::SIMDSubmodulePayload& cur_payload,
+                                         SubmoduleSocket<cimsim::SIMDSubmodulePayload>& next_submodule_socket) {
     next_submodule_socket.waitUntilFinishIfBusy();
     if (cur_payload.batch_info.first_batch) {
         next_submodule_socket.payload.ins_info = cur_payload.ins_info;
@@ -248,4 +248,4 @@ ResourceAllocatePayload SIMDUnit::getDataConflictInfo(const std::shared_ptr<Exec
     return getDataConflictInfo(*std::dynamic_pointer_cast<SIMDInsPayload>(payload));
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

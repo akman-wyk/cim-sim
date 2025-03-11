@@ -12,57 +12,57 @@
 #include "memory/memory_socket.h"
 #include "payload.h"
 
-namespace pimsim {
+namespace cimsim {
 
-struct PimComputeReadDataPayload {
+struct CimComputeReadDataPayload {
     InstructionPayload ins{};
     int addr_byte{0};
     int size_byte{0};
     std::vector<unsigned char> data{};
 };
 
-struct PimComputeSubInsPayload {
-    PimInsInfo pim_ins_info{};
-    PimComputeInsPayload ins_payload;
+struct CimComputeSubInsPayload {
+    CimInsInfo cim_ins_info{};
+    CimComputeInsPayload ins_payload;
     int group_max_activation_macro_cnt{};
 };
 
-class PimComputeUnit : public ExecuteUnit {
+class CimComputeUnit : public ExecuteUnit {
 public:
-    SC_HAS_PROCESS(PimComputeUnit);
+    SC_HAS_PROCESS(CimComputeUnit);
 
-    PimComputeUnit(const char* name, const PimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    CimComputeUnit(const char* name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
     void bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit);
     void bindCimUnit(CimUnit* cim_unit);
 
     EnergyReporter getEnergyReporter() override;
 
-    ResourceAllocatePayload getDataConflictInfo(const PimComputeInsPayload& payload) const;
+    ResourceAllocatePayload getDataConflictInfo(const CimComputeInsPayload& payload) const;
     ResourceAllocatePayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
 
 private:
     [[noreturn]] void processIssue();
     [[noreturn]] void processSubIns();
-    void processSubInsReadData(const PimComputeSubInsPayload& sub_ins_payload);
-    void processSubInsCompute(const PimComputeSubInsPayload& sub_ins_payload);
+    void processSubInsReadData(const CimComputeSubInsPayload& sub_ins_payload);
+    void processSubInsCompute(const CimComputeSubInsPayload& sub_ins_payload);
 
     [[noreturn]] void readValueSparseMaskSubmodule();
     [[noreturn]] void readBitSparseMetaSubmodule();
 
     std::vector<std::vector<unsigned long long>> getMacroGroupInputs(int group_id, int addr_byte, int size_byte,
-                                                                     const PimComputeSubInsPayload& sub_ins_payload);
+                                                                     const CimComputeSubInsPayload& sub_ins_payload);
 
 private:
-    const PimUnitConfig& config_;
-    const PimMacroSizeConfig& macro_size_;
+    const CimUnitConfig& config_;
+    const CimMacroSizeConfig& macro_size_;
 
     CimUnit* cim_unit_{nullptr};
 
     sc_core::sc_event next_sub_ins_;
-    SubmoduleSocket<PimComputeSubInsPayload> process_sub_ins_socket_;
-    SubmoduleSocket<PimComputeReadDataPayload> read_value_sparse_mask_socket_;
-    SubmoduleSocket<PimComputeReadDataPayload> read_bit_sparse_meta_socket_;
+    SubmoduleSocket<CimComputeSubInsPayload> process_sub_ins_socket_;
+    SubmoduleSocket<CimComputeReadDataPayload> read_value_sparse_mask_socket_;
+    SubmoduleSocket<CimComputeReadDataPayload> read_bit_sparse_meta_socket_;
 
     MemorySocket local_memory_socket_;
 
@@ -70,4 +70,4 @@ private:
     EnergyCounter meta_buffer_energy_counter_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

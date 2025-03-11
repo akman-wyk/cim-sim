@@ -8,12 +8,12 @@
 #include "fmt/format.h"
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
 #define ErrorMemoryId -10
 
-LocalMemoryUnit::LocalMemoryUnit(const char *name, const pimsim::LocalMemoryUnitConfig &config,
-                                 const pimsim::SimConfig &sim_config, pimsim::Core *core, pimsim::Clock *clk)
+LocalMemoryUnit::LocalMemoryUnit(const char *name, const cimsim::LocalMemoryUnitConfig &config,
+                                 const cimsim::SimConfig &sim_config, cimsim::Core *core, cimsim::Clock *clk)
     : BaseModule(name, sim_config, core, clk), config_(config), sim_config_(sim_config) {
     for (const auto &local_memory_config : config_.local_memory_list) {
         if (local_memory_config.type == +LocalMemoryType::ram)
@@ -28,7 +28,7 @@ LocalMemoryUnit::LocalMemoryUnit(const char *name, const pimsim::LocalMemoryUnit
     }
 }
 
-std::vector<uint8_t> LocalMemoryUnit::read_data(const pimsim::InstructionPayload &ins, int address_byte, int size_byte,
+std::vector<uint8_t> LocalMemoryUnit::read_data(const cimsim::InstructionPayload &ins, int address_byte, int size_byte,
                                                 sc_core::sc_event &finish_access) {
     auto local_memory = getLocalMemoryByAddress(address_byte);
     if (local_memory == nullptr) {
@@ -51,7 +51,7 @@ std::vector<uint8_t> LocalMemoryUnit::read_data(const pimsim::InstructionPayload
     return std::move(payload->data);
 }
 
-void LocalMemoryUnit::write_data(const pimsim::InstructionPayload &ins, int address_byte, int size_byte,
+void LocalMemoryUnit::write_data(const cimsim::InstructionPayload &ins, int address_byte, int size_byte,
                                  std::vector<uint8_t> data, sc_core::sc_event &finish_access) {
     auto local_memory = getLocalMemoryByAddress(address_byte);
     if (local_memory == nullptr) {
@@ -117,4 +117,4 @@ std::shared_ptr<Memory> LocalMemoryUnit::getLocalMemoryByAddress(int address_byt
     return nullptr;
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

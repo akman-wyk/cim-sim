@@ -93,7 +93,7 @@
           }
         ]
       },
-      "pim_unit_config": {
+      "cim_unit_config": {
         "macro_total_cnt": 64,
         "macro_group_size": 16,
         "macro_size": {
@@ -171,7 +171,7 @@
               "write_dynamic_power_mW": 1.0,
               "read_dynamic_power_mW": 1.0,
               "has_image": true,
-              "image_file": "/mnt/d/Dropbox/Dropbox/Workspace/code/pim-sim/test_data/core/transfer_memory_image.bin"
+              "image_file": "../test_data/core/transfer_memory_image.bin"
             }
           },
           {

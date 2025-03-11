@@ -11,13 +11,13 @@
 #include "macro_group.h"
 #include "memory/memory_hardware.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class CimUnit : public MemoryHardware {
 public:
     SC_HAS_PROCESS(CimUnit);
 
-    CimUnit(const char* name, const PimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    CimUnit(const char* name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
     EnergyReporter getEnergyReporter() override;
 
@@ -47,8 +47,8 @@ public:
     int getLocalMemoryId() const;
 
 private:
-    const PimUnitConfig& config_;
-    const PimMacroSizeConfig& macro_size_;
+    const CimUnitConfig& config_;
+    const CimMacroSizeConfig& macro_size_;
     const int cim_byte_size_;
     const int cim_bit_width_;
     const int cim_byte_width_;
@@ -63,4 +63,4 @@ private:
     EnergyCounter sram_write_energy_counter_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

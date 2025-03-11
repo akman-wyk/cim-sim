@@ -8,9 +8,9 @@
 #include "fmt/format.h"
 #include "util/util.h"
 
-namespace pimsim {
+namespace cimsim {
 
-CimUnit::CimUnit(const char* name, const PimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk)
+CimUnit::CimUnit(const char* name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk)
     : MemoryHardware(name, sim_config, core, clk)
     , config_(config)
     , macro_size_(config_.macro_size)
@@ -145,4 +145,4 @@ int CimUnit::getLocalMemoryId() const {
     return local_memory_id_;
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

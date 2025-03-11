@@ -9,7 +9,7 @@
 #include "fmt/format.h"
 #include "util/log.h"
 
-namespace pimsim {
+namespace cimsim {
 
 Core::ExecuteUnitRegistration::ExecuteUnitRegistration(ExecuteUnitType type, ExecuteUnit *execute_unit,
                                                        sc_event &decode_new_ins_trigger)
@@ -22,7 +22,7 @@ Core::Core(int core_id, const char *name, const Config &config, Clock *clk, std:
     , core_config_(config.chip_config.core_config)
     , ins_list_(std::move(ins_list))
 
-    , cim_unit_("CimUnit", core_config_.pim_unit_config, config.sim_config, this, clk)
+    , cim_unit_("CimUnit", core_config_.cim_unit_config, config.sim_config, this, clk)
     , local_memory_unit_("LocalMemoryUnit", core_config_.local_memory_unit_config, config.sim_config, this, clk)
     , reg_unit_("RegUnit", core_config_.register_unit_config, config.sim_config, this, clk)
     , core_switch_("CoreSwitch", config.sim_config, this, clk, core_id)
@@ -32,8 +32,8 @@ Core::Core(int core_id, const char *name, const Config &config, Clock *clk, std:
     , simd_unit_("SIMDUnit", core_config_.simd_unit_config, config.sim_config, this, clk)
     , transfer_unit_("TransferUnit", core_config_.transfer_unit_config, config.sim_config, this, clk, core_id,
                      config.chip_config.global_memory_config.global_memory_switch_id)
-    , pim_compute_unit_("PimComputeUnit", core_config_.pim_unit_config, config.sim_config, this, clk)
-    , pim_control_unit_("PimControlUnit", core_config_.pim_unit_config, config.sim_config, this, clk)
+    , cim_compute_unit_("CimComputeUnit", core_config_.cim_unit_config, config.sim_config, this, clk)
+    , cim_control_unit_("CimControlUnit", core_config_.cim_unit_config, config.sim_config, this, clk)
 
     , finish_run_call_(std::move(finish_run_call)) {
     setThreadAndMethod();
@@ -48,8 +48,8 @@ EnergyReporter Core::getEnergyReporter() {
     EnergyReporter reporter;
     reporter.addSubModule("ScalarUnit", EnergyReporter{scalar_unit_.getEnergyReporter()});
     reporter.addSubModule("SIMDUnit", EnergyReporter{simd_unit_.getEnergyReporter()});
-    reporter.addSubModule("PimUnit", EnergyReporter{pim_compute_unit_.getEnergyReporter()});
-    reporter.addSubModule("PimUnit", EnergyReporter{pim_control_unit_.getEnergyReporter()});
+    reporter.addSubModule("CimUnit", EnergyReporter{cim_compute_unit_.getEnergyReporter()});
+    reporter.addSubModule("CimUnit", EnergyReporter{cim_control_unit_.getEnergyReporter()});
     reporter.addSubModule("LocalMemoryUnit", EnergyReporter{local_memory_unit_.getEnergyReporter()});
     return std::move(reporter);
 }
@@ -162,11 +162,11 @@ void Core::bindModules() {
     transfer_unit_.bindLocalMemoryUnit(&local_memory_unit_);
     transfer_unit_.bindSwitch(&core_switch_);
 
-    pim_compute_unit_.bindLocalMemoryUnit(&local_memory_unit_);
-    pim_compute_unit_.bindCimUnit(&cim_unit_);
+    cim_compute_unit_.bindLocalMemoryUnit(&local_memory_unit_);
+    cim_compute_unit_.bindCimUnit(&cim_unit_);
 
-    pim_control_unit_.bindLocalMemoryUnit(&local_memory_unit_);
-    pim_control_unit_.bindCimUnit(&cim_unit_);
+    cim_control_unit_.bindLocalMemoryUnit(&local_memory_unit_);
+    cim_control_unit_.bindCimUnit(&cim_unit_);
 
     local_memory_unit_.bindCimUnit(&cim_unit_);
 
@@ -176,8 +176,8 @@ void Core::bindModules() {
     registerExecuteUnit(ExecuteUnitType::scalar, &scalar_unit_);
     registerExecuteUnit(ExecuteUnitType::simd, &simd_unit_);
     registerExecuteUnit(ExecuteUnitType::transfer, &transfer_unit_);
-    registerExecuteUnit(ExecuteUnitType::pim_compute, &pim_compute_unit_);
-    registerExecuteUnit(ExecuteUnitType::pim_control, &pim_control_unit_);
+    registerExecuteUnit(ExecuteUnitType::cim_compute, &cim_compute_unit_);
+    registerExecuteUnit(ExecuteUnitType::cim_control, &cim_control_unit_);
 }
 
 void Core::setThreadAndMethod() {
@@ -200,4 +200,4 @@ void Core::setThreadAndMethod() {
         nullptr);
 }
 
-}  // namespace pimsim
+}  // namespace cimsim

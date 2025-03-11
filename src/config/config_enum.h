@@ -7,7 +7,7 @@
 #include "nlohmann/json.hpp"
 #include "util/macro_scope.h"
 
-namespace pimsim {
+namespace cimsim {
 
 BETTER_ENUM(SimMode, int,  // NOLINT(*-no-recursion, *-explicit-constructor)
             run_until_time = 0, run_one_round = 1, other = 2)
@@ -29,4 +29,4 @@ BETTER_ENUM(CimASMode, int,  // NOLINT(*-no-recursion, *-explicit-constructor)
             intergroup = 1, intragroup = 2, other = 3)
 DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(CimASMode)
 
-}  // namespace pimsim
+}  // namespace cimsim

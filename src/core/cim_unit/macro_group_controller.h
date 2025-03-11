@@ -10,13 +10,13 @@
 #include "config/config.h"
 #include "payload.h"
 
-namespace pimsim {
+namespace cimsim {
 
 class MacroGroupController : public BaseModule {
 public:
     SC_HAS_PROCESS(MacroGroupController);
 
-    MacroGroupController(const std::string& name, const PimUnitConfig& config, const SimConfig& sim_config, Core* core,
+    MacroGroupController(const std::string& name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core,
                          Clock* clk, sc_core::sc_event& next_sub_ins,
                          SubmoduleSocket<MacroGroupSubmodulePayload>& result_adder_socket);
 
@@ -35,7 +35,7 @@ private:
     [[noreturn]] void processShiftAdderSubmodule();
 
 private:
-    const PimUnitConfig& config_;
+    const CimUnitConfig& config_;
 
     // socket from MacroGroup
     SubmoduleSocket<MacroGroupControllerPayload> controller_socket_;
@@ -52,4 +52,4 @@ private:
     SubmoduleSocket<MacroGroupSubmodulePayload>& result_adder_socket_;
 };
 
-}  // namespace pimsim
+}  // namespace cimsim

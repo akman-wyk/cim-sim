@@ -188,7 +188,7 @@
           }
         ]
       },
-      "pim_unit_config": {
+      "cim_unit_config": {
         "macro_total_cnt": 32,
         "macro_group_size": 8,
         "macro_size": {
@@ -320,7 +320,7 @@
             }
           },
           {
-            "name": "pim_input_reg_buffer",
+            "name": "cim_input_reg_buffer",
             "type": "reg_buffer",
             "addressing": {
               "offset_byte": 549888,
@@ -336,7 +336,7 @@
             }
           },
           {
-            "name": "pim_output_reg_buffer",
+            "name": "cim_output_reg_buffer",
             "type": "reg_buffer",
             "addressing": {
               "offset_byte": 550912,

@@ -4,7 +4,7 @@
 
 #include "switch_socket.h"
 
-namespace pimsim {
+namespace cimsim {
 
 void SwitchSocket::bindSwitch(Switch* _switch_) {
     this->switch_ = _switch_;
@@ -26,4 +26,4 @@ void SwitchSocket::send_message(const std::shared_ptr<NetworkPayload>& payload) 
     switch_->sendHandler(payload);
 }
 
-}  // namespace pimsim
+}  // namespace cimsim
