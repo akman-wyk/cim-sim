@@ -17,7 +17,7 @@
 #include "execute_unit/scalar_unit.h"
 #include "execute_unit/simd_unit.h"
 #include "execute_unit/transfer_unit.h"
-#include "local_memory_unit/local_memory_unit.h"
+#include "memory/memory_unit.h"
 #include "payload.h"
 
 namespace cimsim {
@@ -77,7 +77,7 @@ private:
 
     // modules
     CimUnit cim_unit_;
-    LocalMemoryUnit local_memory_unit_;
+    MemoryUnit local_memory_unit_;
     RegUnit reg_unit_;
     Switch core_switch_;
     DecoderImpl decoder_;

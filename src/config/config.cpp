@@ -567,26 +567,26 @@ bool AddressSpaceConfig::checkValid() const {
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(AddressSpaceConfig, offset_byte, size_byte)
 
-bool LocalMemoryConfig::checkValid() const {
+bool MemoryConfig::checkValid() const {
     if (name.empty()) {
         std::cerr << "LocalMemoryConfig not valid, 'name' must be non-empty" << std::endl;
         return false;
     }
-    if (type == +LocalMemoryType::other) {
+    if (type == +MemoryType::other) {
         std::cerr << fmt::format("LocalMemoryConfig of '{}' not valid, 'type' must be 'ram' or 'reg_buffer'",
                                  name.c_str())
                   << std::endl;
         return false;
     }
     if (const bool valid =
-            addressing.checkValid() && ((type == +LocalMemoryType::ram && ram_config.checkValid()) ||
-                                        (type == +LocalMemoryType::reg_buffer && reg_buffer_config.checkValid()));
+            addressing.checkValid() && ((type == +MemoryType::ram && ram_config.checkValid()) ||
+                                        (type == +MemoryType::reg_buffer && reg_buffer_config.checkValid()));
         !valid) {
         std::cerr << fmt::format("LocalMemoryConfig of '{}' not valid", name.c_str()) << std::endl;
         return false;
     }
 
-    if (const int hardware_size = (type == +LocalMemoryType::ram) ? ram_config.size_byte : reg_buffer_config.size_byte;
+    if (const int hardware_size = (type == +MemoryType::ram) ? ram_config.size_byte : reg_buffer_config.size_byte;
         hardware_size > addressing.size_byte) {
         std::cerr << fmt::format(
                          "LocalMemoryConfig of '{}' not valid, hardware size is greater than address space size",
@@ -598,38 +598,38 @@ bool LocalMemoryConfig::checkValid() const {
     return true;
 }
 
-void to_json(nlohmann::ordered_json& j, const LocalMemoryConfig& config) {
+void to_json(nlohmann::ordered_json& j, const MemoryConfig& config) {
     j["name"] = config.name;
     j["type"] = config.type;
     j["addressing"] = config.addressing;
-    if (config.type == +LocalMemoryType::ram) {
+    if (config.type == +MemoryType::ram) {
         j["hardware_config"] = config.ram_config;
-    } else if (config.type == +LocalMemoryType::reg_buffer) {
+    } else if (config.type == +MemoryType::reg_buffer) {
         j["hardware_config"] = config.reg_buffer_config;
     }
 }
 
-void from_json(const nlohmann::ordered_json& j, LocalMemoryConfig& config) {
-    const LocalMemoryConfig default_obj{};
+void from_json(const nlohmann::ordered_json& j, MemoryConfig& config) {
+    const MemoryConfig default_obj{};
     config.name = j.value("name", default_obj.name);
     config.type = j.value("type", default_obj.type);
     config.addressing = j.value("addressing", default_obj.addressing);
-    if (config.type == +LocalMemoryType::ram) {
+    if (config.type == +MemoryType::ram) {
         config.ram_config = j.value("hardware_config", default_obj.ram_config);
-    } else if (config.type == +LocalMemoryType::reg_buffer) {
+    } else if (config.type == +MemoryType::reg_buffer) {
         config.reg_buffer_config = j.value("hardware_config", default_obj.reg_buffer_config);
     }
 }
 
-bool LocalMemoryUnitConfig::checkValid() const {
-    if (!check_vector_valid(local_memory_list)) {
+bool MemoryUnitConfig::checkValid() const {
+    if (!check_vector_valid(memory_list)) {
         std::cerr << "LocalMemoryUnitConfig not valid" << std::endl;
         return false;
     }
     return true;
 }
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(LocalMemoryUnitConfig, local_memory_list)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(MemoryUnitConfig, memory_list)
 
 bool TransferUnitConfig::checkValid() const {
     return true;
@@ -649,13 +649,13 @@ bool CoreConfig::checkValid() const {
     }
 
     // check if address space overlap
-    LocalMemoryConfig cim_memory_config{"CimUnit", LocalMemoryType::ram, cim_unit_config.address_space, {}, {}};
-    std::vector<const LocalMemoryConfig*> memory_check_list{&cim_memory_config};
-    std::transform(local_memory_unit_config.local_memory_list.begin(), local_memory_unit_config.local_memory_list.end(),
+    MemoryConfig cim_memory_config{"CimUnit", MemoryType::ram, cim_unit_config.address_space, {}, {}};
+    std::vector<const MemoryConfig*> memory_check_list{&cim_memory_config};
+    std::transform(local_memory_unit_config.memory_list.begin(), local_memory_unit_config.memory_list.end(),
                    std::inserter(memory_check_list, memory_check_list.end()),
-                   [](const LocalMemoryConfig& config) { return &config; });
+                   [](const MemoryConfig& config) { return &config; });
     std::sort(memory_check_list.begin(), memory_check_list.end(),
-              [](const LocalMemoryConfig* config1, const LocalMemoryConfig* config2) {
+              [](const MemoryConfig* config1, const MemoryConfig* config2) {
                   return config1->addressing.offset_byte < config2->addressing.offset_byte;
               });
     for (int i = 0; i < memory_check_list.size() - 1; i++) {
@@ -688,14 +688,14 @@ bool NetworkConfig::checkValid() const {
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(NetworkConfig, bus_width_byte, network_config_file_path);
 
 bool GlobalMemoryConfig::checkValid() const {
-    if (const bool valid = hardware_config.checkValid() && addressing.checkValid(); !valid) {
+    if (!global_memory_unit_config.checkValid()) {
         std::cerr << "GlobalMemoryConfig not valid" << std::endl;
         return false;
     }
     return true;
 }
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(GlobalMemoryConfig, hardware_config, addressing, global_memory_switch_id)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(GlobalMemoryConfig, global_memory_unit_config, global_memory_switch_id)
 
 // ChipConfig
 bool ChipConfig::checkValid() const {

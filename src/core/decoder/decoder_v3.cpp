@@ -163,12 +163,10 @@ std::shared_ptr<ExecuteInsPayload> DecoderV3::decodeTransferIns(const InstV3& in
                              (ins.getFlag(FLAG_POSITION::MEM_CPY_DST_MASK) ? ins.getImmType3() : 0);
         p.size_byte = reg_unit_->readRegister(ins.getR2(), false);
 
-        if (global_as_.contains(p.src_address_byte)) {
+        if (p.src_address_byte >= global_memory_offset_) {
             p.type = TransferType::global_load;
-            p.src_address_byte -= global_as_.offset_byte;
-        } else if (global_as_.contains(p.dst_address_byte)) {
+        } else if (p.dst_address_byte >= global_memory_offset_) {
             p.type = TransferType::global_store;
-            p.dst_address_byte -= global_as_.offset_byte;
         }
     } else if ((opcode & OPCODE_MASK::TRANS_TYPE_5BIT) == OPCODE::SEND) {
         p.type = TransferType::send;

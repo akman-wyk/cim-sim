@@ -6,11 +6,11 @@
 
 #include <iostream>
 
-#include "core/local_memory_unit/local_memory_unit.h"
+#include "memory_unit.h"
 
 namespace cimsim {
 
-void MemorySocket::bindLocalMemoryUnit(cimsim::LocalMemoryUnit *local_memory_unit) {
+void MemorySocket::bindLocalMemoryUnit(cimsim::MemoryUnit *local_memory_unit) {
     local_memory_unit_ = local_memory_unit;
 }
 
@@ -32,7 +32,7 @@ void MemorySocket::writeData(const cimsim::InstructionPayload &ins, int address_
 }
 
 int MemorySocket::getLocalMemoryIdByAddress(int address_byte) const {
-    return local_memory_unit_->getLocalMemoryIdByAddress(address_byte);
+    return local_memory_unit_->getMemoryIdByAddress(address_byte);
 }
 
 int MemorySocket::getMemoryDataWidthById(int memory_id, MemoryAccessType access_type) const {

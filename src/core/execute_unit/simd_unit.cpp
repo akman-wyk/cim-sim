@@ -159,7 +159,7 @@ void SIMDUnit::processWriteSubmodule() {
     }
 }
 
-void SIMDUnit::bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit) {
+void SIMDUnit::bindLocalMemoryUnit(MemoryUnit* local_memory_unit) {
     local_memory_socket_.bindLocalMemoryUnit(local_memory_unit);
 }
 
