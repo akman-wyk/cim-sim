@@ -32,6 +32,7 @@ SIMDUnit::SIMDUnit(const char* name, const SIMDUnitConfig& config, const SimConf
 }
 
 void SIMDUnit::processIssue() {
+    ports_.ready_port_.write(true);
     while (true) {
         auto payload = waitForExecuteAndGetPayload<SIMDInsPayload>();
 
@@ -223,7 +224,7 @@ std::pair<SIMDInstructionInfo, ResourceAllocatePayload> SIMDUnit::decodeAndGetIn
     conflict_payload.addWriteMemoryId(local_memory_socket_.getLocalMemoryIdByAddress(output.start_address_byte));
 
     bool use_pipeline =
-        config_.pipeline && !SetsIntersection(conflict_payload.write_memory_id, conflict_payload.read_memory_id);
+        config_.pipeline && !conflict_payload.write_memory_id.intersectionWith(conflict_payload.read_memory_id);
     SIMDInstructionInfo ins_info{.ins = payload.ins,
                                  .scalar_inputs = scalar_inputs,
                                  .vector_inputs = vector_inputs,
@@ -231,7 +232,7 @@ std::pair<SIMDInstructionInfo, ResourceAllocatePayload> SIMDUnit::decodeAndGetIn
                                  .functor_config = functor,
                                  .use_pipeline = use_pipeline};
 
-    return {ins_info, std::move(conflict_payload)};
+    return {ins_info, conflict_payload};
 }
 
 ResourceAllocatePayload SIMDUnit::getDataConflictInfo(const SIMDInsPayload& payload) const {
@@ -241,7 +242,7 @@ ResourceAllocatePayload SIMDUnit::getDataConflictInfo(const SIMDInsPayload& payl
             local_memory_socket_.getLocalMemoryIdByAddress(payload.inputs_address_byte[i]));
     }
     cur_ins_conflict_info.addWriteMemoryId(local_memory_socket_.getLocalMemoryIdByAddress(payload.output_address_byte));
-    return std::move(cur_ins_conflict_info);
+    return cur_ins_conflict_info;
 }
 
 ResourceAllocatePayload SIMDUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) {

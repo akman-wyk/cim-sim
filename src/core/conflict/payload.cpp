@@ -8,52 +8,79 @@
 
 namespace cimsim {
 
-std::stringstream& operator<<(std::stringstream& out, const std::unordered_set<int>& set) {
-    for (auto it = set.begin(); it != set.end(); ++it) {
-        if (it != set.begin()) {
+void MemoryBitmap::set(int index) {
+    bitmap_[index >> LOG2_BITMAP_CELL_BIT_WIDTH] |= (1 << (index & BITMAP_CELL_BIT_WIDTH_MASK));
+}
+
+void MemoryBitmap::unset(int index) {
+    bitmap_[index >> LOG2_BITMAP_CELL_BIT_WIDTH] &= (~(1 << (index & BITMAP_CELL_BIT_WIDTH_MASK)));
+}
+
+MemoryBitmap& MemoryBitmap::operator|=(const MemoryBitmap& ano) {
+    for (int i = 0; i < MEMORY_BITMAP_SIZE; i++) {
+        bitmap_[i] |= ano.bitmap_[i];
+    }
+    return *this;
+}
+
+bool MemoryBitmap::operator==(const MemoryBitmap& ano) const {
+    for (int i = 0; i < MEMORY_BITMAP_SIZE; i++) {
+        if (bitmap_[i] != ano.bitmap_[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool MemoryBitmap::intersectionWith(const MemoryBitmap& ano) const {
+    for (int i = 0; i < MEMORY_BITMAP_SIZE; i++) {
+        if ((bitmap_[i] & ano.bitmap_[i]) != 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::vector<int> MemoryBitmap::getIndexList() const {
+    std::vector<int> index_list;
+    int offset = 0;
+    for (auto cell : bitmap_) {
+        while (cell != 0) {
+            index_list.emplace_back(offset + __builtin_ctz(cell));
+            cell &= (cell - 1);
+        }
+        offset += BITMAP_CELL_BIT_WIDTH;
+    }
+    return std::move(index_list);
+}
+
+std::stringstream& operator<<(std::stringstream& out, const MemoryBitmap& memory_bitmap) {
+    out << "[";
+    auto index_list = memory_bitmap.getIndexList();
+    for (int i = 0; i < index_list.size(); i++) {
+        if (i > 0) {
             out << ", ";
         }
-        out << *it;
+        out << index_list[i];
     }
+    out << "]";
     return out;
 }
 
-DEFINE_CIM_PAYLOAD_FUNCTIONS(ResourceAllocatePayload, ins_id, unit_type, read_memory_id, write_memory_id, used_memory_id)
+DEFINE_CIM_PAYLOAD_FUNCTIONS(ResourceAllocatePayload, ins_id, unit_type, read_memory_id, write_memory_id,
+                             used_memory_id)
 
-void ResourceAllocatePayload::addReadMemoryId(int memory_id) {
-    read_memory_id.insert(memory_id);
-    used_memory_id.insert(memory_id);
-}
-
-void ResourceAllocatePayload::addReadMemoryId(const std::initializer_list<int>& memory_id_list) {
-    read_memory_id.insert(memory_id_list);
-    used_memory_id.insert(memory_id_list);
-}
-
-void ResourceAllocatePayload::addWriteMemoryId(int memory_id) {
-    write_memory_id.insert(memory_id);
-    used_memory_id.insert(memory_id);
-}
-
-void ResourceAllocatePayload::addReadWriteMemoryId(int memory_id) {
-    read_memory_id.insert(memory_id);
-    write_memory_id.insert(memory_id);
-    used_memory_id.insert(memory_id);
-}
-
-bool ResourceAllocatePayload::checkDataConflict(const ResourceAllocatePayload& ins_conflict_payload,
-                                            const ResourceAllocatePayload& unit_conflict_payload) {
-    if (ins_conflict_payload.unit_type == unit_conflict_payload.unit_type) {
-        return SetsIntersection(unit_conflict_payload.write_memory_id, ins_conflict_payload.read_memory_id);
+bool ResourceAllocatePayload::conflictWithIns(const ResourceAllocatePayload& ins_resource_allocate) const {
+    if (ins_resource_allocate.unit_type == this->unit_type) {
+        return this->write_memory_id.intersectionWith(ins_resource_allocate.read_memory_id);
     }
-    return SetsIntersection(unit_conflict_payload.used_memory_id, ins_conflict_payload.used_memory_id);
+    return this->used_memory_id.intersectionWith(ins_resource_allocate.used_memory_id);
 }
 
 ResourceAllocatePayload& ResourceAllocatePayload::operator+=(const cimsim::ResourceAllocatePayload& other) {
-    this->read_memory_id.insert(other.read_memory_id.begin(), other.read_memory_id.end());
-    this->write_memory_id.insert(other.write_memory_id.begin(), other.write_memory_id.end());
-    this->used_memory_id.insert(other.used_memory_id.begin(), other.used_memory_id.end());
-    this->unit_type = other.unit_type;
+    this->read_memory_id |= other.read_memory_id;
+    this->write_memory_id |= other.write_memory_id;
+    this->used_memory_id |= other.used_memory_id;
     return *this;
 }
 

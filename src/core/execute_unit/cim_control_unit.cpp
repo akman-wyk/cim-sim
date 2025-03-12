@@ -34,6 +34,7 @@ EnergyReporter CimControlUnit::getEnergyReporter() {
 }
 
 void CimControlUnit::processIssue() {
+    ports_.ready_port_.write(true);
     while (true) {
         auto payload = waitForExecuteAndGetPayload<CimControlInsPayload>();
         LOG(fmt::format("Cim set start, pc: {}", payload->ins.pc));
@@ -146,8 +147,8 @@ ResourceAllocatePayload CimControlUnit::getDataConflictInfo(const CimControlInsP
     ResourceAllocatePayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::cim_control};
     switch (payload.op) {
         case CimControlOperator::set_activation: {
-            conflict_payload.addReadMemoryId({local_memory_socket_.getLocalMemoryIdByAddress(payload.mask_addr_byte),
-                                              cim_unit_->getLocalMemoryId()});
+            conflict_payload.addReadMemoryId(local_memory_socket_.getLocalMemoryIdByAddress(payload.mask_addr_byte),
+                                             cim_unit_->getLocalMemoryId());
             break;
         }
         case CimControlOperator::only_output:
@@ -163,7 +164,7 @@ ResourceAllocatePayload CimControlUnit::getDataConflictInfo(const CimControlInsP
         default: break;
     }
 
-    return std::move(conflict_payload);
+    return conflict_payload;
 }
 
 ResourceAllocatePayload CimControlUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload> &payload) {

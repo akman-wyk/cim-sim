@@ -29,6 +29,7 @@ add_library(cim-simulator STATIC ""
         src/config/config.h
         src/config/config_enum.cpp
         src/config/config_enum.h
+        src/config/constant.h
 
         src/core/cim_unit/cim_unit.cpp
         src/core/cim_unit/cim_unit.h

@@ -13,4 +13,4 @@ void log(const std::string& msg, Core* core);
 
 }  // namespace cimsim
 
-#define LOG(msg)
+#define LOG(msg) log(msg, core_)

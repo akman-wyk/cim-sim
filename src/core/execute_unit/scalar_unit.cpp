@@ -25,6 +25,7 @@ ScalarUnit::ScalarUnit(const char *name, const cimsim::ScalarUnitConfig &config,
 }
 
 void ScalarUnit::process() {
+    ports_.ready_port_.write(true);
     while (true) {
         auto payload = waitForExecuteAndGetPayload<ScalarInsPayload>();
 

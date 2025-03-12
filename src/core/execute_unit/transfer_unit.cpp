@@ -23,6 +23,7 @@ TransferUnit::TransferUnit(const char* name, const TransferUnitConfig& config, c
 }
 
 void TransferUnit::processIssue() {
+    ports_.ready_port_.write(true);
     while (true) {
         auto payload = waitForExecuteAndGetPayload<TransferInsPayload>();
 
