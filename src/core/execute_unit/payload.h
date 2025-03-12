@@ -4,6 +4,7 @@
 
 #pragma once
 #include "better-enums/enum.h"
+#include "config/constant.h"
 #include "core/payload.h"
 #include "systemc.h"
 #include "util/macro_scope.h"

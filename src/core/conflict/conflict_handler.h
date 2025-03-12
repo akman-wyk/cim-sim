@@ -15,7 +15,7 @@ class ConflictHandler : public sc_core::sc_module {
 public:
     SC_HAS_PROCESS(ConflictHandler);
 
-    ConflictHandler(sc_core::sc_event& decode_new_ins_trigger, ExecuteUnitType execute_unit_type);
+    ConflictHandler(const sc_core::sc_event& decode_new_ins_trigger, ExecuteUnitType execute_unit_type);
 
     void bind(ExecuteUnitSignalPorts& signals, sc_core::sc_signal<bool>& conflict_signal,
               ResourceAllocatePayload* next_ins_resource_allocate_) {
@@ -44,8 +44,8 @@ private:
     ResourceAllocatePayload* next_ins_resource_allocate_{nullptr};
 
     std::unordered_map<int, ResourceAllocatePayload> unit_ins_resource_allocate_map_{};
-    ResourceAllocatePayload unit_resource_allocate_{};
-    sc_core::sc_event trigger_;
+    ResourceAllocatePayload unit_resource_allocate_;
+    sc_core::sc_event conflict_trigger_;
 };
 
 }  // namespace cimsim

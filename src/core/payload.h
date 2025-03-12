@@ -10,7 +10,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "config/config.h"
+#include "better-enums/enum.h"
 #include "util/macro_scope.h"
 
 namespace cimsim {

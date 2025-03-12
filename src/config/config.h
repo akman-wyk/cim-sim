@@ -9,22 +9,11 @@
 #include <vector>
 
 #include "config_enum.h"
+#include "constant.h"
 #include "nlohmann/json.hpp"
 #include "util/macro_scope.h"
 
 namespace cimsim {
-
-static constexpr int GENERAL_REG_NUM = 32;
-static constexpr int SPECIAL_REG_NUM = 32;
-
-static constexpr int WORD_BYTE_SIZE = 4;
-
-static constexpr int SIMD_MAX_INPUT_NUM = 4;
-static constexpr int SIMD_MAX_OPCODE = 255;
-static constexpr int SIMD_INSTRUCTION_OPCODE_BIT_LENGTH = 8;
-
-static constexpr int BYTE_TO_BIT = 8;
-static constexpr unsigned char BYTE_MAX_VALUE = 0xff;
 
 struct ControlUnitConfig {
     double controller_static_power_mW{0.0};   // mW
