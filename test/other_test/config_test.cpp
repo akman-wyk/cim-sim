@@ -38,16 +38,16 @@ Config get_config() {
     config.chip_config.core_config.cim_unit_config.value_sparse = true;
     config.chip_config.core_config.cim_unit_config.bit_sparse = true;
 
-    LocalMemoryConfig l1{.name = "l1",
-                         .type = LocalMemoryType::ram,
+    MemoryConfig l1{.name = "l1",
+                         .type = MemoryType::ram,
                          .addressing = AddressSpaceConfig{.offset_byte = 1024, .size_byte = 1024},
                          .ram_config = RAMConfig{}};
-    LocalMemoryConfig l2{.name = "l2",
-                         .type = LocalMemoryType::reg_buffer,
+    MemoryConfig l2{.name = "l2",
+                         .type = MemoryType::reg_buffer,
                          .addressing = AddressSpaceConfig{.offset_byte = 2048, .size_byte = 1024},
                          .reg_buffer_config = RegBufferConfig{}};
-    config.chip_config.core_config.local_memory_unit_config.local_memory_list.emplace_back(l1);
-    config.chip_config.core_config.local_memory_unit_config.local_memory_list.emplace_back(l2);
+    config.chip_config.core_config.local_memory_unit_config.memory_list.emplace_back(l1);
+    config.chip_config.core_config.local_memory_unit_config.memory_list.emplace_back(l2);
 
     return std::move(config);
 }

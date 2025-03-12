@@ -49,7 +49,7 @@ void ScalarUnit::process() {
     }
 }
 
-void ScalarUnit::bindLocalMemoryUnit(cimsim::LocalMemoryUnit *local_memory_unit) {
+void ScalarUnit::bindLocalMemoryUnit(cimsim::MemoryUnit *local_memory_unit) {
     local_memory_socket_.bindLocalMemoryUnit(local_memory_unit);
 }
 

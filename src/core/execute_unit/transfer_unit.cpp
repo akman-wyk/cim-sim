@@ -124,7 +124,7 @@ void TransferUnit::processWriteSubmodule() {
     }
 }
 
-void TransferUnit::bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit) {
+void TransferUnit::bindLocalMemoryUnit(MemoryUnit* local_memory_unit) {
     local_memory_socket_.bindLocalMemoryUnit(local_memory_unit);
 }
 

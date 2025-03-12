@@ -21,7 +21,7 @@ public:
 
     ScalarUnit(const char* name, const ScalarUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
-    void bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit);
+    void bindLocalMemoryUnit(MemoryUnit* local_memory_unit);
     void bindRegUnit(RegUnit* reg_unit);
 
 private:

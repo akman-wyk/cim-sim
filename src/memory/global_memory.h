@@ -3,7 +3,7 @@
 //
 
 #pragma once
-#include "memory.h"
+#include "memory_unit.h"
 #include "network/switch.h"
 
 namespace cimsim {
@@ -17,10 +17,7 @@ public:
     void bindNetwork(Network* network);
 
 private:
-    void switchReceiveHandler(const std::shared_ptr<NetworkPayload>& payload);
-
-private:
-    Memory memory_;
+    MemoryUnit memory_unit_;
     Switch switch_;
 };
 

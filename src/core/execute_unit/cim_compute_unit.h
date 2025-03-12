@@ -33,7 +33,7 @@ public:
 
     CimComputeUnit(const char* name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
-    void bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit);
+    void bindLocalMemoryUnit(MemoryUnit* local_memory_unit);
     void bindCimUnit(CimUnit* cim_unit);
 
     EnergyReporter getEnergyReporter() override;

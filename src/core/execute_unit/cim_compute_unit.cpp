@@ -28,7 +28,7 @@ CimComputeUnit::CimComputeUnit(const char *name, const cimsim::CimUnitConfig &co
     }
 }
 
-void CimComputeUnit::bindLocalMemoryUnit(cimsim::LocalMemoryUnit *local_memory_unit) {
+void CimComputeUnit::bindLocalMemoryUnit(cimsim::MemoryUnit *local_memory_unit) {
     local_memory_socket_.bindLocalMemoryUnit(local_memory_unit);
 }
 

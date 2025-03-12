@@ -174,12 +174,10 @@ std::shared_ptr<ExecuteInsPayload> DecoderV1::decodeTransferIns(const InstV1& in
         p.dst_address_byte = reg_unit_->readRegister(ins.rd, false) + (ins.offset_mask & 0b01) * ins.offset;
         p.size_byte = reg_unit_->readRegister(ins.rs2, false);
 
-        if (global_as_.contains(p.src_address_byte)) {
+        if (p.src_address_byte >= global_memory_offset_) {
             p.type = TransferType::global_load;
-            p.src_address_byte -= global_as_.offset_byte;
-        } else if (global_as_.contains(p.dst_address_byte)) {
+        } else if (p.dst_address_byte >= global_memory_offset_) {
             p.type = TransferType::global_store;
-            p.dst_address_byte -= global_as_.offset_byte;
         }
     } else if (ins.type == +TransferInstType::send) {
         p.type = TransferType::send;

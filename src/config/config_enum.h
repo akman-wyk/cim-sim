@@ -17,9 +17,9 @@ BETTER_ENUM(DataMode, int,  // NOLINT(*-no-recursion, *-explicit-constructor)
             real_data = 0, not_real_data = 1, other = 2)
 DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(DataMode)
 
-BETTER_ENUM(LocalMemoryType, int,  // NOLINT(*-no-recursion, *-explicit-constructor)
+BETTER_ENUM(MemoryType, int,  // NOLINT(*-no-recursion, *-explicit-constructor)
             ram = 0, reg_buffer = 1, other = 2)
-DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(LocalMemoryType)
+DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(MemoryType)
 
 BETTER_ENUM(SIMDInputType, int,  // NOLINT(*-no-recursion, *-explicit-constructor)
             vector = 0, scalar = 1, other = 2)

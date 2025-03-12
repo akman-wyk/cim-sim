@@ -86,20 +86,11 @@
         "input_bit_sparse": true
       },
       "local_memory_unit_config": {
-        "local_memory_list": []
+        "memory_list": []
       },
       "transfer_unit_config": {
         "pipeline": true
       }
-    },
-    "global_memory_config": {
-      "size_byte": 1024,
-      "width_byte": 16,
-      "write_latency_cycle": 1,
-      "read_latency_cycle": 1,
-      "static_power_mW": 1.0,
-      "write_dynamic_power_mW": 1.0,
-      "read_dynamic_power_mW": 1.0
     }
   },
   "sim_config": {

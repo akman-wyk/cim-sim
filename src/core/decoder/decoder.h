@@ -20,7 +20,7 @@ public:
 
     Decoder(const char* name, const ChipConfig& chip_config, const SimConfig& sim_config, Core* core, Clock* clk)
         : BaseModule(name, sim_config, core, clk)
-        , global_as_(chip_config.global_memory_config.addressing)
+        , global_memory_offset_(getGlobalMemoyOffset(chip_config))
         , simd_unit_config_(chip_config.core_config.simd_unit_config) {}
 
     void bindRegUnit(RegUnit* reg_unit) {
@@ -42,8 +42,16 @@ private:
     virtual std::shared_ptr<ExecuteInsPayload> decodeTransferIns(const Inst& ins) const = 0;
     virtual int decodeControlInsAndGetPCIncrement(const Inst& ins) const = 0;
 
+    static int getGlobalMemoyOffset(const ChipConfig& chip_config) {
+        if (auto& global_memory_list = chip_config.global_memory_config.global_memory_unit_config.memory_list;
+            !global_memory_list.empty()) {
+            return global_memory_list[0].addressing.offset_byte;
+        }
+        return INT32_MAX;
+    }
+
 protected:
-    const AddressSpaceConfig& global_as_;
+    const int global_memory_offset_;
     const SIMDUnitConfig& simd_unit_config_;
 
     int ins_id_{0};

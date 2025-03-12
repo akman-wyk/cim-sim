@@ -66,9 +66,6 @@ add_library(cim-simulator STATIC ""
         src/core/execute_unit/transfer_unit.cpp
         src/core/execute_unit/transfer_unit.h
 
-        src/core/local_memory_unit/local_memory_unit.cpp
-        src/core/local_memory_unit/local_memory_unit.h
-
         src/core/reg_unit/reg_unit.cpp
         src/core/reg_unit/reg_unit.h
 
@@ -92,6 +89,8 @@ add_library(cim-simulator STATIC ""
         src/memory/memory_hardware.h
         src/memory/memory_socket.cpp
         src/memory/memory_socket.h
+        src/memory/memory_unit.cpp
+        src/memory/memory_unit.h
         src/memory/payload.h
         src/memory/ram.cpp
         src/memory/ram.h
@@ -144,10 +143,10 @@ target_link_libraries(ConfigTest PUBLIC nlohmann_json fmt)
 target_include_directories(ConfigTest PRIVATE src)
 target_include_directories(ConfigTest PUBLIC packages/header-only)
 
-add_executable(LocalMemoryUnitTest "" test/other_test/local_memory_unit_test.cpp)
-add_dependencies(LocalMemoryUnitTest cim-simulator)
-target_link_libraries(LocalMemoryUnitTest PRIVATE cim-simulator)
-target_include_directories(LocalMemoryUnitTest PRIVATE src)
+add_executable(MemoryUnitTest "" test/other_test/memory_unit_test.cpp)
+add_dependencies(MemoryUnitTest cim-simulator)
+target_link_libraries(MemoryUnitTest PRIVATE cim-simulator)
+target_include_directories(MemoryUnitTest PRIVATE src)
 
 add_executable(SIMDUnitTest "" test/execute_unit_test/simd_unit_test.cpp
         test/base/test_payload.cpp

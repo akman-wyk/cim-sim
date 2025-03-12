@@ -15,7 +15,7 @@
 
 namespace cimsim {
 
-class LocalMemoryUnit;
+class MemoryUnit;
 
 struct SIMDInputOutputInfo {
     int data_bit_width{0};
@@ -56,7 +56,7 @@ public:
     [[noreturn]] void processExecuteSubmodule();
     [[noreturn]] void processWriteSubmodule();
 
-    void bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit);
+    void bindLocalMemoryUnit(MemoryUnit* local_memory_unit);
 
     ResourceAllocatePayload getDataConflictInfo(const SIMDInsPayload& payload) const;
     ResourceAllocatePayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;

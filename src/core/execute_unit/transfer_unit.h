@@ -54,7 +54,7 @@ public:
     [[noreturn]] void processReadSubmodule();
     [[noreturn]] void processWriteSubmodule();
 
-    void bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit);
+    void bindLocalMemoryUnit(MemoryUnit* local_memory_unit);
     void bindSwitch(Switch* switch_);
 
     ResourceAllocatePayload getDataConflictInfo(const TransferInsPayload& payload) const;

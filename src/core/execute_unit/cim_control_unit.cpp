@@ -19,7 +19,7 @@ CimControlUnit::CimControlUnit(const char *name, const cimsim::CimUnitConfig &co
     SC_THREAD(processExecute)
 }
 
-void CimControlUnit::bindLocalMemoryUnit(cimsim::LocalMemoryUnit *local_memory_unit) {
+void CimControlUnit::bindLocalMemoryUnit(cimsim::MemoryUnit *local_memory_unit) {
     local_memory_socket_.bindLocalMemoryUnit(local_memory_unit);
 }
 

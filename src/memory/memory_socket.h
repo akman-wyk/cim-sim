@@ -11,13 +11,13 @@
 
 namespace cimsim {
 
-class LocalMemoryUnit;
+class MemoryUnit;
 
 class MemorySocket {
 public:
     MemorySocket() = default;
 
-    void bindLocalMemoryUnit(LocalMemoryUnit* local_memory_unit);
+    void bindLocalMemoryUnit(MemoryUnit* local_memory_unit);
 
     std::vector<uint8_t> readData(const InstructionPayload& ins, int address_byte, int size_byte);
 
@@ -30,7 +30,7 @@ public:
     int getMemorySizeById(int memory_id) const;
 
 private:
-    LocalMemoryUnit* local_memory_unit_{nullptr};
+    MemoryUnit* local_memory_unit_{nullptr};
     sc_core::sc_event finish_read_;
     sc_core::sc_event finish_write_;
 };

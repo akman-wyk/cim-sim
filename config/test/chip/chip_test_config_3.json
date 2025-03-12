@@ -50,7 +50,7 @@
         }
       },
       "local_memory_unit_config": {
-        "local_memory_list": [
+        "memory_list": [
           {
             "name": "l1",
             "type": "ram",
@@ -92,18 +92,26 @@
       }
     },
     "global_memory_config": {
-      "hardware_config": {
-        "size_byte": 1024,
-        "width_byte": 16,
-        "write_latency_cycle": 1,
-        "read_latency_cycle": 1,
-        "static_power_mW": 1.0,
-        "write_dynamic_power_mW": 1.0,
-        "read_dynamic_power_mW": 1.0
-      },
-      "addressing": {
-        "offset_byte": 3072,
-        "size_byte": 1024
+      "global_memory_unit_config": {
+        "memory_list": [
+          {
+            "name": "g1",
+            "type": "ram",
+            "addressing": {
+              "offset_byte": 3072,
+              "size_byte": 1024
+            },
+            "hardware_config": {
+              "size_byte": 1024,
+              "width_byte": 16,
+              "write_latency_cycle": 1,
+              "read_latency_cycle": 1,
+              "static_power_mW": 1.0,
+              "write_dynamic_power_mW": 1.0,
+              "read_dynamic_power_mW": 1.0
+            }
+          }
+        ]
       },
       "global_memory_switch_id": -1
     },

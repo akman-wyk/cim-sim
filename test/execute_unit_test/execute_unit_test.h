@@ -12,8 +12,8 @@
 #include "config/config.h"
 #include "core/conflict/conflict_handler.h"
 #include "core/execute_unit/execute_unit.h"
-#include "core/local_memory_unit/local_memory_unit.h"
 #include "fmt/format.h"
+#include "memory/memory_unit.h"
 #include "systemc.h"
 #include "util/log.h"
 #include "util/util.h"
@@ -136,7 +136,7 @@ protected:
     sc_core::sc_event decode_new_ins_trigger_;
 
     // modules
-    LocalMemoryUnit local_memory_unit_;
+    MemoryUnit local_memory_unit_;
     TestUnit test_unit_;
 
     // stall

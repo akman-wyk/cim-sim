@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "config/config.h"
-#include "core/local_memory_unit/local_memory_unit.h"
+#include "memory/memory_unit.h"
 #include "systemc.h"
 #include "util/util.h"
 
@@ -42,7 +42,7 @@ public:
     }
 
 private:
-    LocalMemoryUnit local_memory_unit_;
+    MemoryUnit local_memory_unit_;
 
     sc_core::sc_event event1;
     sc_core::sc_event event2;

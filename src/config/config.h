@@ -283,9 +283,9 @@ struct RegBufferConfig {
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(RegBufferConfig)
 };
 
-struct LocalMemoryConfig {
+struct MemoryConfig {
     std::string name{};
-    LocalMemoryType type{LocalMemoryType::ram};
+    MemoryType type{MemoryType::ram};
 
     AddressSpaceConfig addressing{};
 
@@ -293,14 +293,14 @@ struct LocalMemoryConfig {
     RegBufferConfig reg_buffer_config{};
 
     [[nodiscard]] bool checkValid() const;
-    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(LocalMemoryConfig)
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(MemoryConfig)
 };
 
-struct LocalMemoryUnitConfig {
-    std::vector<LocalMemoryConfig> local_memory_list{};
+struct MemoryUnitConfig {
+    std::vector<MemoryConfig> memory_list{};
 
     [[nodiscard]] bool checkValid() const;
-    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(LocalMemoryUnitConfig)
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(MemoryUnitConfig)
 };
 
 struct TransferUnitConfig {
@@ -316,7 +316,7 @@ struct CoreConfig {
     ScalarUnitConfig scalar_unit_config{};
     SIMDUnitConfig simd_unit_config{};
     CimUnitConfig cim_unit_config{};
-    LocalMemoryUnitConfig local_memory_unit_config{};
+    MemoryUnitConfig local_memory_unit_config{};
     TransferUnitConfig transfer_unit_config{};
 
     [[nodiscard]] bool checkValid() const;
@@ -333,8 +333,7 @@ struct NetworkConfig {
 };
 
 struct GlobalMemoryConfig {
-    RAMConfig hardware_config{};
-    AddressSpaceConfig addressing{};
+    MemoryUnitConfig global_memory_unit_config{};
     int global_memory_switch_id{-10};
 
     [[nodiscard]] bool checkValid() const;
