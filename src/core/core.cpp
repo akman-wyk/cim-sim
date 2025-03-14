@@ -12,7 +12,7 @@
 namespace cimsim {
 
 Core::ExecuteUnitRegistration::ExecuteUnitRegistration(ExecuteUnitType type, ExecuteUnit *execute_unit,
-                                                       sc_event &decode_new_ins_trigger)
+                                                       const sc_event &decode_new_ins_trigger)
     : type(type), execute_unit(execute_unit), stall_handler(decode_new_ins_trigger, type) {}
 
 Core::Core(int core_id, const char *name, const Config &config, Clock *clk, std::vector<Instruction> ins_list,
@@ -23,7 +23,7 @@ Core::Core(int core_id, const char *name, const Config &config, Clock *clk, std:
     , ins_list_(std::move(ins_list))
 
     , cim_unit_("CimUnit", core_config_.cim_unit_config, config.sim_config, this, clk)
-    , local_memory_unit_("LocalMemoryUnit", core_config_.local_memory_unit_config, config.sim_config, this, clk)
+    , local_memory_unit_("LocalMemoryUnit", core_config_.local_memory_unit_config, config.sim_config, this, clk, false)
     , reg_unit_("RegUnit", core_config_.register_unit_config, config.sim_config, this, clk)
     , core_switch_("CoreSwitch", config.sim_config, this, clk, core_id)
     , decoder_("Decoder", config.chip_config, config.sim_config, this, clk)
@@ -153,7 +153,6 @@ void Core::registerExecuteUnit(ExecuteUnitType type, ExecuteUnit *execute_unit) 
 }
 void Core::bindModules() {
     // bind and set modules
-    int end_pc = static_cast<int>(ins_list_.size());
     scalar_unit_.bindLocalMemoryUnit(&local_memory_unit_);
     scalar_unit_.bindRegUnit(&reg_unit_);
 

@@ -31,10 +31,6 @@ void MemorySocket::writeData(const cimsim::InstructionPayload &ins, int address_
     local_memory_unit_->write_data(ins, address_byte, size_byte, std::move(data), finish_write_);
 }
 
-int MemorySocket::getLocalMemoryIdByAddress(int address_byte) const {
-    return local_memory_unit_->getMemoryIdByAddress(address_byte);
-}
-
 int MemorySocket::getMemoryDataWidthById(int memory_id, MemoryAccessType access_type) const {
     return local_memory_unit_->getMemoryDataWidthById(memory_id, access_type);
 }

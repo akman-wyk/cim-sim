@@ -36,7 +36,7 @@ public:
         : BaseModule(name, config.sim_config, nullptr, clk)
         , test_unit_config_(test_unit_config)
         , local_memory_unit_("LocalMemoryUnit", config.chip_config.core_config.local_memory_unit_config,
-                             config.sim_config, nullptr, clk)
+                             config.sim_config, nullptr, clk, false)
         , test_unit_(test_unit_name, test_unit_config, config.sim_config, nullptr, clk)
         , unit_stall_handler_(decode_new_ins_trigger_, type)
         , type_(type) {
@@ -174,6 +174,7 @@ int cimsim_unit_test(
         std::cout << "Config not valid" << std::endl;
         return INVALID_CONFIG;
     }
+    AddressSapce::initialize(config.chip_config);
 
     auto test_info = readTypeFromJsonFile<typename TestUnitModule::TestInfoType>(instruction_file);
     Clock clk{"clock", config.sim_config.period_ns};

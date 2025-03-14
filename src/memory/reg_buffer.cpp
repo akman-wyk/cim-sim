@@ -83,4 +83,8 @@ int RegBuffer::getMemorySizeByte() const {
     return config_.size_byte;
 }
 
+const std::string &RegBuffer::getMemoryName() {
+    return getName();
+}
+
 }  // namespace cimsim

@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "address_space/address_space.h"
 #include "base_component/base_module.h"
 #include "core/execute_unit/execute_unit.h"
 #include "core/reg_unit/reg_unit.h"
@@ -20,7 +21,7 @@ public:
 
     Decoder(const char* name, const ChipConfig& chip_config, const SimConfig& sim_config, Core* core, Clock* clk)
         : BaseModule(name, sim_config, core, clk)
-        , global_memory_offset_(getGlobalMemoyOffset(chip_config))
+        , as_(AddressSapce::getInstance())
         , simd_unit_config_(chip_config.core_config.simd_unit_config) {}
 
     void bindRegUnit(RegUnit* reg_unit) {
@@ -42,16 +43,8 @@ private:
     virtual std::shared_ptr<ExecuteInsPayload> decodeTransferIns(const Inst& ins) const = 0;
     virtual int decodeControlInsAndGetPCIncrement(const Inst& ins) const = 0;
 
-    static int getGlobalMemoyOffset(const ChipConfig& chip_config) {
-        if (auto& global_memory_list = chip_config.global_memory_config.global_memory_unit_config.memory_list;
-            !global_memory_list.empty()) {
-            return global_memory_list[0].addressing.offset_byte;
-        }
-        return INT32_MAX;
-    }
-
 protected:
-    const int global_memory_offset_;
+    const AddressSapce& as_;
     const SIMDUnitConfig& simd_unit_config_;
 
     int ins_id_{0};

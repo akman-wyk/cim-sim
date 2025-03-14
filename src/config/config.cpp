@@ -9,6 +9,7 @@
 #include <unordered_map>
 
 #include "fmt/format.h"
+#include "util/util.h"
 
 namespace cimsim {
 
@@ -420,6 +421,26 @@ DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CimBitSparseConfig, mask_bit_widt
                                                dynamic_power_mW, unit_byte, reg_buffer_static_power_mW,
                                                reg_buffer_dynamic_power_mW_per_unit)
 
+int CimUnitConfig::getByteSize() const {
+    return IntDivCeil(macro_size.bit_width_per_row * macro_size.row_cnt_per_element *
+                          macro_size.element_cnt_per_compartment * macro_size.compartment_cnt_per_macro *
+                          macro_total_cnt,
+                      BYTE_TO_BIT);
+}
+
+int CimUnitConfig::getBitWidth() const {
+    return macro_size.bit_width_per_row * macro_size.element_cnt_per_compartment *
+           (sram.as_mode == +CimASMode::intergroup ? macro_total_cnt : macro_group_size);
+}
+
+int CimUnitConfig::getByteWidth() const {
+    return IntDivCeil(getBitWidth(), BYTE_TO_BIT);
+}
+
+std::string CimUnitConfig::getMemoryName() const {
+    return name_as_memory;
+}
+
 bool CimUnitConfig::checkValid() const {
     if (!check_positive(macro_total_cnt, macro_group_size)) {
         std::cerr << "CimUnitConfig not valid, 'macro_total_cnt, macro_group_size_configurable_values' must be positive"
@@ -434,9 +455,9 @@ bool CimUnitConfig::checkValid() const {
         return false;
     }
 
-    if (const bool valid = macro_size.checkValid() && address_space.checkValid() && ipu.checkValid("ipu") &&
-                           sram.checkValid() && adder_tree.checkValid("adder_tree") &&
-                           shift_adder.checkValid("shift_adder") && result_adder.checkValid("result_adder") &&
+    if (const bool valid = macro_size.checkValid() && ipu.checkValid("ipu") && sram.checkValid() &&
+                           adder_tree.checkValid("adder_tree") && shift_adder.checkValid("shift_adder") &&
+                           result_adder.checkValid("result_adder") &&
                            (!value_sparse || value_sparse_config.checkValid()) &&
                            (!bit_sparse || bit_sparse_config.checkValid());
         !valid) {
@@ -444,13 +465,6 @@ bool CimUnitConfig::checkValid() const {
         return false;
     }
 
-    if (const int total_byte_size = macro_total_cnt * macro_size.compartment_cnt_per_macro *
-                                    macro_size.element_cnt_per_compartment * macro_size.row_cnt_per_element *
-                                    macro_size.bit_width_per_row / BYTE_TO_BIT;
-        total_byte_size > address_space.size_byte) {
-        std::cerr << "CimUnitConfig not valid, hardware size is greater than address space size" << std::endl;
-        return false;
-    }
     return true;
 }
 
@@ -458,7 +472,6 @@ void to_json(nlohmann::ordered_json& j, const CimUnitConfig& t) {
     j["macro_total_cnt"] = t.macro_total_cnt;
     j["macro_group_size"] = t.macro_group_size;
     j["macro_size"] = t.macro_size;
-    j["address_space"] = t.address_space;
     j["ipu"] = t.ipu;
     j["sram"] = t.sram;
     j["adder_tree"] = t.adder_tree;
@@ -475,9 +488,10 @@ void to_json(nlohmann::ordered_json& j, const CimUnitConfig& t) {
     j["input_bit_sparse"] = t.input_bit_sparse;
 }
 
-DEFINE_TYPE_FROM_JSON_FUNCTION_WITH_DEFAULT(CimUnitConfig, macro_total_cnt, macro_group_size, macro_size, address_space,
-                                            ipu, sram, adder_tree, shift_adder, result_adder, value_sparse,
-                                            value_sparse_config, bit_sparse, bit_sparse_config, input_bit_sparse)
+DEFINE_TYPE_FROM_JSON_FUNCTION_WITH_DEFAULT(CimUnitConfig, macro_total_cnt, macro_group_size, macro_size,
+                                            name_as_memory, ipu, sram, adder_tree, shift_adder, result_adder,
+                                            value_sparse, value_sparse_config, bit_sparse, bit_sparse_config,
+                                            input_bit_sparse)
 
 // LocalMemoryUnit
 bool RAMConfig::checkValid() const {
@@ -557,15 +571,13 @@ DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(RegBufferConfig, size_byte, read_
                                                rw_min_unit_byte, static_power_mW, rw_dynamic_power_per_unit_mW,
                                                has_image, image_file)
 
-bool AddressSpaceConfig::checkValid() const {
-    if (!check_not_negative(offset_byte, size_byte)) {
-        std::cerr << "AddressSpaceConfig not valid, 'offset_byte, size_byte' must be non-negative" << std::endl;
-        return false;
-    }
-    return true;
+int MemoryConfig::getByteSize() const {
+    return type == +MemoryType::ram ? ram_config.size_byte : reg_buffer_config.size_byte;
 }
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(AddressSpaceConfig, offset_byte, size_byte)
+std::string MemoryConfig::getMemoryName() const {
+    return name;
+}
 
 bool MemoryConfig::checkValid() const {
     if (name.empty()) {
@@ -578,20 +590,10 @@ bool MemoryConfig::checkValid() const {
                   << std::endl;
         return false;
     }
-    if (const bool valid =
-            addressing.checkValid() && ((type == +MemoryType::ram && ram_config.checkValid()) ||
-                                        (type == +MemoryType::reg_buffer && reg_buffer_config.checkValid()));
+    if (const bool valid = ((type == +MemoryType::ram && ram_config.checkValid()) ||
+                            (type == +MemoryType::reg_buffer && reg_buffer_config.checkValid()));
         !valid) {
         std::cerr << fmt::format("LocalMemoryConfig of '{}' not valid", name.c_str()) << std::endl;
-        return false;
-    }
-
-    if (const int hardware_size = (type == +MemoryType::ram) ? ram_config.size_byte : reg_buffer_config.size_byte;
-        hardware_size > addressing.size_byte) {
-        std::cerr << fmt::format(
-                         "LocalMemoryConfig of '{}' not valid, hardware size is greater than address space size",
-                         name.c_str())
-                  << std::endl;
         return false;
     }
 
@@ -601,7 +603,6 @@ bool MemoryConfig::checkValid() const {
 void to_json(nlohmann::ordered_json& j, const MemoryConfig& config) {
     j["name"] = config.name;
     j["type"] = config.type;
-    j["addressing"] = config.addressing;
     if (config.type == +MemoryType::ram) {
         j["hardware_config"] = config.ram_config;
     } else if (config.type == +MemoryType::reg_buffer) {
@@ -613,7 +614,6 @@ void from_json(const nlohmann::ordered_json& j, MemoryConfig& config) {
     const MemoryConfig default_obj{};
     config.name = j.value("name", default_obj.name);
     config.type = j.value("type", default_obj.type);
-    config.addressing = j.value("addressing", default_obj.addressing);
     if (config.type == +MemoryType::ram) {
         config.ram_config = j.value("hardware_config", default_obj.ram_config);
     } else if (config.type == +MemoryType::reg_buffer) {
@@ -648,25 +648,6 @@ bool CoreConfig::checkValid() const {
         return false;
     }
 
-    // check if address space overlap
-    MemoryConfig cim_memory_config{"CimUnit", MemoryType::ram, cim_unit_config.address_space, {}, {}};
-    std::vector<const MemoryConfig*> memory_check_list{&cim_memory_config};
-    std::transform(local_memory_unit_config.memory_list.begin(), local_memory_unit_config.memory_list.end(),
-                   std::inserter(memory_check_list, memory_check_list.end()),
-                   [](const MemoryConfig& config) { return &config; });
-    std::sort(memory_check_list.begin(), memory_check_list.end(),
-              [](const MemoryConfig* config1, const MemoryConfig* config2) {
-                  return config1->addressing.offset_byte < config2->addressing.offset_byte;
-              });
-    for (int i = 0; i < memory_check_list.size() - 1; i++) {
-        if (memory_check_list[i]->addressing.end() > memory_check_list[i + 1]->addressing.offset_byte) {
-            std::cerr << "CoreConfig not valid" << std::endl;
-            std::cerr << fmt::format("\tThere is an overlap in address space between local memory '{}' and '{}'",
-                                     memory_check_list[i]->name.c_str(), memory_check_list[i + 1]->name.c_str())
-                      << std::endl;
-            return false;
-        }
-    }
     return true;
 }
 
@@ -697,21 +678,117 @@ bool GlobalMemoryConfig::checkValid() const {
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(GlobalMemoryConfig, global_memory_unit_config, global_memory_switch_id)
 
-// ChipConfig
-bool ChipConfig::checkValid() const {
-    if (!check_positive(core_cnt)) {
-        std::cerr << "ChipConfig not valid, 'core_cnt' must be positive" << std::endl;
+bool AddressSpaceElementConfig::checkValid() const {
+    if (name.empty()) {
+        std::cerr << "AddressSpaceConfig not valid, name must not be empty" << std::endl;
         return false;
     }
-    if (const bool valid = core_config.checkValid() && global_memory_config.checkValid() && network_config.checkValid();
-        !valid) {
-        std::cerr << "ChipConfig not valid" << std::endl;
+    if (size == 0) {
+        std::cerr << fmt::format("AddressSpaceConfig of {} not valid, size must not be zero", name) << std::endl;
         return false;
     }
     return true;
 }
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(ChipConfig, core_cnt, core_config, global_memory_config, network_config)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(AddressSpaceElementConfig, name, size)
+
+// ChipConfig
+bool ChipConfig::checkAddressSpaceWithMemory(const std::string& mem_name, int mem_size,
+                                             const std::unordered_map<std::string, AddressSpaceElementConfig>& as_map) {
+    auto found = as_map.find(mem_name);
+    if (found == as_map.end()) {
+        std::cerr << fmt::format("Memory \"{}\" not in address space", mem_name) << std::endl;
+        return false;
+    }
+
+    auto& address_space = found->second;
+    if (address_space.size > 0 && address_space.size < mem_size) {
+        std::cerr << fmt::format("Size of Memory \"{}\" is bigger than size of address space", mem_name) << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+std::unordered_map<std::string, ChipConfig::MemoryInfo> ChipConfig::getMemoryNameToSizeMap(bool check) const {
+    std::unordered_map<std::string, MemoryInfo> mem_map;
+    auto trans_mem = [&](const auto& mem_config, bool is_global) {
+        mem_map.insert(
+            std::make_pair<std::string, MemoryInfo>(mem_config.getMemoryName(), {mem_config.getByteSize(), is_global}));
+    };
+
+    // add all local normal memory
+    auto& local_mems = core_config.local_memory_unit_config.memory_list;
+    std::for_each(local_mems.begin(), local_mems.end(), [&](const auto& c) { return trans_mem(c, false); });
+
+    // all all local mounted memory
+    constexpr int mounted_memory_cnt = 1;
+    trans_mem(core_config.cim_unit_config, false);
+
+    // add all global memory
+    auto& global_mems = global_memory_config.global_memory_unit_config.memory_list;
+    std::for_each(global_mems.begin(), global_mems.end(), [&](const auto& c) { return trans_mem(c, true); });
+
+    if (check && mem_map.size() != local_mems.size() + mounted_memory_cnt + global_mems.size()) {
+        return {};
+    }
+    return std::move(mem_map);
+}
+
+bool ChipConfig::checkMemoryAndAddressSpace() const {
+    // Check Memory and AddressSpace, and check if they correspond one to one
+
+    // check if the memory name is repeated
+    auto mem_map = getMemoryNameToSizeMap(true);
+    if (mem_map.empty()) {
+        std::cerr << "Local and global memory not valid, there are repeated names" << std::endl;
+        return false;
+    }
+
+    // transfer address to map, and check address space config
+    std::unordered_map<std::string, AddressSpaceElementConfig> as_map;
+    std::transform(address_space_config.begin(), address_space_config.end(), std::inserter(as_map, as_map.end()),
+                   [](const AddressSpaceElementConfig& as) { return std::make_pair(as.name, as); });
+    if (as_map.size() != address_space_config.size()) {
+        std::cerr << "Address space not valid, it has duplicate parts with same name" << std::endl;
+        return false;
+    }
+
+    // check address space config with memory
+    if (mem_map.size() != as_map.size()) {
+        std::cerr << "Address space not valid, count of memory and address space is not same" << std::endl;
+        return false;
+    }
+    for (const auto& [name, info] : mem_map) {
+        if (!checkAddressSpaceWithMemory(name, info.size, as_map)) {
+            std::cerr << "Address space not valid" << std::endl;
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ChipConfig::checkValid() const {
+    if (!check_positive(core_cnt)) {
+        std::cerr << "ChipConfig not valid, 'core_cnt' must be positive" << std::endl;
+        return false;
+    }
+    if (const bool valid = core_config.checkValid() && global_memory_config.checkValid() &&
+                           network_config.checkValid() && check_vector_valid(address_space_config);
+        !valid) {
+        std::cerr << "ChipConfig not valid" << std::endl;
+        return false;
+    }
+    if (!checkMemoryAndAddressSpace()) {
+        std::cerr << "ChipConfig not valid" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(ChipConfig, core_cnt, core_config, global_memory_config, network_config,
+                                               address_space_config)
 
 // SimConfig
 bool SimConfig::checkValid() const {

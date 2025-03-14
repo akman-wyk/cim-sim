@@ -77,4 +77,8 @@ int RAM::getMemorySizeByte() const {
     return config_.size_byte;
 }
 
+const std::string &RAM::getMemoryName() {
+    return getName();
+}
+
 }  // namespace cimsim

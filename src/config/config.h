@@ -200,23 +200,6 @@ struct CimBitSparseConfig {
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(CimBitSparseConfig)
 };
 
-struct AddressSpaceConfig {
-    int offset_byte{};  // byte
-    int size_byte{};    // byte
-
-    [[nodiscard]] bool checkValid() const;
-
-    [[nodiscard]] int end() const {
-        return offset_byte + size_byte;
-    }
-
-    [[nodiscard]] bool contains(int address) const {
-        return offset_byte <= address && address < offset_byte + size_byte;
-    }
-
-    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(AddressSpaceConfig)
-};
-
 struct CimUnitConfig {
     // macro scale config
     int macro_total_cnt{0};
@@ -224,7 +207,7 @@ struct CimUnitConfig {
     CimMacroSizeConfig macro_size{};
 
     // address space
-    AddressSpaceConfig address_space{};
+    std::string name_as_memory{"cim_unit"};
 
     // modules config: ipu -> SRAM -> post process modules
     // ipu(input process unit) module
@@ -244,6 +227,11 @@ struct CimUnitConfig {
     CimBitSparseConfig bit_sparse_config{};
 
     bool input_bit_sparse{false};
+
+    [[nodiscard]] int getByteSize() const;
+    [[nodiscard]] int getBitWidth() const;
+    [[nodiscard]] int getByteWidth() const;
+    [[nodiscard]] std::string getMemoryName() const;
 
     [[nodiscard]] bool checkValid() const;
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(CimUnitConfig)
@@ -287,10 +275,11 @@ struct MemoryConfig {
     std::string name{};
     MemoryType type{MemoryType::ram};
 
-    AddressSpaceConfig addressing{};
-
     RAMConfig ram_config{};
     RegBufferConfig reg_buffer_config{};
+
+    [[nodiscard]] int getByteSize() const;
+    [[nodiscard]] std::string getMemoryName() const;
 
     [[nodiscard]] bool checkValid() const;
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(MemoryConfig)
@@ -340,11 +329,31 @@ struct GlobalMemoryConfig {
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(GlobalMemoryConfig)
 };
 
+struct AddressSpaceElementConfig {
+    std::string name{};
+    int size{-1};  // negative size means that size of memory with same name will be used as size of this address space
+
+    [[nodiscard]] bool checkValid() const;
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(AddressSpaceElementConfig)
+};
+
 struct ChipConfig {
+    struct MemoryInfo {
+        int size{-1};
+        bool is_global{false};
+    };
+
     int core_cnt{1};
     CoreConfig core_config{};
     GlobalMemoryConfig global_memory_config{};
-    NetworkConfig network_config;
+    NetworkConfig network_config{};
+    std::vector<AddressSpaceElementConfig> address_space_config{};
+
+    [[nodiscard]] static bool checkAddressSpaceWithMemory(
+        const std::string& mem_name, int mem_size,
+        const std::unordered_map<std::string, AddressSpaceElementConfig>& as_map);
+    [[nodiscard]] std::unordered_map<std::string, MemoryInfo> getMemoryNameToSizeMap(bool check = false) const;
+    [[nodiscard]] bool checkMemoryAndAddressSpace() const;
 
     [[nodiscard]] bool checkValid() const;
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(ChipConfig)

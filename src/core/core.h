@@ -44,7 +44,8 @@ public:
 
 private:
     struct ExecuteUnitRegistration {
-        ExecuteUnitRegistration(ExecuteUnitType type, ExecuteUnit* execute_unit, sc_event& decode_new_ins_trigger);
+        ExecuteUnitRegistration(ExecuteUnitType type, ExecuteUnit* execute_unit,
+                                const sc_event& decode_new_ins_trigger);
 
         ExecuteUnitType type;
         ExecuteUnit* execute_unit;

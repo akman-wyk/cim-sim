@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "address_space/address_space.h"
 #include "base_component/base_module.h"
 #include "base_component/fsm.h"
 #include "core/conflict/payload.h"
@@ -81,6 +82,9 @@ protected:
 
 public:
     ExecuteUnitResponseIOPorts ports_;
+
+protected:
+    const AddressSapce& as_;
 
 private:
     const ExecuteUnitType type_;

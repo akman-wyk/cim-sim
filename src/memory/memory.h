@@ -16,21 +16,19 @@ class Memory : public BaseModule {
 public:
     SC_HAS_PROCESS(Memory);
 
-    Memory(const char* name, const RAMConfig& ram_config, const AddressSpaceConfig& addressing,
-           const SimConfig& sim_config, Core* core, Clock* clk);
+    Memory(const std::string& name, const RAMConfig& ram_config, const SimConfig& sim_config, Core* core, Clock* clk);
 
-    Memory(const char* name, const RegBufferConfig& reg_buffer_config, const AddressSpaceConfig& addressing,
-           const SimConfig& sim_config, Core* core, Clock* clk);
+    Memory(const std::string& name, const RegBufferConfig& reg_buffer_config, const SimConfig& sim_config, Core* core,
+           Clock* clk);
 
-    Memory(const char* name, MemoryHardware* memory_hardware, const AddressSpaceConfig& addressing,
-           const SimConfig& sim_config, Core* core, Clock* clk);
+    Memory(const std::string& name, MemoryHardware* memory_hardware, const SimConfig& sim_config, Core* core,
+           Clock* clk);
 
     ~Memory() override;
 
     void access(std::shared_ptr<MemoryAccessPayload> payload);
 
-    [[nodiscard]] int getAddressSpaceBegin() const;
-    [[nodiscard]] int getAddressSpaceEnd() const;
+    [[nodiscard]] int getAddressSpaceOffset() const;
     [[nodiscard]] int getMemoryDataWidthByte(MemoryAccessType access_type) const;
     [[nodiscard]] int getMemorySizeByte() const;
     [[nodiscard]] bool isMount() const;
@@ -42,7 +40,7 @@ private:
 
 private:
     bool is_mount;  // whether this memory is a mount memory
-    const AddressSpaceConfig& addressing_;
+    int as_offset_;
 
     std::queue<std::shared_ptr<MemoryAccessPayload>> access_queue_;
     MemoryHardware* hardware_;

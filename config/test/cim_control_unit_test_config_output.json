@@ -11,10 +11,6 @@
           "row_cnt_per_element": 1,
           "bit_width_per_row": 1
         },
-        "address_space": {
-          "offset_byte": 0,
-          "size_byte": 2048
-        },
         "ipu": {
           "latency_cycle": 1,
           "static_power_mW": 1.0,
@@ -67,10 +63,6 @@
           {
             "name": "local memory",
             "type": "ram",
-            "addressing": {
-              "offset_byte": 2048,
-              "size_byte": 1024
-            },
             "hardware_config": {
               "size_byte": 1024,
               "width_byte": 128,
@@ -86,10 +78,6 @@
           {
             "name": "cim output reg buffer",
             "type": "reg_buffer",
-            "addressing": {
-              "offset_byte": 3072,
-              "size_byte": 4096
-            },
             "hardware_config": {
               "size_byte": 4096,
               "read_max_width_byte": 128,
@@ -104,7 +92,12 @@
       "transfer_unit_config": {
         "pipeline": true
       }
-    }
+    },
+    "address_space_config": [
+      {"name": "cim_unit", "size": 2048},
+      {"name": "local memory", "size": 1024},
+      {"name": "cim output reg buffer", "size": 4096}
+    ]
   },
   "sim_config": {
     "period_ns": 5.0,
