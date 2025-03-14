@@ -10,20 +10,21 @@
 
 namespace cimsim {
 
-#define ErrorMemoryId -10
-
 MemoryUnit::MemoryUnit(const char *name, const cimsim::MemoryUnitConfig &config, const cimsim::SimConfig &sim_config,
-                       cimsim::Core *core, cimsim::Clock *clk)
-    : BaseModule(name, sim_config, core, clk), config_(config), sim_config_(sim_config) {
-    for (const auto &memory_config : config_.memory_list) {
-        if (memory_config.type == +MemoryType::ram)
-            memory_list_.emplace_back(std::make_shared<Memory>(memory_config.name.c_str(), memory_config.ram_config,
-                                                               memory_config.addressing, sim_config, core, clk));
-        else {
-            memory_list_.emplace_back(std::make_shared<Memory>(memory_config.name.c_str(),
-                                                               memory_config.reg_buffer_config,
-                                                               memory_config.addressing, sim_config, core, clk));
-        }
+                       cimsim::Core *core, cimsim::Clock *clk, bool is_global)
+    : BaseModule(name, sim_config, core, clk)
+    , config_(config)
+    , sim_config_(sim_config)
+    , as_(AddressSapce::getInstance())
+    , is_global_(is_global) {
+    memory_list_.resize(as_.getMemoryCount(is_global_));
+    for (const auto &mem_cfg : config_.memory_list) {
+        int mem_id = as_.getMemoryId(mem_cfg.getMemoryName());
+        auto mem_ptr =
+            mem_cfg.type == +MemoryType::ram
+                ? std::make_shared<Memory>(mem_cfg.getMemoryName(), mem_cfg.ram_config, sim_config, core, clk)
+                : std::make_shared<Memory>(mem_cfg.getMemoryName(), mem_cfg.reg_buffer_config, sim_config, core, clk);
+        memory_list_[mem_id] = mem_ptr;
     }
 }
 
@@ -41,7 +42,7 @@ std::vector<uint8_t> MemoryUnit::read_data(const cimsim::InstructionPayload &ins
     auto payload = std::make_shared<MemoryAccessPayload>(
         MemoryAccessPayload{.ins = ins,
                             .access_type = MemoryAccessType::read,
-                            .address_byte = address_byte - memory->getAddressSpaceBegin(),
+                            .address_byte = address_byte - memory->getAddressSpaceOffset(),
                             .size_byte = size_byte,
                             .finish_access = finish_access});
     memory->access(payload);
@@ -64,7 +65,7 @@ void MemoryUnit::write_data(const cimsim::InstructionPayload &ins, int address_b
     auto payload = std::make_shared<MemoryAccessPayload>(
         MemoryAccessPayload{.ins = ins,
                             .access_type = MemoryAccessType::write,
-                            .address_byte = address_byte - memory->getAddressSpaceBegin(),
+                            .address_byte = address_byte - memory->getAddressSpaceOffset(),
                             .size_byte = size_byte,
                             .data = std::move(data),
                             .finish_access = finish_access});
@@ -72,7 +73,7 @@ void MemoryUnit::write_data(const cimsim::InstructionPayload &ins, int address_b
     wait(payload->finish_access);
 }
 
-void MemoryUnit::access(const std::shared_ptr<MemoryAccessPayload>& payload) {
+void MemoryUnit::access(const std::shared_ptr<MemoryAccessPayload> &payload) {
     auto memory = getMemoryByAddress(payload->address_byte);
     if (memory == nullptr) {
         std::cerr << fmt::format(
@@ -81,7 +82,7 @@ void MemoryUnit::access(const std::shared_ptr<MemoryAccessPayload>& payload) {
                   << std::endl;
         return;
     }
-    payload->address_byte -= memory->getAddressSpaceBegin();
+    payload->address_byte -= memory->getAddressSpaceOffset();
     memory->access(payload);
     wait(payload->finish_access);
 }
@@ -89,7 +90,7 @@ void MemoryUnit::access(const std::shared_ptr<MemoryAccessPayload>& payload) {
 EnergyReporter MemoryUnit::getEnergyReporter() {
     EnergyReporter memory_unit_reporter;
     for (auto &memory : memory_list_) {
-        if (!memory->isMount()) {
+        if (memory && !memory->isMount()) {
             memory_unit_reporter.addSubModule(memory->getName(), memory->getEnergyReporter());
         }
     }
@@ -97,19 +98,9 @@ EnergyReporter MemoryUnit::getEnergyReporter() {
 }
 
 void MemoryUnit::bindCimUnit(CimUnit *cim_unit) {
-    memory_list_.emplace_back(
-        std::make_shared<Memory>("cim unit", cim_unit, cim_unit->getAddressSpaceConfig(), sim_config_, core_, clk_));
-    cim_unit->bindLocalMemoryUnit(getMemoryIdByAddress(cim_unit->getAddressSpaceConfig().offset_byte));
-}
-
-int MemoryUnit::getMemoryIdByAddress(int address_byte) const {
-    for (int i = 0; i < memory_list_.size(); i++) {
-        auto &memory = memory_list_[i];
-        if (memory->getAddressSpaceBegin() <= address_byte && address_byte < memory->getAddressSpaceEnd()) {
-            return i;
-        }
-    }
-    return ErrorMemoryId;
+    int mem_id = as_.getMemoryId(cim_unit->getMemoryName());
+    memory_list_[mem_id] = std::make_shared<Memory>("cim unit", cim_unit, sim_config_, core_, clk_);
+    cim_unit->setLocalMemoryId(mem_id);
 }
 
 int MemoryUnit::getMemoryDataWidthById(int memory_id, MemoryAccessType access_type) const {
@@ -121,12 +112,8 @@ int MemoryUnit::getMemorySizeById(int memory_id) const {
 }
 
 std::shared_ptr<Memory> MemoryUnit::getMemoryByAddress(int address_byte) {
-    for (auto &memory : memory_list_) {
-        if (memory->getAddressSpaceBegin() <= address_byte && address_byte < memory->getAddressSpaceEnd()) {
-            return memory;
-        }
-    }
-    return nullptr;
+    int mem_id = is_global_ ? as_.getGlobalMemoryId(address_byte) : as_.getLocalMemoryId(address_byte);
+    return memory_list_[mem_id];
 }
 
 }  // namespace cimsim

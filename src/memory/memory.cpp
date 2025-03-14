@@ -4,29 +4,33 @@
 
 #include "memory.h"
 
+#include "address_space/address_space.h"
 #include "ram.h"
 #include "reg_buffer.h"
 
 namespace cimsim {
 
-Memory::Memory(const char *name, const RAMConfig &ram_config, const AddressSpaceConfig &addressing,
-               const SimConfig &sim_config, Core *core, Clock *clk)
-    : BaseModule(name, sim_config, core, clk), is_mount(false), addressing_(addressing) {
-    hardware_ = new RAM(name, ram_config, sim_config, core, clk);
+Memory::Memory(const std::string &name, const RAMConfig &ram_config, const SimConfig &sim_config, Core *core,
+               Clock *clk)
+    : BaseModule(name.c_str(), sim_config, core, clk), is_mount(false) {
+    hardware_ = new RAM(name.c_str(), ram_config, sim_config, core, clk);
+    as_offset_ = AddressSapce::getInstance().getMemoryAddressSpaceOffset(hardware_->getMemoryName());
     SC_THREAD(process);
 }
 
-Memory::Memory(const char *name, const RegBufferConfig &reg_buffer_config, const AddressSpaceConfig &addressing,
-               const SimConfig &sim_config, Core *core, Clock *clk)
-    : BaseModule(name, sim_config, core, clk), is_mount(false), addressing_(addressing) {
-    hardware_ = new RegBuffer(name, reg_buffer_config, sim_config, core, clk);
+Memory::Memory(const std::string &name, const RegBufferConfig &reg_buffer_config, const SimConfig &sim_config,
+               Core *core, Clock *clk)
+    : BaseModule(name.c_str(), sim_config, core, clk), is_mount(false) {
+    hardware_ = new RegBuffer(name.c_str(), reg_buffer_config, sim_config, core, clk);
+    as_offset_ = AddressSapce::getInstance().getMemoryAddressSpaceOffset(hardware_->getMemoryName());
     SC_THREAD(process);
 }
 
-Memory::Memory(const char *name, MemoryHardware *memory_hardware, const AddressSpaceConfig &addressing,
-               const SimConfig &sim_config, Core *core, Clock *clk)
-    : BaseModule(name, sim_config, core, clk), is_mount(true), addressing_(addressing) {
+Memory::Memory(const std::string &name, MemoryHardware *memory_hardware, const SimConfig &sim_config, Core *core,
+               Clock *clk)
+    : BaseModule(name.c_str(), sim_config, core, clk), is_mount(true) {
     hardware_ = memory_hardware;
+    as_offset_ = AddressSapce::getInstance().getMemoryAddressSpaceOffset(hardware_->getMemoryName());
     SC_THREAD(process);
 }
 
@@ -41,12 +45,8 @@ void Memory::access(std::shared_ptr<MemoryAccessPayload> payload) {
     start_process_.notify();
 }
 
-int Memory::getAddressSpaceBegin() const {
-    return addressing_.offset_byte;
-}
-
-int Memory::getAddressSpaceEnd() const {
-    return addressing_.offset_byte + addressing_.size_byte;
+int Memory::getAddressSpaceOffset() const {
+    return as_offset_;
 }
 
 int Memory::getMemoryDataWidthByte(MemoryAccessType access_type) const {

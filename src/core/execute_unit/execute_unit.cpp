@@ -10,7 +10,7 @@
 namespace cimsim {
 
 ExecuteUnit::ExecuteUnit(const char* name, const SimConfig& sim_config, Core* core, Clock* clk, ExecuteUnitType type)
-    : BaseModule(name, sim_config, core, clk), type_(type), fsm_("FSM", clk) {
+    : BaseModule(name, sim_config, core, clk), type_(type), fsm_("FSM", clk), as_(AddressSapce::getInstance()) {
     fsm_.input_.bind(fsm_in_);
     fsm_.enable_.bind(ports_.id_ex_enable_port_);
     fsm_.output_.bind(fsm_out_);

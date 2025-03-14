@@ -25,7 +25,7 @@ public:
     sc_core::sc_time accessAndGetDelay(MemoryAccessPayload& payload) override;
     int getMemoryDataWidthByte(MemoryAccessType access_type) const override;
     int getMemorySizeByte() const override;
-    const AddressSpaceConfig& getAddressSpaceConfig() const;
+    const std::string& getMemoryName() override;
 
     // As a cim compute unit
     int getConfigMacroGroupCount() const;
@@ -43,7 +43,7 @@ public:
     // Other Interface
     void bindCimComputeUnit(const std::function<void(int)>& release_resource_func,
                             const std::function<void()>& finish_ins_func);
-    void bindLocalMemoryUnit(int local_memory_id);
+    void setLocalMemoryId(int memory_id);
     int getLocalMemoryId() const;
 
 private:

@@ -239,16 +239,16 @@ void CimComputeUnit::readBitSparseMetaSubmodule() {
 ResourceAllocatePayload CimComputeUnit::getDataConflictInfo(const cimsim::CimComputeInsPayload &payload) const {
     ResourceAllocatePayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::cim_compute};
 
-    int input_memory_id = local_memory_socket_.getLocalMemoryIdByAddress(payload.input_addr_byte);
+    int input_memory_id = as_.getLocalMemoryId(payload.input_addr_byte);
     conflict_payload.addReadMemoryId(input_memory_id, cim_unit_->getLocalMemoryId());
 
     if (config_.value_sparse && payload.value_sparse) {
-        int mask_memory_id = local_memory_socket_.getLocalMemoryIdByAddress(payload.value_sparse_mask_addr_byte);
+        int mask_memory_id = as_.getLocalMemoryId(payload.value_sparse_mask_addr_byte);
         conflict_payload.addReadMemoryId(mask_memory_id);
     }
 
     if (config_.bit_sparse && payload.bit_sparse) {
-        int meta_memory_id = local_memory_socket_.getLocalMemoryIdByAddress(payload.bit_sparse_meta_addr_byte);
+        int meta_memory_id = as_.getLocalMemoryId(payload.bit_sparse_meta_addr_byte);
         conflict_payload.addReadMemoryId(meta_memory_id);
     }
 

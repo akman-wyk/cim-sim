@@ -25,6 +25,7 @@ public:
 
     int getMemoryDataWidthByte(MemoryAccessType access_type) const override;
     int getMemorySizeByte() const override;
+    const std::string& getMemoryName() override;
 
 private:
     void initialData();

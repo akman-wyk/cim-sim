@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "../base/test_macro.h"
+#include "address_space/address_space.h"
 #include "base_component/base_module.h"
 #include "core/cim_unit/macro_group.h"
 #include "core/cim_unit/payload.h"
@@ -129,6 +130,7 @@ int sc_main(int argc, char* argv[]) {
         std::cout << "Config not valid" << std::endl;
         return INVALID_CONFIG;
     }
+    AddressSapce::initialize(config.chip_config);
 
     auto test_info = readTypeFromJsonFile<MacroGroupTestInfo>(instruction_file);
     Clock clk{"clock", config.sim_config.period_ns};

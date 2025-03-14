@@ -44,6 +44,7 @@ int sc_main(int argc, char* argv[]) {
         std::cout << "Config not valid" << std::endl;
         return INVALID_CONFIG;
     }
+    AddressSapce::initialize(config.chip_config);
 
     auto test_info = readTypeFromJsonFile<ChipTestInfo>(instruction_file);
     Chip chip{"Chip", config, test_info.code};

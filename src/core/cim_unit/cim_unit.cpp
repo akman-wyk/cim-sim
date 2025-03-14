@@ -14,14 +14,9 @@ CimUnit::CimUnit(const char* name, const CimUnitConfig& config, const SimConfig&
     : MemoryHardware(name, sim_config, core, clk)
     , config_(config)
     , macro_size_(config_.macro_size)
-    , cim_byte_size_(IntDivCeil(macro_size_.bit_width_per_row * macro_size_.row_cnt_per_element *
-                                    macro_size_.element_cnt_per_compartment * macro_size_.compartment_cnt_per_macro *
-                                    config_.macro_total_cnt,
-                                BYTE_TO_BIT))
-    , cim_bit_width_(
-          macro_size_.bit_width_per_row * macro_size_.element_cnt_per_compartment *
-          (config_.sram.as_mode == +CimASMode::intergroup ? config_.macro_total_cnt : config_.macro_group_size))
-    , cim_byte_width_(IntDivCeil(cim_bit_width_, BYTE_TO_BIT))
+    , cim_byte_size_(config_.getByteSize())
+    , cim_bit_width_(config_.getBitWidth())
+    , cim_byte_width_(config_.getByteWidth())
     , config_group_cnt_(config_.macro_total_cnt / config_.macro_group_size)
     , macro_simulation_(sim_config.data_mode == +DataMode::not_real_data && !config_.bit_sparse &&
                         !config_.input_bit_sparse && !config_.value_sparse) {
@@ -50,8 +45,8 @@ int CimUnit::getMemoryDataWidthByte(MemoryAccessType access_type) const {
     return cim_byte_width_;
 }
 
-const AddressSpaceConfig& CimUnit::getAddressSpaceConfig() const {
-    return config_.address_space;
+const std::string& CimUnit::getMemoryName() {
+    return config_.name_as_memory;
 }
 
 sc_core::sc_time CimUnit::accessAndGetDelay(MemoryAccessPayload& payload) {
@@ -137,8 +132,8 @@ void CimUnit::bindCimComputeUnit(const std::function<void(int)>& release_resourc
     }
 }
 
-void CimUnit::bindLocalMemoryUnit(int local_memory_id) {
-    local_memory_id_ = local_memory_id;
+void CimUnit::setLocalMemoryId(int memory_id) {
+    local_memory_id_ = memory_id;
 }
 
 int CimUnit::getLocalMemoryId() const {

@@ -19,7 +19,7 @@ public:
     TestModule(const char* name, const Config& config)
         : sc_core::sc_module(name)
         , local_memory_unit_("local_memory_unit", config.chip_config.core_config.local_memory_unit_config,
-                             config.sim_config, nullptr, nullptr) {
+                             config.sim_config, nullptr, nullptr, true) {
         SC_THREAD(process1)
         SC_THREAD(process2)
     }
@@ -60,6 +60,7 @@ int sc_main(int argc, char* argv[]) {
         std::cout << "Config not valid" << std::endl;
         return 1;
     }
+    AddressSapce::initialize(config.chip_config);
 
     TestModule test_module{"test_local_memory_unit_module", config};
     sc_start(500, SC_NS);

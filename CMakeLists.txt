@@ -114,6 +114,8 @@ add_library(cim-simulator STATIC ""
         src/util/reporter.h
         src/util/util.cpp
         src/util/util.h
+        src/address_space/address_space.cpp
+        src/address_space/address_space.h
 )
 set_target_properties(cim-simulator PROPERTIES OUTPUT_NAME "cim-simulator")
 target_include_directories(cim-simulator PRIVATE

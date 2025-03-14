@@ -147,18 +147,16 @@ ResourceAllocatePayload CimControlUnit::getDataConflictInfo(const CimControlInsP
     ResourceAllocatePayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::cim_control};
     switch (payload.op) {
         case CimControlOperator::set_activation: {
-            conflict_payload.addReadMemoryId(local_memory_socket_.getLocalMemoryIdByAddress(payload.mask_addr_byte),
-                                             cim_unit_->getLocalMemoryId());
+            conflict_payload.addReadMemoryId(as_.getLocalMemoryId(payload.mask_addr_byte), cim_unit_->getLocalMemoryId());
             break;
         }
         case CimControlOperator::only_output:
         case CimControlOperator::output_sum:
         case CimControlOperator::output_sum_move: {
             conflict_payload.addReadMemoryId(cim_unit_->getLocalMemoryId());
-            conflict_payload.addWriteMemoryId(local_memory_socket_.getLocalMemoryIdByAddress(payload.output_addr_byte));
+            conflict_payload.addWriteMemoryId(as_.getLocalMemoryId(payload.output_addr_byte));
             if (payload.op == +CimControlOperator::output_sum) {
-                conflict_payload.addReadMemoryId(
-                    local_memory_socket_.getLocalMemoryIdByAddress(payload.output_mask_addr_byte));
+                conflict_payload.addReadMemoryId(as_.getLocalMemoryId(payload.output_mask_addr_byte));
             }
         }
         default: break;

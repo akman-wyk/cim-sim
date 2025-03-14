@@ -43,10 +43,6 @@
           "element_cnt_per_compartment": 1,
           "row_cnt_per_element": 1,
           "bit_width_per_row": 1
-        },
-        "address_space": {
-          "offset_byte": 0,
-          "size_byte": 1024
         }
       },
       "local_memory_unit_config": {
@@ -54,10 +50,6 @@
           {
             "name": "l1",
             "type": "ram",
-            "addressing": {
-              "offset_byte": 1024,
-              "size_byte": 1024
-            },
             "hardware_config": {
               "size_byte": 1024,
               "width_byte": 16,
@@ -71,10 +63,6 @@
           {
             "name": "l2",
             "type": "ram",
-            "addressing": {
-              "offset_byte": 2048,
-              "size_byte": 1024
-            },
             "hardware_config": {
               "size_byte": 1024,
               "width_byte": 16,
@@ -97,10 +85,6 @@
           {
             "name": "g1",
             "type": "ram",
-            "addressing": {
-              "offset_byte": 3072,
-              "size_byte": 1024
-            },
             "hardware_config": {
               "size_byte": 1024,
               "width_byte": 16,
@@ -118,7 +102,13 @@
     "network_config": {
       "bus_width_byte": 16,
       "network_config_file_path": "../test_data/chip/network_config_2.json"
-    }
+    },
+    "address_space_config": [
+      {"name": "cim_unit", "size": 1024},
+      {"name": "l1", "size": 1024},
+      {"name": "l2", "size": 1024},
+      {"name": "g1", "size": 1024}
+    ]
   },
   "sim_config": {
     "period_ns": 5.0,

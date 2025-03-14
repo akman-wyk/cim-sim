@@ -23,8 +23,6 @@ public:
 
     void writeData(const InstructionPayload& ins, int address_byte, int size_byte, std::vector<uint8_t> data);
 
-    int getLocalMemoryIdByAddress(int address_byte) const;
-
     int getMemoryDataWidthById(int memory_id, MemoryAccessType access_type) const;
 
     int getMemorySizeById(int memory_id) const;

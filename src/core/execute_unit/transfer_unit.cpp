@@ -148,8 +148,8 @@ std::pair<TransferInstructionInfo, ResourceAllocatePayload> TransferUnit::decode
     const TransferInsPayload& payload) const {
     TransferInstructionInfo ins_info;
     if (payload.type == +TransferType::local_trans) {
-        int src_memory_id = local_memory_socket_.getLocalMemoryIdByAddress(payload.src_address_byte);
-        int dst_memory_id = local_memory_socket_.getLocalMemoryIdByAddress(payload.dst_address_byte);
+        int src_memory_id = as_.getLocalMemoryId(payload.src_address_byte);
+        int dst_memory_id = as_.getLocalMemoryId(payload.dst_address_byte);
 
         int data_width_byte =
             std::max(local_memory_socket_.getMemoryDataWidthById(src_memory_id, MemoryAccessType::read),
@@ -180,13 +180,13 @@ ResourceAllocatePayload TransferUnit::getDataConflictInfo(const TransferInsPaylo
     ResourceAllocatePayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::transfer};
     if (payload.type == +TransferType::local_trans || payload.type == +TransferType::send ||
         payload.type == +TransferType::global_store) {
-        conflict_payload.addReadMemoryId(local_memory_socket_.getLocalMemoryIdByAddress(payload.src_address_byte));
+        conflict_payload.addReadMemoryId(as_.getLocalMemoryId(payload.src_address_byte));
     }
     if (payload.type == +TransferType::local_trans || payload.type == +TransferType::receive ||
         payload.type == +TransferType::global_load) {
-        conflict_payload.addWriteMemoryId(local_memory_socket_.getLocalMemoryIdByAddress(payload.dst_address_byte));
+        conflict_payload.addWriteMemoryId(as_.getLocalMemoryId(payload.dst_address_byte));
     }
-    return std::move(conflict_payload);
+    return conflict_payload;
 }
 
 ResourceAllocatePayload TransferUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) {

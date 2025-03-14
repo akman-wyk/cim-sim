@@ -28,6 +28,7 @@ void LayerSimulator::run() {
         std::cout << "Invalid config" << std::endl;
         return;
     }
+    AddressSapce::initialize(config_.chip_config);
     std::cout << "Load finish" << std::endl;
 
     std::cout << "Reading Instructions" << std::endl;

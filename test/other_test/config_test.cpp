@@ -32,20 +32,12 @@ Config get_config() {
     instruction_config.functor_binding_list.emplace_back(binding_config);
     config.chip_config.core_config.simd_unit_config.instruction_list.emplace_back(instruction_config);
 
-    config.chip_config.core_config.cim_unit_config.address_space =
-        AddressSpaceConfig{.offset_byte = 0, .size_byte = 1024};
     config.chip_config.core_config.cim_unit_config.macro_group_size = 16;
     config.chip_config.core_config.cim_unit_config.value_sparse = true;
     config.chip_config.core_config.cim_unit_config.bit_sparse = true;
 
-    MemoryConfig l1{.name = "l1",
-                         .type = MemoryType::ram,
-                         .addressing = AddressSpaceConfig{.offset_byte = 1024, .size_byte = 1024},
-                         .ram_config = RAMConfig{}};
-    MemoryConfig l2{.name = "l2",
-                         .type = MemoryType::reg_buffer,
-                         .addressing = AddressSpaceConfig{.offset_byte = 2048, .size_byte = 1024},
-                         .reg_buffer_config = RegBufferConfig{}};
+    MemoryConfig l1{.name = "l1", .type = MemoryType::ram, .ram_config = RAMConfig{}};
+    MemoryConfig l2{.name = "l2", .type = MemoryType::reg_buffer, .reg_buffer_config = RegBufferConfig{}};
     config.chip_config.core_config.local_memory_unit_config.memory_list.emplace_back(l1);
     config.chip_config.core_config.local_memory_unit_config.memory_list.emplace_back(l2);
 
