@@ -9,8 +9,8 @@
 
 #include "base_component/submodule_socket.h"
 #include "config/config.h"
+#include "core/socket/memory_socket.h"
 #include "execute_unit.h"
-#include "memory/memory_socket.h"
 #include "payload.h"
 
 namespace cimsim {
@@ -56,8 +56,6 @@ public:
     [[noreturn]] void processExecuteSubmodule();
     [[noreturn]] void processWriteSubmodule();
 
-    void bindLocalMemoryUnit(MemoryUnit* local_memory_unit);
-
     ResourceAllocatePayload getDataConflictInfo(const SIMDInsPayload& payload) const;
     ResourceAllocatePayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
 
@@ -71,15 +69,13 @@ private:
         const SIMDInsPayload& payload);
 
     std::pair<SIMDInstructionInfo, ResourceAllocatePayload> decodeAndGetInfo(const SIMDInstructionConfig* instruction,
-                                                                         const SIMDFunctorConfig* functor,
-                                                                         const SIMDInsPayload& payload) const;
+                                                                             const SIMDFunctorConfig* functor,
+                                                                             const SIMDInsPayload& payload) const;
 
 private:
     const SIMDUnitConfig& config_;
     std::unordered_map<unsigned int, const SIMDInstructionConfig*> instruction_config_map_;
     std::unordered_map<std::string, const SIMDFunctorConfig*> functor_config_map_;
-
-    MemorySocket local_memory_socket_;
 
     sc_core::sc_event cur_ins_next_batch_;
     SubmoduleSocket<SIMDSubmodulePayload> read_submodule_socket_{};

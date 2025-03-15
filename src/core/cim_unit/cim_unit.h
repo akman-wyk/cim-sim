@@ -43,8 +43,6 @@ public:
     // Other Interface
     void bindCimComputeUnit(const std::function<void(int)>& release_resource_func,
                             const std::function<void()>& finish_ins_func);
-    void setLocalMemoryId(int memory_id);
-    int getLocalMemoryId() const;
 
 private:
     const CimUnitConfig& config_;

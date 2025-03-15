@@ -7,6 +7,7 @@
 #include "base_component/base_module.h"
 #include "base_component/fsm.h"
 #include "core/conflict/payload.h"
+#include "core/socket/memory_socket.h"
 #include "payload.h"
 
 namespace cimsim {
@@ -63,6 +64,8 @@ public:
     void processFinishRun();
     void processIdFinish();
 
+    void bindLocalMemoryUnit(MemoryUnit* local_memory_unit);
+
     virtual ResourceAllocatePayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload);
 
 protected:
@@ -85,6 +88,7 @@ public:
 
 protected:
     const AddressSapce& as_;
+    MemorySocket memory_socket_;
 
 private:
     const ExecuteUnitType type_;

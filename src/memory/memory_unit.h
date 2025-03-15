@@ -20,17 +20,11 @@ public:
     MemoryUnit(const char* name, const MemoryUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk,
                bool is_global);
 
-    std::vector<uint8_t> read_data(const InstructionPayload& ins, int address_byte, int size_byte,
-                                   sc_core::sc_event& finish_access);
-
-    void write_data(const InstructionPayload& ins, int address_byte, int size_byte, std::vector<uint8_t> data,
-                    sc_core::sc_event& finish_access);
+    void mountMemory(MemoryHardware* memory_hardware);
 
     void access(const std::shared_ptr<MemoryAccessPayload>& payload);
 
     EnergyReporter getEnergyReporter() override;
-
-    void bindCimUnit(CimUnit* cim_unit);
 
     int getMemoryDataWidthById(int memory_id, MemoryAccessType access_type) const;
     int getMemorySizeById(int memory_id) const;

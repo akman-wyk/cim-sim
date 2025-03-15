@@ -13,6 +13,9 @@ add_subdirectory(packages/systemc)
 add_subdirectory(packages/json)
 
 add_library(cim-simulator STATIC ""
+        src/address_space/address_space.cpp
+        src/address_space/address_space.h
+
         src/base_component/base_module.cpp
         src/base_component/base_module.h
         src/base_component/clock.cpp
@@ -69,6 +72,11 @@ add_library(cim-simulator STATIC ""
         src/core/reg_unit/reg_unit.cpp
         src/core/reg_unit/reg_unit.h
 
+        src/core/socket/memory_socket.cpp
+        src/core/socket/memory_socket.h
+        src/core/socket/transmit_socket.cpp
+        src/core/socket/transmit_socket.h
+
         src/core/payload.h
         src/core/core.cpp
         src/core/core.h
@@ -87,8 +95,6 @@ add_library(cim-simulator STATIC ""
         src/memory/memory.cpp
         src/memory/memory.h
         src/memory/memory_hardware.h
-        src/memory/memory_socket.cpp
-        src/memory/memory_socket.h
         src/memory/memory_unit.cpp
         src/memory/memory_unit.h
         src/memory/payload.h
@@ -102,8 +108,6 @@ add_library(cim-simulator STATIC ""
         src/network/payload.h
         src/network/switch.cpp
         src/network/switch.h
-        src/network/switch_socket.cpp
-        src/network/switch_socket.h
 
         src/util/ins_stat.cpp
         src/util/ins_stat.h
@@ -114,8 +118,6 @@ add_library(cim-simulator STATIC ""
         src/util/reporter.h
         src/util/util.cpp
         src/util/util.h
-        src/address_space/address_space.cpp
-        src/address_space/address_space.h
 )
 set_target_properties(cim-simulator PROPERTIES OUTPUT_NAME "cim-simulator")
 target_include_directories(cim-simulator PRIVATE

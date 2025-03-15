@@ -65,6 +65,10 @@ EnergyReporter Memory::getEnergyReporter() {
     return hardware_->getEnergyReporter();
 }
 
+void Memory::setMemoryID(int mem_id) {
+    hardware_->setMemoryID(mem_id);
+}
+
 void Memory::process() {
     while (true) {
         while (access_queue_.empty()) {

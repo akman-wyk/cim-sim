@@ -18,6 +18,7 @@
 #include "execute_unit/simd_unit.h"
 #include "execute_unit/transfer_unit.h"
 #include "memory/memory_unit.h"
+#include "network/switch.h"
 #include "payload.h"
 
 namespace cimsim {
@@ -43,9 +44,8 @@ public:
     [[nodiscard]] int getCoreId() const;
 
 private:
-    struct ExecuteUnitRegistration {
-        ExecuteUnitRegistration(ExecuteUnitType type, ExecuteUnit* execute_unit,
-                                const sc_event& decode_new_ins_trigger);
+    struct ExecuteUnitInfo {
+        ExecuteUnitInfo(ExecuteUnitType type, ExecuteUnit* execute_unit, const sc_event& decode_new_ins_trigger);
 
         ExecuteUnitType type;
         ExecuteUnit* execute_unit;
@@ -63,7 +63,7 @@ private:
     void processIdExEnable();
     void processFinishRun();
 
-    void registerExecuteUnit(ExecuteUnitType type, ExecuteUnit* execute_unit);
+    void bindExecuteUnit(ExecuteUnitType type, ExecuteUnit* execute_unit);
 
     void bindModules();
     void setThreadAndMethod();
@@ -93,7 +93,7 @@ private:
     // execute unit manage
     sc_process_handle processStall_handle_;
     sc_process_handle processFinishRun_handle_;
-    std::vector<std::shared_ptr<ExecuteUnitRegistration>> execute_unit_list_;
+    std::vector<std::shared_ptr<ExecuteUnitInfo>> execute_unit_list_;
 
     // decode, issue and stall
     std::shared_ptr<ExecuteInsPayload> cur_ins_payload_;

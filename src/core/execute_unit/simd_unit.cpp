@@ -78,13 +78,13 @@ void SIMDUnit::processReadSubmodule() {
         read_submodule_socket_.waitUntilStart();
 
         const auto& payload = read_submodule_socket_.payload;
-        LOG(fmt::format("simd read start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
+        CORE_LOG(fmt::format("simd read start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
                         payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
 
         if (payload.batch_info.first_batch) {
             for (const auto& scalar_input : payload.ins_info.scalar_inputs) {
-                local_memory_socket_.readData(payload.ins_info.ins, scalar_input.start_address_byte,
-                                              scalar_input.data_bit_width / BYTE_TO_BIT);
+                memory_socket_.readLocal(payload.ins_info.ins, scalar_input.start_address_byte,
+                                        scalar_input.data_bit_width / BYTE_TO_BIT);
             }
         }
 
@@ -93,7 +93,7 @@ void SIMDUnit::processReadSubmodule() {
                 vector_input.start_address_byte + (payload.batch_info.batch_num * vector_input.data_bit_width *
                                                    payload.ins_info.functor_config->functor_cnt / BYTE_TO_BIT);
             int size_byte = vector_input.data_bit_width * payload.batch_info.batch_vector_len / BYTE_TO_BIT;
-            local_memory_socket_.readData(payload.ins_info.ins, address_byte, size_byte);
+            memory_socket_.readLocal(payload.ins_info.ins, address_byte, size_byte);
         }
 
         waitAndStartNextSubmodule(payload, execute_submodule_socket_);
@@ -111,7 +111,7 @@ void SIMDUnit::processExecuteSubmodule() {
         execute_submodule_socket_.waitUntilStart();
 
         const auto& payload = execute_submodule_socket_.payload;
-        LOG(fmt::format("simd execute start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
+        CORE_LOG(fmt::format("simd execute start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
                         payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
 
         double dynamic_power_mW =
@@ -131,7 +131,7 @@ void SIMDUnit::processWriteSubmodule() {
         write_submodule_socket_.waitUntilStart();
 
         const auto& payload = write_submodule_socket_.payload;
-        LOG(fmt::format("simd write start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
+        CORE_LOG(fmt::format("simd write start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
                         payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
 
         if (payload.batch_info.last_batch) {
@@ -142,9 +142,9 @@ void SIMDUnit::processWriteSubmodule() {
                            (payload.batch_info.batch_num * payload.ins_info.output.data_bit_width *
                             payload.ins_info.functor_config->functor_cnt / BYTE_TO_BIT);
         int size_byte = payload.ins_info.output.data_bit_width * payload.batch_info.batch_vector_len / BYTE_TO_BIT;
-        local_memory_socket_.writeData(payload.ins_info.ins, address_byte, size_byte, {});
+        memory_socket_.writeLocal(payload.ins_info.ins, address_byte, size_byte, {});
 
-        LOG(fmt::format("simd write end, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
+        CORE_LOG(fmt::format("simd write end, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
                         payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
 
         if (!payload.ins_info.use_pipeline && !payload.batch_info.last_batch) {
@@ -157,10 +157,6 @@ void SIMDUnit::processWriteSubmodule() {
 
         write_submodule_socket_.finish();
     }
-}
-
-void SIMDUnit::bindLocalMemoryUnit(MemoryUnit* local_memory_unit) {
-    local_memory_socket_.bindLocalMemoryUnit(local_memory_unit);
 }
 
 unsigned int SIMDUnit::getSIMDInstructionIdentityCode(unsigned int input_cnt, unsigned int opcode) {

@@ -32,7 +32,7 @@ void ScalarUnit::process() {
         ResourceAllocatePayload conflict_payload{.ins_id = payload->ins.ins_id, .unit_type = ExecuteUnitType::scalar};
         ports_.resource_allocate_.write(conflict_payload);
 
-        LOG(fmt::format("scalar {} start, pc: {}", payload->op._to_string(), payload->ins.pc));
+        CORE_LOG(fmt::format("scalar {} start, pc: {}", payload->op._to_string(), payload->ins.pc));
 
         // statistic energy
         auto functor_found = functor_config_map_.find(payload->op._to_string());
@@ -49,10 +49,6 @@ void ScalarUnit::process() {
     }
 }
 
-void ScalarUnit::bindLocalMemoryUnit(cimsim::MemoryUnit *local_memory_unit) {
-    local_memory_socket_.bindLocalMemoryUnit(local_memory_unit);
-}
-
 void ScalarUnit::bindRegUnit(cimsim::RegUnit *reg_unit) {
     reg_unit_ = reg_unit;
 }
@@ -62,7 +58,7 @@ void ScalarUnit::executeInst() {
         execute_socket_.waitUntilStart();
 
         const auto &payload = execute_socket_.payload;
-        LOG(fmt::format("Scalar start execute, pc: {}", payload.ins.pc));
+        CORE_LOG(fmt::format("Scalar start execute, pc: {}", payload.ins.pc));
 
         if (payload.op == +ScalarOperator::store) {
             releaseResource(payload.ins.ins_id);
@@ -70,7 +66,7 @@ void ScalarUnit::executeInst() {
             int address_byte = payload.src1_value + payload.offset;
             int size_byte = WORD_BYTE_SIZE;
             auto write_data = IntToBytes(payload.src2_value, true);
-            local_memory_socket_.writeData(payload.ins, address_byte, size_byte, std::move(write_data));
+            memory_socket_.writeLocal(payload.ins, address_byte, size_byte, std::move(write_data));
         } else {
             reg_unit_->writeRegister(executeAndWriteRegister(payload));
 
@@ -164,7 +160,7 @@ RegUnitWritePayload ScalarUnit::executeAndWriteRegister(const cimsim::ScalarInsP
         case ScalarOperator::load: {
             int address_byte = payload.src1_value + payload.offset;
             int size_byte = WORD_BYTE_SIZE;
-            auto read_result = local_memory_socket_.readData(payload.ins, address_byte, size_byte);
+            auto read_result = memory_socket_.readLocal(payload.ins, address_byte, size_byte);
             write_payload.value = BytesToInt(read_result, true);
             break;
         }

@@ -28,7 +28,12 @@ public:
         wait(10, SC_NS);
         std::cout << sc_core::sc_time_stamp() << ", process1 start access memory" << std::endl;
         InstructionPayload ins{.pc = 1};
-        local_memory_unit_.read_data(ins, 1024, 33, event1);
+        auto payload = std::make_shared<MemoryAccessPayload>(MemoryAccessPayload{.ins = ins,
+                                                                                 .access_type = MemoryAccessType::read,
+                                                                                 .address_byte = 1024,
+                                                                                 .size_byte = 33,
+                                                                                 .finish_access = event1});
+        local_memory_unit_.access(payload);
         std::cout << sc_core::sc_time_stamp() << ", process1 finish access memory" << std::endl;
     }
 
@@ -37,7 +42,12 @@ public:
         std::cout << sc_core::sc_time_stamp() << ", process2 start access memory" << std::endl;
         InstructionPayload ins{.pc = 2};
         std::vector<uint8_t> data{};
-        local_memory_unit_.read_data(ins, 2048, 33, event2);
+        auto payload = std::make_shared<MemoryAccessPayload>(MemoryAccessPayload{.ins = ins,
+                                                                                 .access_type = MemoryAccessType::read,
+                                                                                 .address_byte = 2048,
+                                                                                 .size_byte = 33,
+                                                                                 .finish_access = event2});
+        local_memory_unit_.access(payload);
         std::cout << sc_core::sc_time_stamp() << ", process2 finish access memory" << std::endl;
     }
 

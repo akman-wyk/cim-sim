@@ -25,54 +25,16 @@ MemoryUnit::MemoryUnit(const char *name, const cimsim::MemoryUnitConfig &config,
             auto mem_ptr = mem_cfg.type == +MemoryType::ram
                                ? std::make_shared<Memory>(mem_name, mem_cfg.ram_config, sim_config, core, clk)
                                : std::make_shared<Memory>(mem_name, mem_cfg.reg_buffer_config, sim_config, core, clk);
+            mem_ptr->setMemoryID(mem_id);
             memory_list_[mem_id] = mem_ptr;
         }
     }
 }
 
-std::vector<uint8_t> MemoryUnit::read_data(const cimsim::InstructionPayload &ins, int address_byte, int size_byte,
-                                           sc_core::sc_event &finish_access) {
-    auto memory = getMemoryByAddress(address_byte);
-    if (memory == nullptr) {
-        std::cerr << fmt::format("Core id: {}, Invalid memory read with ins NO.'{}': address {} does not match any "
-                                 "memory's address space",
-                                 core_->getCoreId(), ins.pc, address_byte)
-                  << std::endl;
-        return {};
-    }
-
-    auto payload = std::make_shared<MemoryAccessPayload>(
-        MemoryAccessPayload{.ins = ins,
-                            .access_type = MemoryAccessType::read,
-                            .address_byte = address_byte - memory->getAddressSpaceOffset(),
-                            .size_byte = size_byte,
-                            .finish_access = finish_access});
-    memory->access(payload);
-    wait(payload->finish_access);
-
-    return std::move(payload->data);
-}
-
-void MemoryUnit::write_data(const cimsim::InstructionPayload &ins, int address_byte, int size_byte,
-                            std::vector<uint8_t> data, sc_core::sc_event &finish_access) {
-    auto memory = getMemoryByAddress(address_byte);
-    if (memory == nullptr) {
-        std::cerr << fmt::format(
-                         "Invalid memory write with ins NO.'{}': address does not match any memory's address space",
-                         ins.pc)
-                  << std::endl;
-        return;
-    }
-
-    auto payload = std::make_shared<MemoryAccessPayload>(
-        MemoryAccessPayload{.ins = ins,
-                            .access_type = MemoryAccessType::write,
-                            .address_byte = address_byte - memory->getAddressSpaceOffset(),
-                            .size_byte = size_byte,
-                            .data = std::move(data),
-                            .finish_access = finish_access});
-    memory->access(payload);
-    wait(payload->finish_access);
+void MemoryUnit::mountMemory(MemoryHardware *memory_hardware) {
+    int mem_id = as_.getMemoryId(memory_hardware->getMemoryName());
+    memory_hardware->setMemoryID(mem_id);
+    memory_list_[mem_id] = std::make_shared<Memory>("cim unit", memory_hardware, sim_config_, core_, clk_);
 }
 
 void MemoryUnit::access(const std::shared_ptr<MemoryAccessPayload> &payload) {
@@ -97,12 +59,6 @@ EnergyReporter MemoryUnit::getEnergyReporter() {
         }
     }
     return std::move(memory_unit_reporter);
-}
-
-void MemoryUnit::bindCimUnit(CimUnit *cim_unit) {
-    int mem_id = as_.getMemoryId(cim_unit->getMemoryName());
-    memory_list_[mem_id] = std::make_shared<Memory>("cim unit", cim_unit, sim_config_, core_, clk_);
-    cim_unit->setLocalMemoryId(mem_id);
 }
 
 int MemoryUnit::getMemoryDataWidthById(int memory_id, MemoryAccessType access_type) const {

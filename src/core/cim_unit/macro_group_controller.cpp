@@ -51,8 +51,8 @@ void MacroGroupController::processIPUAndIssue() {
 
         const auto &payload = controller_socket_.payload;
         const auto &cim_ins_info = payload.cim_ins_info;
-        LOG(fmt::format("{} start, ins pc: {}, sub ins num: {}", getName(), cim_ins_info.ins_pc,
-                        cim_ins_info.sub_ins_num));
+        CORE_LOG(fmt::format("{} start, ins pc: {}, sub ins num: {}", getName(), cim_ins_info.ins_pc,
+                             cim_ins_info.sub_ins_num));
 
         MacroGroupSubmodulePayload submodule_payload{.sub_ins_info = {.cim_ins_info = cim_ins_info,
                                                                       .last_group = payload.last_group,
@@ -61,8 +61,9 @@ void MacroGroupController::processIPUAndIssue() {
         for (int batch = 0; batch < batch_count; batch++) {
             submodule_payload.batch_info = {
                 .batch_num = batch, .first_batch = (batch == 0), .last_batch = (batch == batch_count - 1)};
-            LOG(fmt::format("{} start ipu and issue, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                            cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, submodule_payload.batch_info.batch_num));
+            CORE_LOG(fmt::format("{} start ipu and issue, ins pc: {}, sub ins num: {}, batch: {}", getName(),
+                                 cim_ins_info.ins_pc, cim_ins_info.sub_ins_num,
+                                 submodule_payload.batch_info.batch_num));
 
             double latency = config_.ipu.latency_cycle * period_ns_;
             wait(latency, SC_NS);
@@ -81,8 +82,8 @@ void MacroGroupController::processSRAMSubmodule() {
 
         const auto &payload = sram_socket_.payload;
         const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
-        LOG(fmt::format("{} start sram read, ins pc: {}, sub ins num: {}, batch: {}", getName(), cim_ins_info.ins_pc,
-                        cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+        CORE_LOG(fmt::format("{} start sram read, ins pc: {}, sub ins num: {}, batch: {}", getName(),
+                             cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double latency = config_.sram.read_latency_cycle * period_ns_;
         wait(latency, SC_NS);
@@ -99,8 +100,8 @@ void MacroGroupController::processPostProcessSubmodule() {
         const auto &payload = post_process_socket_.payload;
         const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
         if (config_.bit_sparse && payload.sub_ins_info.bit_sparse) {
-            LOG(fmt::format("{} start post process, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                            cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+            CORE_LOG(fmt::format("{} start post process, ins pc: {}, sub ins num: {}, batch: {}", getName(),
+                                 cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
             double latency = config_.bit_sparse_config.latency_cycle * period_ns_;
             wait(latency, SC_NS);
@@ -117,8 +118,8 @@ void MacroGroupController::processAdderTreeSubmodule1() {
 
         const auto &payload = adder_tree_socket_1_.payload;
         const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
-        LOG(fmt::format("{} start adder tree stage 1, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                        cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+        CORE_LOG(fmt::format("{} start adder tree stage 1, ins pc: {}, sub ins num: {}, batch: {}", getName(),
+                             cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double latency = period_ns_;
         wait(latency, SC_NS);
@@ -134,8 +135,8 @@ void MacroGroupController::processAdderTreeSubmodule2() {
 
         const auto &payload = adder_tree_socket_2_.payload;
         const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
-        LOG(fmt::format("{} start adder tree stage 2, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                        cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+        CORE_LOG(fmt::format("{} start adder tree stage 2, ins pc: {}, sub ins num: {}, batch: {}", getName(),
+                             cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double latency = period_ns_;
         wait(latency, SC_NS);
@@ -151,8 +152,8 @@ void MacroGroupController::processShiftAdderSubmodule() {
 
         const auto &payload = shift_adder_socket_.payload;
         const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
-        LOG(fmt::format("{} start shift adder, ins pc: {}, sub ins num: {}, batch: {}", getName(), cim_ins_info.ins_pc,
-                        cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+        CORE_LOG(fmt::format("{} start shift adder, ins pc: {}, sub ins num: {}, batch: {}", getName(),
+                             cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double latency = config_.shift_adder.latency_cycle * period_ns_;
         wait(latency, SC_NS);

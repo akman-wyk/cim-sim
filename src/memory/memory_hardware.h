@@ -19,7 +19,21 @@ public:
 
     [[nodiscard]] virtual int getMemoryDataWidthByte(MemoryAccessType access_type) const = 0;
     [[nodiscard]] virtual int getMemorySizeByte() const = 0;
-    [[nodiscard]] virtual const std::string& getMemoryName() = 0;
+
+    [[nodiscard]] virtual const std::string& getMemoryName() {
+        return getName();
+    }
+
+    void setMemoryID(int mem_id) {
+        mem_id_ = mem_id;
+    }
+
+    [[nodiscard]] int getMemoryID() const {
+        return mem_id_;
+    }
+
+private:
+    int mem_id_{-1};
 };
 
 }  // namespace cimsim

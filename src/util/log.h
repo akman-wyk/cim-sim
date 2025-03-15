@@ -9,8 +9,10 @@ namespace cimsim {
 
 class Core;
 
-void log(const std::string& msg, Core* core);
+void log(const std::string& msg);
+void core_log(const std::string& msg, Core* core);
 
 }  // namespace cimsim
 
-#define LOG(msg) log(msg, core_)
+#define LOG(msg) log(msg)
+#define CORE_LOG(msg) core_log(msg, core_)

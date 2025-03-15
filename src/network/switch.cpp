@@ -6,7 +6,6 @@
 
 #include "core/core.h"
 #include "fmt/format.h"
-#include "switch_socket.h"
 #include "util/log.h"
 
 namespace cimsim {
@@ -26,8 +25,9 @@ void Switch::processTransport() {
         auto mode = pending_queue_.front().second;
         pending_queue_.pop();
 
-        LOG(fmt::format("mode: {}, src: {}, dst: {}, req size: {}, rsp size: {}", mode._to_string(), payload->src_id,
-                        payload->dst_id, payload->request_data_size_byte, payload->response_data_size_byte));
+        CORE_LOG(fmt::format("mode: {}, src: {}, dst: {}, req size: {}, rsp size: {}", mode._to_string(),
+                             payload->src_id, payload->dst_id, payload->request_data_size_byte,
+                             payload->response_data_size_byte));
         auto send_delay =
             network_->transferAndGetDelay(payload->src_id, payload->dst_id, payload->request_data_size_byte);
         wait(send_delay);
