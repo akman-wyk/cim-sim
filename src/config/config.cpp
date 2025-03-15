@@ -109,7 +109,7 @@ bool ScalarFunctorConfig::checkValid() const {
         std::cerr
             << fmt::format(
                    "ScalarFunctorConfig of '{}' not valid, 'static_power_mW, dynamic_power_mW' must be non-negative",
-                   inst_name.c_str())
+                   inst_name)
             << std::endl;
         return false;
     }
@@ -184,25 +184,25 @@ bool SIMDFunctorConfig::checkValid() const {
         return false;
     }
     if (input_cnt > SIMD_MAX_INPUT_NUM) {
-        std::cerr << fmt::format("SIMDFunctorConfig of '{}' not valid, 'input_cnt' must be not greater than {}",
-                                 name.c_str(), SIMD_MAX_INPUT_NUM)
+        std::cerr << fmt::format("SIMDFunctorConfig of '{}' not valid, 'input_cnt' must be not greater than {}", name,
+                                 SIMD_MAX_INPUT_NUM)
                   << std::endl;
         return false;
     }
     if (!check_positive(functor_cnt)) {
-        std::cerr << fmt::format("SIMDFunctorConfig of '{}' not valid, 'functor_cnt' must be positive", name.c_str())
+        std::cerr << fmt::format("SIMDFunctorConfig of '{}' not valid, 'functor_cnt' must be positive", name)
                   << std::endl;
         return false;
     }
     if (!check_not_negative(latency_cycle, static_power_per_functor_mW, dynamic_power_per_functor_mW)) {
         std::cerr << fmt::format("SIMDFunctorConfig of '{}' not valid, 'latency_cycle, static_power_per_functor_mW, "
                                  "dynamic_power_per_functor_mW' must be non-negative",
-                                 name.c_str())
+                                 name)
                   << std::endl;
         return false;
     }
     if (!data_bit_width.checkValid(input_cnt, true)) {
-        std::cerr << fmt::format("SIMDFunctorConfig of '{}' not valid", name.c_str()) << std::endl;
+        std::cerr << fmt::format("SIMDFunctorConfig of '{}' not valid", name) << std::endl;
         return false;
     }
     return true;
@@ -217,8 +217,7 @@ bool SIMDInstructionFunctorBindingConfig::checkValid(const unsigned int input_cn
         return false;
     }
     if (!input_bit_width.checkValid(input_cnt, false)) {
-        std::cerr << fmt::format("SIMDInstructionFunctorBindingConfig with functor '{}' not valid",
-                                 functor_name.c_str())
+        std::cerr << fmt::format("SIMDInstructionFunctorBindingConfig with functor '{}' not valid", functor_name)
                   << std::endl;
         return false;
     }
@@ -234,13 +233,13 @@ bool SIMDInstructionConfig::checkValid() const {
     }
     if (input_cnt > SIMD_MAX_INPUT_NUM) {
         std::cerr << fmt::format("SIMDInstructionConfig of '{}' not valid, 'input_cnt' must be not greater than {}",
-                                 name.c_str(), SIMD_MAX_INPUT_NUM)
+                                 name, SIMD_MAX_INPUT_NUM)
                   << std::endl;
         return false;
     }
     if (opcode > SIMD_MAX_OPCODE) {
-        std::cerr << fmt::format("SIMDInstructionConfig of '{}' not valid, 'opcode' must be not greater than {}",
-                                 name.c_str(), SIMD_MAX_OPCODE)
+        std::cerr << fmt::format("SIMDInstructionConfig of '{}' not valid, 'opcode' must be not greater than {}", name,
+                                 SIMD_MAX_OPCODE)
                   << std::endl;
         return false;
     }
@@ -250,7 +249,7 @@ bool SIMDInstructionConfig::checkValid() const {
             [](SIMDInputType input_type) { return input_type == +SIMDInputType::other; });
         invalid_input_type) {
         std::cerr << fmt::format("SIMDInstructionConfig of '{}' not valid, 'input_type' must be 'vector' or 'scalar'",
-                                 name.c_str())
+                                 name)
                   << std::endl;
         return false;
     }
@@ -307,7 +306,7 @@ bool SIMDUnitConfig::checkValid() const {
             // check functor exist
             if (functor_found == functor_map.end()) {
                 std::cerr << "SIMDUnitConfig not valid, instruction functor binding error" << std::endl;
-                std::cerr << fmt::format("\tFunctor '{}' not exist", functor_binding.functor_name.c_str()) << std::endl;
+                std::cerr << fmt::format("\tFunctor '{}' not exist", functor_binding.functor_name) << std::endl;
                 return false;
             }
 
@@ -317,7 +316,7 @@ bool SIMDUnitConfig::checkValid() const {
             if (instruction.input_cnt != functor.input_cnt) {
                 std::cerr << "SIMDUnitConfig not valid, instruction functor binding error" << std::endl;
                 std::cerr << fmt::format("\tInput count not match between instruction '{}' and functor '{}'",
-                                         instruction.name.c_str(), functor.name.c_str())
+                                         instruction.name, functor.name)
                           << std::endl;
                 return false;
             }
@@ -326,7 +325,7 @@ bool SIMDUnitConfig::checkValid() const {
             if (!functor_binding.input_bit_width.inputBitWidthMatch(functor.data_bit_width)) {
                 std::cerr << "SIMDUnitConfig not valid, instruction functor binding error" << std::endl;
                 std::cerr << fmt::format("\tInput bit-width not match between instruction '{}' and functor '{}'",
-                                         instruction.name.c_str(), functor.name.c_str())
+                                         instruction.name, functor.name)
                           << std::endl;
                 return false;
             }
@@ -356,7 +355,7 @@ bool CimModuleConfig::checkValid(const std::string& module_name) const {
     if (!check_not_negative(latency_cycle, static_power_mW, dynamic_power_mW)) {
         std::cerr << fmt::format("CimModuleConfig of '{}' not valid, 'latency_cycle, static_power_mW, "
                                  "dynamic_power_mW' must be non-negative",
-                                 module_name.c_str())
+                                 module_name)
                   << std::endl;
         return false;
     }
@@ -455,6 +454,18 @@ bool CimUnitConfig::checkValid() const {
         return false;
     }
 
+    if (name_as_memory.empty()) {
+        std::cerr << "CimUnitConfig not valid, 'name_as_memory' must be non-empty" << std::endl;
+        return false;
+    }
+    if (name_as_memory.find(DUPLICATE_MEMORY_NAME_DELIMITER) != std::string::npos) {
+        std::cerr << fmt::format("CimUnitConfig of {} not valid, 'name_as_memory' has invalid char {} which is "
+                                 "duplicate memory name delimiter",
+                                 name_as_memory, DUPLICATE_MEMORY_NAME_DELIMITER)
+                  << std::endl;
+        return false;
+    }
+
     if (const bool valid = macro_size.checkValid() && ipu.checkValid("ipu") && sram.checkValid() &&
                            adder_tree.checkValid("adder_tree") && shift_adder.checkValid("shift_adder") &&
                            result_adder.checkValid("result_adder") &&
@@ -493,7 +504,7 @@ DEFINE_TYPE_FROM_JSON_FUNCTION_WITH_DEFAULT(CimUnitConfig, macro_total_cnt, macr
                                             value_sparse, value_sparse_config, bit_sparse, bit_sparse_config,
                                             input_bit_sparse)
 
-// LocalMemoryUnit
+// MemoryUnit
 bool RAMConfig::checkValid() const {
     if (!check_positive(size_byte, width_byte)) {
         std::cerr << "RAMConfig not valid, 'size_byte, width_byte' must be positive" << std::endl;
@@ -581,19 +592,29 @@ std::string MemoryConfig::getMemoryName() const {
 
 bool MemoryConfig::checkValid() const {
     if (name.empty()) {
-        std::cerr << "LocalMemoryConfig not valid, 'name' must be non-empty" << std::endl;
+        std::cerr << "MemoryConfig not valid, 'name' must be non-empty" << std::endl;
+        return false;
+    }
+    if (name.find(DUPLICATE_MEMORY_NAME_DELIMITER) != std::string::npos) {
+        std::cerr << fmt::format("MemoryConfig of {} not valid, 'name' has invalid char {} which is duplicate "
+                                 "memory name delimiter",
+                                 name, DUPLICATE_MEMORY_NAME_DELIMITER)
+                  << std::endl;
         return false;
     }
     if (type == +MemoryType::other) {
-        std::cerr << fmt::format("LocalMemoryConfig of '{}' not valid, 'type' must be 'ram' or 'reg_buffer'",
-                                 name.c_str())
+        std::cerr << fmt::format("MemoryConfig of '{}' not valid, 'type' must be 'ram' or 'reg_buffer'", name)
                   << std::endl;
+        return false;
+    }
+    if (duplicate_cnt <= 0) {
+        std::cerr << fmt::format("MemoryConfig of '{}' not valid, 'duplicate_cnt' must be positive", name) << std::endl;
         return false;
     }
     if (const bool valid = ((type == +MemoryType::ram && ram_config.checkValid()) ||
                             (type == +MemoryType::reg_buffer && reg_buffer_config.checkValid()));
         !valid) {
-        std::cerr << fmt::format("LocalMemoryConfig of '{}' not valid", name.c_str()) << std::endl;
+        std::cerr << fmt::format("MemoryConfig of '{}' not valid", name) << std::endl;
         return false;
     }
 
@@ -603,6 +624,7 @@ bool MemoryConfig::checkValid() const {
 void to_json(nlohmann::ordered_json& j, const MemoryConfig& config) {
     j["name"] = config.name;
     j["type"] = config.type;
+    j["duplicate_cnt"] = config.duplicate_cnt;
     if (config.type == +MemoryType::ram) {
         j["hardware_config"] = config.ram_config;
     } else if (config.type == +MemoryType::reg_buffer) {
@@ -614,6 +636,7 @@ void from_json(const nlohmann::ordered_json& j, MemoryConfig& config) {
     const MemoryConfig default_obj{};
     config.name = j.value("name", default_obj.name);
     config.type = j.value("type", default_obj.type);
+    config.duplicate_cnt = j.value("duplicate_cnt", default_obj.duplicate_cnt);
     if (config.type == +MemoryType::ram) {
         config.ram_config = j.value("hardware_config", default_obj.ram_config);
     } else if (config.type == +MemoryType::reg_buffer) {
@@ -623,7 +646,7 @@ void from_json(const nlohmann::ordered_json& j, MemoryConfig& config) {
 
 bool MemoryUnitConfig::checkValid() const {
     if (!check_vector_valid(memory_list)) {
-        std::cerr << "LocalMemoryUnitConfig not valid" << std::endl;
+        std::cerr << "MemoryUnitConfig not valid" << std::endl;
         return false;
     }
     return true;
@@ -683,6 +706,13 @@ bool AddressSpaceElementConfig::checkValid() const {
         std::cerr << "AddressSpaceConfig not valid, name must not be empty" << std::endl;
         return false;
     }
+    if (name.find(DUPLICATE_MEMORY_NAME_DELIMITER) != std::string::npos) {
+        std::cerr << fmt::format("AddressSpaceConfig of {} not valid, 'name' has invalid char {} which is duplicate "
+                                 "memory name delimiter",
+                                 name, DUPLICATE_MEMORY_NAME_DELIMITER)
+                  << std::endl;
+        return false;
+    }
     if (size == 0) {
         std::cerr << fmt::format("AddressSpaceConfig of {} not valid, size must not be zero", name) << std::endl;
         return false;
@@ -710,26 +740,28 @@ bool ChipConfig::checkAddressSpaceWithMemory(const std::string& mem_name, int me
     return true;
 }
 
-std::unordered_map<std::string, ChipConfig::MemoryInfo> ChipConfig::getMemoryNameToSizeMap(bool check) const {
+std::unordered_map<std::string, ChipConfig::MemoryInfo> ChipConfig::getMemoryNameMap(bool check) const {
     std::unordered_map<std::string, MemoryInfo> mem_map;
-    auto trans_mem = [&](const auto& mem_config, bool is_global) {
-        mem_map.insert(
-            std::make_pair<std::string, MemoryInfo>(mem_config.getMemoryName(), {mem_config.getByteSize(), is_global}));
+    auto trans_mem = [&](const auto& mem_config, bool is_global, int duplicate_cnt) {
+        mem_map.insert(std::make_pair<std::string, MemoryInfo>(mem_config.getMemoryName(),
+                                                               {mem_config.getByteSize(), is_global, duplicate_cnt}));
     };
 
-    // add all local normal memory
+    // add all local memory
     auto& local_mems = core_config.local_memory_unit_config.memory_list;
-    std::for_each(local_mems.begin(), local_mems.end(), [&](const auto& c) { return trans_mem(c, false); });
-
-    // all all local mounted memory
-    constexpr int mounted_memory_cnt = 1;
-    trans_mem(core_config.cim_unit_config, false);
+    std::for_each(local_mems.begin(), local_mems.end(),
+                  [&](const MemoryConfig& c) { return trans_mem(c, false, c.duplicate_cnt); });
 
     // add all global memory
     auto& global_mems = global_memory_config.global_memory_unit_config.memory_list;
-    std::for_each(global_mems.begin(), global_mems.end(), [&](const auto& c) { return trans_mem(c, true); });
+    std::for_each(global_mems.begin(), global_mems.end(),
+                  [&](const MemoryConfig& c) { return trans_mem(c, true, c.duplicate_cnt); });
 
-    if (check && mem_map.size() != local_mems.size() + mounted_memory_cnt + global_mems.size()) {
+    // all all mounted memory
+    constexpr int mounted_memory_cnt = 1;
+    trans_mem(core_config.cim_unit_config, false, 1);
+
+    if (check && mem_map.size() != local_mems.size() + global_mems.size() + mounted_memory_cnt) {
         return {};
     }
     return std::move(mem_map);
@@ -739,7 +771,7 @@ bool ChipConfig::checkMemoryAndAddressSpace() const {
     // Check Memory and AddressSpace, and check if they correspond one to one
 
     // check if the memory name is repeated
-    auto mem_map = getMemoryNameToSizeMap(true);
+    auto mem_map = getMemoryNameMap(true);
     if (mem_map.empty()) {
         std::cerr << "Local and global memory not valid, there are repeated names" << std::endl;
         return false;

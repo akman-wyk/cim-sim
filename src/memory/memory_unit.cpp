@@ -19,12 +19,14 @@ MemoryUnit::MemoryUnit(const char *name, const cimsim::MemoryUnitConfig &config,
     , is_global_(is_global) {
     memory_list_.resize(as_.getMemoryCount(is_global_));
     for (const auto &mem_cfg : config_.memory_list) {
-        int mem_id = as_.getMemoryId(mem_cfg.getMemoryName());
-        auto mem_ptr =
-            mem_cfg.type == +MemoryType::ram
-                ? std::make_shared<Memory>(mem_cfg.getMemoryName(), mem_cfg.ram_config, sim_config, core, clk)
-                : std::make_shared<Memory>(mem_cfg.getMemoryName(), mem_cfg.reg_buffer_config, sim_config, core, clk);
-        memory_list_[mem_id] = mem_ptr;
+        for (int i = 0; i < mem_cfg.duplicate_cnt; i++) {
+            std::string mem_name = getDuplicateMemoryName(mem_cfg.getMemoryName(), i, mem_cfg.duplicate_cnt);
+            int mem_id = as_.getMemoryId(mem_name);
+            auto mem_ptr = mem_cfg.type == +MemoryType::ram
+                               ? std::make_shared<Memory>(mem_name, mem_cfg.ram_config, sim_config, core, clk)
+                               : std::make_shared<Memory>(mem_name, mem_cfg.reg_buffer_config, sim_config, core, clk);
+            memory_list_[mem_id] = mem_ptr;
+        }
     }
 }
 
