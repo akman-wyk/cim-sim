@@ -9,8 +9,8 @@
 #include "base_component/submodule_socket.h"
 #include "config/config.h"
 #include "core/reg_unit/reg_unit.h"
+#include "core/socket/memory_socket.h"
 #include "execute_unit.h"
-#include "memory/memory_socket.h"
 #include "payload.h"
 
 namespace cimsim {
@@ -21,7 +21,6 @@ public:
 
     ScalarUnit(const char* name, const ScalarUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
-    void bindLocalMemoryUnit(MemoryUnit* local_memory_unit);
     void bindRegUnit(RegUnit* reg_unit);
 
 private:
@@ -35,7 +34,6 @@ private:
 
     SubmoduleSocket<ScalarInsPayload> execute_socket_;
 
-    MemorySocket local_memory_socket_;
     RegUnit* reg_unit_{nullptr};
 };
 

@@ -11,8 +11,8 @@
 
 namespace cimsim {
 
-Core::ExecuteUnitRegistration::ExecuteUnitRegistration(ExecuteUnitType type, ExecuteUnit *execute_unit,
-                                                       const sc_event &decode_new_ins_trigger)
+Core::ExecuteUnitInfo::ExecuteUnitInfo(ExecuteUnitType type, ExecuteUnit *execute_unit,
+                                       const sc_event &decode_new_ins_trigger)
     : type(type), execute_unit(execute_unit), stall_handler(decode_new_ins_trigger, type) {}
 
 Core::Core(int core_id, const char *name, const Config &config, Clock *clk, std::vector<Instruction> ins_list,
@@ -99,11 +99,11 @@ int Core::getCoreId() const {
 
 void Core::processIssue() {
     if (cur_ins_payload_ != nullptr) {
-        for (auto &registration : execute_unit_list_) {
-            if (registration->type == cur_ins_payload_->ins.unit_type) {
-                registration->signals.id_ex_payload_.write(ExecuteUnitPayload{.payload = cur_ins_payload_});
+        for (auto &exe_unit_info : execute_unit_list_) {
+            if (exe_unit_info->type == cur_ins_payload_->ins.unit_type) {
+                exe_unit_info->signals.id_ex_payload_.write(ExecuteUnitPayload{.payload = cur_ins_payload_});
             } else {
-                registration->signals.id_ex_payload_.write(ExecuteUnitPayload{.payload = nullptr});
+                exe_unit_info->signals.id_ex_payload_.write(ExecuteUnitPayload{.payload = nullptr});
             }
         }
     }
@@ -111,72 +111,67 @@ void Core::processIssue() {
 
 void Core::processStall() {
     bool stall = id_finish_.read() || std::any_of(execute_unit_list_.begin(), execute_unit_list_.end(),
-                                                  [](const std::shared_ptr<ExecuteUnitRegistration> &registration) {
-                                                      return registration->conflict_signal.read();
+                                                  [](const std::shared_ptr<ExecuteUnitInfo> &exe_unit_info) {
+                                                      return exe_unit_info->conflict_signal.read();
                                                   });
     id_stall_.write(stall);
 }
 
 void Core::processIdExEnable() {
-    for (auto &registration : execute_unit_list_) {
-        registration->signals.id_ex_enable_.write(!id_stall_.read());
+    for (auto &exe_unit_info : execute_unit_list_) {
+        exe_unit_info->signals.id_ex_enable_.write(!id_stall_.read());
     }
 }
 
 void Core::processFinishRun() {
     if (std::all_of(execute_unit_list_.begin(), execute_unit_list_.end(),
-                    [](const std::shared_ptr<ExecuteUnitRegistration> &registration) {
-                        return registration->signals.unit_finish_.read();
+                    [](const std::shared_ptr<ExecuteUnitInfo> &exe_unit_info) {
+                        return exe_unit_info->signals.unit_finish_.read();
                     })) {
-        LOG(fmt::format("finish run"));
+        CORE_LOG(fmt::format("finish run"));
         finish_run_call_();
     }
 }
 
-void Core::registerExecuteUnit(ExecuteUnitType type, ExecuteUnit *execute_unit) {
-    auto registration = std::make_shared<ExecuteUnitRegistration>(type, execute_unit, decode_new_ins_trigger_);
-    execute_unit_list_.emplace_back(registration);
+void Core::bindExecuteUnit(ExecuteUnitType type, ExecuteUnit *execute_unit) {
+    auto exe_unit_info = std::make_shared<ExecuteUnitInfo>(type, execute_unit, decode_new_ins_trigger_);
+    execute_unit_list_.emplace_back(exe_unit_info);
+
+    // bind local memory unit
+    execute_unit->bindLocalMemoryUnit(&local_memory_unit_);
 
     // bind handler of processStall and processFinishRun
-    sensitive << processStall_handle_ << registration->conflict_signal;
-    sensitive << processFinishRun_handle_ << registration->signals.unit_finish_;
+    sensitive << processStall_handle_ << exe_unit_info->conflict_signal;
+    sensitive << processFinishRun_handle_ << exe_unit_info->signals.unit_finish_;
 
     // bind exeunit ports
-    registration->execute_unit->ports_.bind(registration->signals);
-    registration->execute_unit->ports_.id_finish_port_.bind(id_finish_);
+    exe_unit_info->execute_unit->ports_.bind(exe_unit_info->signals);
+    exe_unit_info->execute_unit->ports_.id_finish_port_.bind(id_finish_);
 
     // bind stall handler
-    registration->stall_handler.bind(registration->signals, registration->conflict_signal, &cur_ins_conflict_info_);
+    exe_unit_info->stall_handler.bind(exe_unit_info->signals, exe_unit_info->conflict_signal, &cur_ins_conflict_info_);
 
     // bind decoder
     decoder_.bindExecuteUnit(type, execute_unit);
 }
 void Core::bindModules() {
-    // bind and set modules
-    scalar_unit_.bindLocalMemoryUnit(&local_memory_unit_);
+    // bind execute unit
+    bindExecuteUnit(ExecuteUnitType::scalar, &scalar_unit_);
+    bindExecuteUnit(ExecuteUnitType::simd, &simd_unit_);
+    bindExecuteUnit(ExecuteUnitType::transfer, &transfer_unit_);
+    bindExecuteUnit(ExecuteUnitType::cim_compute, &cim_compute_unit_);
+    bindExecuteUnit(ExecuteUnitType::cim_control, &cim_control_unit_);
+
+    // other bindings
+    decoder_.bindRegUnit(&reg_unit_);
     scalar_unit_.bindRegUnit(&reg_unit_);
 
-    simd_unit_.bindLocalMemoryUnit(&local_memory_unit_);
-
-    transfer_unit_.bindLocalMemoryUnit(&local_memory_unit_);
     transfer_unit_.bindSwitch(&core_switch_);
 
-    cim_compute_unit_.bindLocalMemoryUnit(&local_memory_unit_);
     cim_compute_unit_.bindCimUnit(&cim_unit_);
-
-    cim_control_unit_.bindLocalMemoryUnit(&local_memory_unit_);
     cim_control_unit_.bindCimUnit(&cim_unit_);
 
-    local_memory_unit_.bindCimUnit(&cim_unit_);
-
-    decoder_.bindRegUnit(&reg_unit_);
-
-    // register execute unit
-    registerExecuteUnit(ExecuteUnitType::scalar, &scalar_unit_);
-    registerExecuteUnit(ExecuteUnitType::simd, &simd_unit_);
-    registerExecuteUnit(ExecuteUnitType::transfer, &transfer_unit_);
-    registerExecuteUnit(ExecuteUnitType::cim_compute, &cim_compute_unit_);
-    registerExecuteUnit(ExecuteUnitType::cim_control, &cim_control_unit_);
+    local_memory_unit_.mountMemory(&cim_unit_);
 }
 
 void Core::setThreadAndMethod() {

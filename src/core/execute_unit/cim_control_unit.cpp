@@ -19,10 +19,6 @@ CimControlUnit::CimControlUnit(const char *name, const cimsim::CimUnitConfig &co
     SC_THREAD(processExecute)
 }
 
-void CimControlUnit::bindLocalMemoryUnit(cimsim::MemoryUnit *local_memory_unit) {
-    local_memory_socket_.bindLocalMemoryUnit(local_memory_unit);
-}
-
 void CimControlUnit::bindCimUnit(CimUnit *cim_unit) {
     cim_unit_ = cim_unit;
 }
@@ -37,7 +33,7 @@ void CimControlUnit::processIssue() {
     ports_.ready_port_.write(true);
     while (true) {
         auto payload = waitForExecuteAndGetPayload<CimControlInsPayload>();
-        LOG(fmt::format("Cim set start, pc: {}", payload->ins.pc));
+        CORE_LOG(fmt::format("Cim set start, pc: {}", payload->ins.pc));
 
         ports_.resource_allocate_.write(getDataConflictInfo(*payload));
 
@@ -54,7 +50,7 @@ void CimControlUnit::processExecute() {
         execute_socket_.waitUntilStart();
 
         const auto &payload = execute_socket_.payload;
-        LOG(fmt::format("Cim control start execute, pc: {}", payload.ins.pc));
+        CORE_LOG(fmt::format("Cim control start execute, pc: {}", payload.ins.pc));
 
         switch (payload.op) {
             case CimControlOperator::set_activation: processSetActivation(payload); break;
@@ -74,7 +70,7 @@ void CimControlUnit::processSetActivation(const CimControlInsPayload &payload) {
     // read mask
     int mask_size_byte =
         IntDivCeil(1 * macro_size_.element_cnt_per_compartment * config_.macro_group_size, BYTE_TO_BIT);
-    auto mask_byte_data = local_memory_socket_.readData(payload.ins, payload.mask_addr_byte, mask_size_byte);
+    auto mask_byte_data = memory_socket_.readLocal(payload.ins, payload.mask_addr_byte, mask_size_byte);
 
     releaseResource(payload.ins.ins_id);
 
@@ -88,13 +84,13 @@ void CimControlUnit::processOnlyOutput(const CimControlInsPayload &payload) {
 
     int size_byte =
         IntDivCeil(payload.output_bit_width * payload.output_cnt_per_group * payload.activation_group_num, BYTE_TO_BIT);
-    local_memory_socket_.writeData(payload.ins, payload.output_addr_byte, size_byte, {});
+    memory_socket_.writeLocal(payload.ins, payload.output_addr_byte, size_byte, {});
 }
 
 void CimControlUnit::processOutputSum(const CimControlInsPayload &payload) {
     // read and process sum mask
     int mask_size_byte = IntDivCeil(payload.output_cnt_per_group, BYTE_TO_BIT);
-    auto mask_byte_data = local_memory_socket_.readData(payload.ins, payload.output_mask_addr_byte, mask_size_byte);
+    auto mask_byte_data = memory_socket_.readLocal(payload.ins, payload.output_mask_addr_byte, mask_size_byte);
     int sum_times_per_group = 0;
     for (int i = 0; i < payload.output_cnt_per_group; i++) {
         if (getMaskBit(mask_byte_data, i) != 0) {
@@ -118,7 +114,7 @@ void CimControlUnit::processOutputSum(const CimControlInsPayload &payload) {
     int valid_output_cnt_per_group = payload.output_cnt_per_group - sum_times_per_group;
     int size_byte =
         IntDivCeil(payload.output_bit_width * valid_output_cnt_per_group * payload.activation_group_num, BYTE_TO_BIT);
-    local_memory_socket_.writeData(payload.ins, payload.output_addr_byte, size_byte, {});
+    memory_socket_.writeLocal(payload.ins, payload.output_addr_byte, size_byte, {});
 }
 
 void CimControlUnit::processOutputSumMove(const CimControlInsPayload &payload) {
@@ -139,21 +135,21 @@ void CimControlUnit::processOutputSumMove(const CimControlInsPayload &payload) {
     int valid_output_cnt_per_group = sum_times_per_group;
     int size_byte =
         IntDivCeil(payload.output_bit_width * valid_output_cnt_per_group * payload.activation_group_num, BYTE_TO_BIT);
-    LOG(fmt::format("size_byte: {}", size_byte));
-    local_memory_socket_.writeData(payload.ins, payload.output_addr_byte, size_byte, {});
+    CORE_LOG(fmt::format("size_byte: {}", size_byte));
+    memory_socket_.writeLocal(payload.ins, payload.output_addr_byte, size_byte, {});
 }
 
 ResourceAllocatePayload CimControlUnit::getDataConflictInfo(const CimControlInsPayload &payload) const {
     ResourceAllocatePayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::cim_control};
     switch (payload.op) {
         case CimControlOperator::set_activation: {
-            conflict_payload.addReadMemoryId(as_.getLocalMemoryId(payload.mask_addr_byte), cim_unit_->getLocalMemoryId());
+            conflict_payload.addReadMemoryId(as_.getLocalMemoryId(payload.mask_addr_byte), cim_unit_->getMemoryID());
             break;
         }
         case CimControlOperator::only_output:
         case CimControlOperator::output_sum:
         case CimControlOperator::output_sum_move: {
-            conflict_payload.addReadMemoryId(cim_unit_->getLocalMemoryId());
+            conflict_payload.addReadMemoryId(cim_unit_->getMemoryID());
             conflict_payload.addWriteMemoryId(as_.getLocalMemoryId(payload.output_addr_byte));
             if (payload.op == +CimControlOperator::output_sum) {
                 conflict_payload.addReadMemoryId(as_.getLocalMemoryId(payload.output_mask_addr_byte));

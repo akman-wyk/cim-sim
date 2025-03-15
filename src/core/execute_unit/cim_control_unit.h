@@ -6,8 +6,8 @@
 #include "base_component/submodule_socket.h"
 #include "config/config.h"
 #include "core/cim_unit/cim_unit.h"
+#include "core/socket/memory_socket.h"
 #include "execute_unit.h"
-#include "memory/memory_socket.h"
 #include "payload.h"
 
 namespace cimsim {
@@ -17,8 +17,6 @@ public:
     SC_HAS_PROCESS(CimControlUnit);
 
     CimControlUnit(const char* name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
-
-    void bindLocalMemoryUnit(MemoryUnit* local_memory_unit);
 
     void bindCimUnit(CimUnit* cim_unit);
 
@@ -42,7 +40,6 @@ private:
 
     SubmoduleSocket<CimControlInsPayload> execute_socket_;
 
-    MemorySocket local_memory_socket_;
     CimUnit* cim_unit_{};
 
     EnergyCounter result_adder_energy_counter_;

@@ -28,10 +28,6 @@ CimComputeUnit::CimComputeUnit(const char *name, const cimsim::CimUnitConfig &co
     }
 }
 
-void CimComputeUnit::bindLocalMemoryUnit(cimsim::MemoryUnit *local_memory_unit) {
-    local_memory_socket_.bindLocalMemoryUnit(local_memory_unit);
-}
-
 void CimComputeUnit::bindCimUnit(CimUnit *cim_unit) {
     cim_unit_ = cim_unit;
     cim_unit_->bindCimComputeUnit([this](int ins_id) { releaseResource(ins_id); }, [this]() { finishInstruction(); });
@@ -55,7 +51,7 @@ void CimComputeUnit::processIssue() {
     while (true) {
         auto payload = waitForExecuteAndGetPayload<CimComputeInsPayload>();
 
-        LOG(fmt::format("Cim compute start, pc: {}", payload->ins.pc));
+        CORE_LOG(fmt::format("Cim compute start, pc: {}", payload->ins.pc));
         ports_.resource_allocate_.write(getDataConflictInfo(*payload));
 
         process_sub_ins_socket_.waitUntilFinishIfBusy();
@@ -84,7 +80,7 @@ void CimComputeUnit::processSubIns() {
 
         const auto &sub_ins_payload = process_sub_ins_socket_.payload;
         const auto &cim_ins_info = sub_ins_payload.cim_ins_info;
-        LOG(fmt::format("Cim compute sub ins start, pc: {}, sub ins: {}", cim_ins_info.ins_pc,
+        CORE_LOG(fmt::format("Cim compute sub ins start, pc: {}, sub ins: {}", cim_ins_info.ins_pc,
                         cim_ins_info.sub_ins_num));
 
         processSubInsReadData(sub_ins_payload);
@@ -173,7 +169,7 @@ std::vector<std::vector<unsigned long long>> CimComputeUnit::getMacroGroupInputs
     int group_id, int addr_byte, int size_byte, const cimsim::CimComputeSubInsPayload &sub_ins_payload) {
     const auto &payload = sub_ins_payload.ins_payload;
 
-    auto read_data = local_memory_socket_.readData(payload.ins, addr_byte, size_byte);
+    auto read_data = memory_socket_.readLocal(payload.ins, addr_byte, size_byte);
     if (data_mode_ == +DataMode::not_real_data) {
         return {};
     }
@@ -215,7 +211,7 @@ void CimComputeUnit::readValueSparseMaskSubmodule() {
         read_value_sparse_mask_socket_.waitUntilStart();
 
         auto &payload = read_value_sparse_mask_socket_.payload;
-        payload.data = local_memory_socket_.readData(payload.ins, payload.addr_byte, payload.size_byte);
+        payload.data = memory_socket_.readLocal(payload.ins, payload.addr_byte, payload.size_byte);
 
         read_value_sparse_mask_socket_.finish();
     }
@@ -226,7 +222,7 @@ void CimComputeUnit::readBitSparseMetaSubmodule() {
         read_bit_sparse_meta_socket_.waitUntilStart();
 
         auto &payload = read_bit_sparse_meta_socket_.payload;
-        payload.data = local_memory_socket_.readData(payload.ins, payload.addr_byte, payload.size_byte);
+        payload.data = memory_socket_.readLocal(payload.ins, payload.addr_byte, payload.size_byte);
 
         double dynamic_power_mW = config_.bit_sparse_config.reg_buffer_dynamic_power_mW_per_unit *
                                   IntDivCeil(payload.size_byte, config_.bit_sparse_config.unit_byte);
@@ -240,7 +236,7 @@ ResourceAllocatePayload CimComputeUnit::getDataConflictInfo(const cimsim::CimCom
     ResourceAllocatePayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::cim_compute};
 
     int input_memory_id = as_.getLocalMemoryId(payload.input_addr_byte);
-    conflict_payload.addReadMemoryId(input_memory_id, cim_unit_->getLocalMemoryId());
+    conflict_payload.addReadMemoryId(input_memory_id, cim_unit_->getMemoryID());
 
     if (config_.value_sparse && payload.value_sparse) {
         int mask_memory_id = as_.getLocalMemoryId(payload.value_sparse_mask_addr_byte);

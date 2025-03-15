@@ -55,6 +55,10 @@ void ExecuteUnit::processFinishRun() {
     ports_.unit_finish_port_.write(finish_run_);
 }
 
+void ExecuteUnit::bindLocalMemoryUnit(MemoryUnit* local_memory_unit) {
+    memory_socket_.bindLocalMemoryUnit(local_memory_unit);
+}
+
 ResourceAllocatePayload ExecuteUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) {
     return {.ins_id = payload->ins.ins_id, .unit_type = payload->ins.unit_type};
 }

@@ -35,6 +35,8 @@ public:
 
     EnergyReporter getEnergyReporter() override;
 
+    void setMemoryID(int mem_id);
+
 private:
     [[noreturn]] void process();
 

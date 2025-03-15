@@ -111,7 +111,7 @@ void Macro::processIPUAndIssue() {
         if (activation_element_col_cnt_ > 0) {
             const auto &payload = macro_socket_.payload;
             const auto &cim_ins_info = payload.cim_ins_info;
-            LOG(fmt::format("{} start, ins pc: {}, sub ins num: {}", getName(), cim_ins_info.ins_pc,
+            CORE_LOG(fmt::format("{} start, ins pc: {}, sub ins num: {}", getName(), cim_ins_info.ins_pc,
                             cim_ins_info.sub_ins_num));
 
             auto [batch_cnt, activation_compartment_num] = getBatchCountAndActivationCompartmentCount(payload);
@@ -127,7 +127,7 @@ void Macro::processIPUAndIssue() {
             for (int batch = 0; batch < batch_cnt; batch++) {
                 submodule_payload.batch_info = {
                     .batch_num = batch, .first_batch = (batch == 0), .last_batch = (batch == batch_cnt - 1)};
-                LOG(fmt::format("{} start ipu and issue, ins pc: {}, sub ins num: {}, batch: {}", getName(),
+                CORE_LOG(fmt::format("{} start ipu and issue, ins pc: {}, sub ins num: {}, batch: {}", getName(),
                                 cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, submodule_payload.batch_info.batch_num));
 
                 double dynamic_power_mW = config_.ipu.dynamic_power_mW;
@@ -149,7 +149,7 @@ void Macro::processSRAMSubmodule() {
 
         const auto &payload = sram_socket_.payload;
         const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
-        LOG(fmt::format("{} start sram read, ins pc: {}, sub ins num: {}, batch: {}", getName(), cim_ins_info.ins_pc,
+        CORE_LOG(fmt::format("{} start sram read, ins pc: {}, sub ins num: {}, batch: {}", getName(), cim_ins_info.ins_pc,
                         cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double dynamic_power_mW = config_.sram.read_dynamic_power_per_bit_mW * macro_size_.bit_width_per_row * 1 *
@@ -171,7 +171,7 @@ void Macro::processPostProcessSubmodule() {
         const auto &payload = post_process_socket_.payload;
         const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
         if (config_.bit_sparse && payload.sub_ins_info.bit_sparse) {
-            LOG(fmt::format("{} start post process, ins pc: {}, sub ins num: {}, batch: {}", getName(),
+            CORE_LOG(fmt::format("{} start post process, ins pc: {}, sub ins num: {}, batch: {}", getName(),
                             cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
             if (payload.batch_info.first_batch) {
@@ -205,7 +205,7 @@ void Macro::processAdderTreeSubmodule1() {
 
         const auto &payload = adder_tree_socket_1_.payload;
         const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
-        LOG(fmt::format("{} start adder tree stage 1, ins pc: {}, sub ins num: {}, batch: {}", getName(),
+        CORE_LOG(fmt::format("{} start adder tree stage 1, ins pc: {}, sub ins num: {}, batch: {}", getName(),
                         cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double dynamic_power_mW = config_.adder_tree.dynamic_power_mW;
@@ -230,7 +230,7 @@ void Macro::processAdderTreeSubmodule2() {
 
         const auto &payload = adder_tree_socket_2_.payload;
         const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
-        LOG(fmt::format("{} start adder tree stage 2, ins pc: {}, sub ins num: {}, batch: {}", getName(),
+        CORE_LOG(fmt::format("{} start adder tree stage 2, ins pc: {}, sub ins num: {}, batch: {}", getName(),
                         cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double dynamic_power_mW = config_.adder_tree.dynamic_power_mW;
@@ -255,7 +255,7 @@ void Macro::processShiftAdderSubmodule() {
 
         const auto &payload = shift_adder_socket_.payload;
         const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
-        LOG(fmt::format("{} start shift adder, ins pc: {}, sub ins num: {}, batch: {}", getName(), cim_ins_info.ins_pc,
+        CORE_LOG(fmt::format("{} start shift adder, ins pc: {}, sub ins num: {}, batch: {}", getName(), cim_ins_info.ins_pc,
                         cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double dynamic_power_mW =

@@ -8,8 +8,8 @@
 #include "base_component/submodule_socket.h"
 #include "config/config.h"
 #include "core/cim_unit/cim_unit.h"
+#include "core/socket/memory_socket.h"
 #include "execute_unit.h"
-#include "memory/memory_socket.h"
 #include "payload.h"
 
 namespace cimsim {
@@ -33,7 +33,6 @@ public:
 
     CimComputeUnit(const char* name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
-    void bindLocalMemoryUnit(MemoryUnit* local_memory_unit);
     void bindCimUnit(CimUnit* cim_unit);
 
     EnergyReporter getEnergyReporter() override;
@@ -63,8 +62,6 @@ private:
     SubmoduleSocket<CimComputeSubInsPayload> process_sub_ins_socket_;
     SubmoduleSocket<CimComputeReadDataPayload> read_value_sparse_mask_socket_;
     SubmoduleSocket<CimComputeReadDataPayload> read_bit_sparse_meta_socket_;
-
-    MemorySocket local_memory_socket_;
 
     EnergyCounter value_sparse_network_energy_counter_;
     EnergyCounter meta_buffer_energy_counter_;

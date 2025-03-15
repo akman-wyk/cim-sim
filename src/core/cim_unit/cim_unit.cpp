@@ -132,12 +132,4 @@ void CimUnit::bindCimComputeUnit(const std::function<void(int)>& release_resourc
     }
 }
 
-void CimUnit::setLocalMemoryId(int memory_id) {
-    local_memory_id_ = memory_id;
-}
-
-int CimUnit::getLocalMemoryId() const {
-    return local_memory_id_;
-}
-
 }  // namespace cimsim

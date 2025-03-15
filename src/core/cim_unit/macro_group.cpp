@@ -81,7 +81,7 @@ void MacroGroup::processIssue() {
 
         auto &payload = macro_group_socket_.payload;
         auto &cim_ins_info = payload.cim_ins_info;
-        LOG(fmt::format("{} start, ins pc: {}, sub ins num: {}", getName(), cim_ins_info.ins_pc,
+        CORE_LOG(fmt::format("{} start, ins pc: {}, sub ins num: {}", getName(), cim_ins_info.ins_pc,
                         cim_ins_info.sub_ins_num));
 
         for (int macro_id = 0; macro_id < macro_list_.size(); macro_id++) {
@@ -117,7 +117,7 @@ void MacroGroup::processResultAdderSubmodule() {
 
         auto &sub_ins_info = result_adder_socket_.payload.sub_ins_info;
         auto &cim_ins_info = sub_ins_info.cim_ins_info;
-        LOG(fmt::format("{} start result adder, ins pc: {}, sub ins num: {}", getName(), cim_ins_info.ins_pc,
+        CORE_LOG(fmt::format("{} start result adder, ins pc: {}, sub ins num: {}", getName(), cim_ins_info.ins_pc,
                         cim_ins_info.sub_ins_num));
 
         if (sub_ins_info.last_group && cim_ins_info.last_sub_ins && release_resource_func_) {
@@ -131,7 +131,7 @@ void MacroGroup::processResultAdderSubmodule() {
             finish_ins_func_();
         }
 
-        LOG(fmt::format("{} end result adder, ins pc: {}, sub ins num: {}", getName(), cim_ins_info.ins_pc,
+        CORE_LOG(fmt::format("{} end result adder, ins pc: {}, sub ins num: {}", getName(), cim_ins_info.ins_pc,
                         cim_ins_info.sub_ins_num));
         result_adder_socket_.finish();
     }

@@ -36,7 +36,7 @@ public:
                          ExecuteUnitType::cim_compute)
         , cim_unit_("CimUnit", config.chip_config.core_config.cim_unit_config, config.sim_config, nullptr, clk) {
         test_unit_.bindCimUnit(&cim_unit_);
-        local_memory_unit_.bindCimUnit(&cim_unit_);
+        local_memory_unit_.mountMemory(&cim_unit_);
     }
 
     void setGroupActivationElementColumnMask(const std::vector<unsigned char>& groups_activation_element_col_mask) {
