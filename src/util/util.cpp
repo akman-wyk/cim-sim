@@ -8,6 +8,8 @@
 #include <iostream>
 #include <string>
 
+#include "config/constant.h"
+
 namespace cimsim {
 
 int BytesToInt(const std::vector<unsigned char>& bytes, bool little_endian) {
@@ -65,6 +67,13 @@ bool check_text_file_same(const std::string& file1, const std::string& file2) {
         std::cerr << "files do not exist" << std::endl;
         return false;
     }
+}
+
+std::string getDuplicateMemoryName(const std::string& original_name, int index, int duplicate_cnt) {
+    if (duplicate_cnt == 1) {
+        return original_name;
+    }
+    return original_name + DUPLICATE_MEMORY_NAME_DELIMITER + std::to_string(index);
 }
 
 }  // namespace cimsim

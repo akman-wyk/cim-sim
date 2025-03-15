@@ -48,21 +48,9 @@
       "local_memory_unit_config": {
         "memory_list": [
           {
-            "name": "l1",
+            "name": "local",
             "type": "ram",
-            "hardware_config": {
-              "size_byte": 1024,
-              "width_byte": 16,
-              "write_latency_cycle": 1,
-              "read_latency_cycle": 1,
-              "static_power_mW": 1.0,
-              "write_dynamic_power_mW": 1.0,
-              "read_dynamic_power_mW": 1.0
-            }
-          },
-          {
-            "name": "l2",
-            "type": "ram",
+            "duplicate_cnt": 2,
             "hardware_config": {
               "size_byte": 1024,
               "width_byte": 16,
@@ -83,7 +71,7 @@
       "global_memory_unit_config": {
         "memory_list": [
           {
-            "name": "g1",
+            "name": "global",
             "type": "ram",
             "hardware_config": {
               "size_byte": 1024,
@@ -105,9 +93,8 @@
     },
     "address_space_config": [
       {"name": "cim_unit", "size": 1024},
-      {"name": "l1", "size": 1024},
-      {"name": "l2", "size": 1024},
-      {"name": "g1", "size": 1024}
+      {"name": "local", "size": 1024},
+      {"name": "global", "size": 1024}
     ]
   },
   "sim_config": {

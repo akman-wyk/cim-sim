@@ -7,6 +7,7 @@
 #include <iostream>
 
 #include "fmt/format.h"
+#include "util/util.h"
 
 namespace cimsim {
 
@@ -26,24 +27,27 @@ const AddressSapce& AddressSapce::getInstance() {
 std::unique_ptr<AddressSapce> AddressSapce::as_ptr_{nullptr};
 
 AddressSapce::AddressSapce(const ChipConfig& chip_config) {
-    auto mem_map = chip_config.getMemoryNameToSizeMap();
+    auto mem_map = chip_config.getMemoryNameMap();
     int offset = 0;
     for (auto& as_element : chip_config.address_space_config) {
         auto& mem_info = mem_map[as_element.name];
         int size = as_element.size < 0 ? mem_info.size : as_element.size;
 
-        AddressSpaceInfo as_info;
-        if (mem_info.is_global) {
-            as_info = {.as_offset = offset, .memory_id = global_mem_cnt_, .is_global = true};
-            global_mem_cnt_++;
-        } else {
-            as_info = {.as_offset = offset, .memory_id = local_mem_cnt_, .is_global = false};
-            local_mem_cnt_++;
-        }
+        for (int i = 0; i < mem_info.duplicate_cnt; i++) {
+            std::string mem_name = getDuplicateMemoryName(as_element.name, i, mem_info.duplicate_cnt);
+            AddressSpaceInfo as_info;
+            if (mem_info.is_global) {
+                as_info = {.as_offset = offset, .memory_id = global_mem_cnt_, .is_global = true};
+                global_mem_cnt_++;
+            } else {
+                as_info = {.as_offset = offset, .memory_id = local_mem_cnt_, .is_global = false};
+                local_mem_cnt_++;
+            }
 
-        as_name_map_.emplace(as_element.name, as_info);
-        as_address_map_.emplace(offset, as_info);
-        offset += size;
+            as_name_map_.emplace(mem_name, as_info);
+            as_address_map_.emplace(offset, as_info);
+            offset += size;
+        }
     }
 }
 

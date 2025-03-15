@@ -228,6 +228,7 @@ struct CimUnitConfig {
 
     bool input_bit_sparse{false};
 
+    // memory interface
     [[nodiscard]] int getByteSize() const;
     [[nodiscard]] int getBitWidth() const;
     [[nodiscard]] int getByteWidth() const;
@@ -274,10 +275,12 @@ struct RegBufferConfig {
 struct MemoryConfig {
     std::string name{};
     MemoryType type{MemoryType::ram};
+    int duplicate_cnt{1};
 
     RAMConfig ram_config{};
     RegBufferConfig reg_buffer_config{};
 
+    // memory interface
     [[nodiscard]] int getByteSize() const;
     [[nodiscard]] std::string getMemoryName() const;
 
@@ -341,6 +344,7 @@ struct ChipConfig {
     struct MemoryInfo {
         int size{-1};
         bool is_global{false};
+        int duplicate_cnt{1};
     };
 
     int core_cnt{1};
@@ -352,7 +356,7 @@ struct ChipConfig {
     [[nodiscard]] static bool checkAddressSpaceWithMemory(
         const std::string& mem_name, int mem_size,
         const std::unordered_map<std::string, AddressSpaceElementConfig>& as_map);
-    [[nodiscard]] std::unordered_map<std::string, MemoryInfo> getMemoryNameToSizeMap(bool check = false) const;
+    [[nodiscard]] std::unordered_map<std::string, MemoryInfo> getMemoryNameMap(bool check = false) const;
     [[nodiscard]] bool checkMemoryAndAddressSpace() const;
 
     [[nodiscard]] bool checkValid() const;

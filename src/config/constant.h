@@ -26,4 +26,6 @@ static constexpr int BITMAP_CELL_BIT_WIDTH_MASK = ((1 << LOG2_BITMAP_CELL_BIT_WI
 static constexpr int LOCAL_MEMORY_COUNT_MAX = 32;
 static constexpr int MEMORY_BITMAP_SIZE = (LOCAL_MEMORY_COUNT_MAX - 1) / BITMAP_CELL_BIT_WIDTH + 1;
 
+static constexpr char DUPLICATE_MEMORY_NAME_DELIMITER = '#';
+
 }  // namespace cimsim
