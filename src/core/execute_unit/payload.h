@@ -4,6 +4,7 @@
 
 #pragma once
 #include "better-enums/enum.h"
+#include "config/config.h"
 #include "config/constant.h"
 #include "core/payload.h"
 #include "systemc.h"
@@ -50,22 +51,22 @@ struct ExecuteUnitPayload {
 };
 
 struct SIMDInsPayload : public ExecuteInsPayload {
-    // compute type info
-    unsigned int input_cnt{2};
-    unsigned int opcode{0x00};
+    // compute ins and functor info
+    const SIMDInstructionConfig* ins_cfg{nullptr};
+    const SIMDFunctorConfig* func_cfg{nullptr};
 
     // data width info
-    std::array<int, SIMD_MAX_INPUT_NUM> inputs_bit_width{0, 0, 0, 0};
+    SIMDInputsArray inputs_bit_width{0, 0, 0, 0};
     int output_bit_width{0};
 
     // data address info
-    std::array<int, SIMD_MAX_INPUT_NUM> inputs_address_byte{0, 0, 0, 0};
+    SIMDInputsArray inputs_address_byte{0, 0, 0, 0};
     int output_address_byte{0};
 
     // vector length info
     int len{0};
 
-    DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(SIMDInsPayload, ins, input_cnt, opcode, inputs_bit_width, output_bit_width,
+    DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(SIMDInsPayload, ins, ins_cfg, func_cfg, inputs_bit_width, output_bit_width,
                                          inputs_address_byte, output_address_byte, len)
 };
 

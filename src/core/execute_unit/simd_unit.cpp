@@ -17,15 +17,9 @@ SIMDUnit::SIMDUnit(const char* name, const SIMDUnitConfig& config, const SimConf
     SC_THREAD(processExecuteSubmodule)
     SC_THREAD(processWriteSubmodule)
 
-    for (const auto& ins_config : config_.instruction_list) {
-        instruction_config_map_.emplace(getSIMDInstructionIdentityCode(ins_config.input_cnt, ins_config.opcode),
-                                        &ins_config);
-    }
-
     double SIMD_functors_total_static_power_mW = 0.0;
     for (const auto& functor_config : config_.functor_list) {
         SIMD_functors_total_static_power_mW += functor_config.static_power_per_functor_mW * functor_config.functor_cnt;
-        functor_config_map_.emplace(functor_config.name, &functor_config);
     }
 
     energy_counter_.setStaticPowerMW(SIMD_functors_total_static_power_mW);
@@ -36,32 +30,21 @@ void SIMDUnit::processIssue() {
     while (true) {
         auto payload = waitForExecuteAndGetPayload<SIMDInsPayload>();
 
-        // Find instruction and functor
-        const auto [instruction, functor] = getSIMDInstructionAndFunctor(*payload);
-        if (instruction == nullptr || functor == nullptr) {
-            if (instruction == nullptr) {
-                throw std::runtime_error(
-                    fmt::format("No match inst, Invalid SIMD instruction: \n{}", payload->toString()));
-            } else {
-                throw std::runtime_error(
-                    fmt::format("No match functor, Invalid SIMD instruction: \n{}", payload->toString()));
-            }
-        }
-
         // Decode instruction
-        const auto& [ins_info, conflict_payload] = decodeAndGetInfo(instruction, functor, *payload);
+        const auto& [ins_info, conflict_payload] = decodeAndGetInfo(payload->ins_cfg, payload->func_cfg, *payload);
         ports_.resource_allocate_.write(conflict_payload);
 
         int vector_total_len = ins_info.vector_inputs.empty() ? 1 : payload->len;
-        int process_times = IntDivCeil(vector_total_len, functor->functor_cnt);
+        int process_times = IntDivCeil(vector_total_len, payload->func_cfg->functor_cnt);
         SIMDSubmodulePayload submodule_payload{.ins_info = ins_info};
         for (int batch = 0; batch < process_times; batch++) {
-            submodule_payload.batch_info = {.batch_vector_len = (batch == process_times - 1)
-                                                                    ? (vector_total_len - batch * functor->functor_cnt)
-                                                                    : functor->functor_cnt,
-                                            .batch_num = batch,
-                                            .first_batch = (batch == 0),
-                                            .last_batch = (batch == process_times - 1)};
+            submodule_payload.batch_info = {
+                .batch_vector_len = (batch == process_times - 1)
+                                        ? (vector_total_len - batch * payload->func_cfg->functor_cnt)
+                                        : payload->func_cfg->functor_cnt,
+                .batch_num = batch,
+                .first_batch = (batch == 0),
+                .last_batch = (batch == process_times - 1)};
             waitAndStartNextSubmodule(submodule_payload, read_submodule_socket_);
 
             if (!submodule_payload.batch_info.last_batch) {
@@ -79,12 +62,12 @@ void SIMDUnit::processReadSubmodule() {
 
         const auto& payload = read_submodule_socket_.payload;
         CORE_LOG(fmt::format("simd read start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
-                        payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
+                             payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
 
         if (payload.batch_info.first_batch) {
             for (const auto& scalar_input : payload.ins_info.scalar_inputs) {
                 memory_socket_.readLocal(payload.ins_info.ins, scalar_input.start_address_byte,
-                                        scalar_input.data_bit_width / BYTE_TO_BIT);
+                                         scalar_input.data_bit_width / BYTE_TO_BIT);
             }
         }
 
@@ -112,7 +95,7 @@ void SIMDUnit::processExecuteSubmodule() {
 
         const auto& payload = execute_submodule_socket_.payload;
         CORE_LOG(fmt::format("simd execute start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
-                        payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
+                             payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
 
         double dynamic_power_mW =
             payload.ins_info.functor_config->dynamic_power_per_functor_mW * payload.batch_info.batch_vector_len;
@@ -132,7 +115,7 @@ void SIMDUnit::processWriteSubmodule() {
 
         const auto& payload = write_submodule_socket_.payload;
         CORE_LOG(fmt::format("simd write start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
-                        payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
+                             payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
 
         if (payload.batch_info.last_batch) {
             releaseResource(payload.ins_info.ins.ins_id);
@@ -145,7 +128,7 @@ void SIMDUnit::processWriteSubmodule() {
         memory_socket_.writeLocal(payload.ins_info.ins, address_byte, size_byte, {});
 
         CORE_LOG(fmt::format("simd write end, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
-                        payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
+                             payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
 
         if (!payload.ins_info.use_pipeline && !payload.batch_info.last_batch) {
             cur_ins_next_batch_.notify();
@@ -159,10 +142,6 @@ void SIMDUnit::processWriteSubmodule() {
     }
 }
 
-unsigned int SIMDUnit::getSIMDInstructionIdentityCode(unsigned int input_cnt, unsigned int opcode) {
-    return ((input_cnt << SIMD_INSTRUCTION_OPCODE_BIT_LENGTH) | opcode);
-}
-
 void SIMDUnit::waitAndStartNextSubmodule(const cimsim::SIMDSubmodulePayload& cur_payload,
                                          SubmoduleSocket<cimsim::SIMDSubmodulePayload>& next_submodule_socket) {
     next_submodule_socket.waitUntilFinishIfBusy();
@@ -173,36 +152,12 @@ void SIMDUnit::waitAndStartNextSubmodule(const cimsim::SIMDSubmodulePayload& cur
     next_submodule_socket.start_exec.notify();
 }
 
-std::pair<const SIMDInstructionConfig*, const SIMDFunctorConfig*> SIMDUnit::getSIMDInstructionAndFunctor(
-    const SIMDInsPayload& payload) {
-    auto ins_found = instruction_config_map_.find(getSIMDInstructionIdentityCode(payload.input_cnt, payload.opcode));
-    if (ins_found == instruction_config_map_.end()) {
-        return {nullptr, nullptr};
-    }
-
-    auto* ins_config = ins_found->second;
-    for (const auto& bind_info : ins_config->functor_binding_list) {
-        if (bind_info.input_bit_width.inputs == payload.inputs_bit_width) {
-            if (auto functor_found = functor_config_map_.find(bind_info.functor_name);
-                functor_found != functor_config_map_.end()) {
-                if (auto* functor_config = functor_found->second;
-                    payload.input_cnt == functor_config->input_cnt &&
-                    payload.inputs_bit_width == functor_config->data_bit_width.inputs) {
-                    return {ins_config, functor_config};
-                }
-            }
-        }
-    }
-
-    return {ins_config, nullptr};
-}
-
 std::pair<SIMDInstructionInfo, ResourceAllocatePayload> SIMDUnit::decodeAndGetInfo(
     const SIMDInstructionConfig* instruction, const SIMDFunctorConfig* functor, const SIMDInsPayload& payload) const {
     SIMDInputOutputInfo output = {payload.output_bit_width, payload.output_address_byte};
     std::vector<SIMDInputOutputInfo> vector_inputs;
     std::vector<SIMDInputOutputInfo> scalar_inputs;
-    for (unsigned int i = 0; i < payload.input_cnt; i++) {
+    for (unsigned int i = 0; i < payload.ins_cfg->input_cnt; i++) {
         if (instruction->inputs_type[i] == +SIMDInputType::vector) {
             vector_inputs.emplace_back(
                 SIMDInputOutputInfo{payload.inputs_bit_width[i], payload.inputs_address_byte[i]});
@@ -232,7 +187,7 @@ std::pair<SIMDInstructionInfo, ResourceAllocatePayload> SIMDUnit::decodeAndGetIn
 
 ResourceAllocatePayload SIMDUnit::getDataConflictInfo(const SIMDInsPayload& payload) const {
     ResourceAllocatePayload cur_ins_conflict_info{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::simd};
-    for (unsigned int i = 0; i < payload.input_cnt; i++) {
+    for (unsigned int i = 0; i < payload.ins_cfg->input_cnt; i++) {
         cur_ins_conflict_info.addReadMemoryId(as_.getLocalMemoryId(payload.inputs_address_byte[i]));
     }
     cur_ins_conflict_info.addWriteMemoryId(as_.getLocalMemoryId(payload.output_address_byte));

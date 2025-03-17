@@ -15,6 +15,8 @@
 
 namespace cimsim {
 
+using SIMDInputsArray = std::array<int, SIMD_MAX_INPUT_NUM>;
+
 struct ControlUnitConfig {
     double controller_static_power_mW{0.0};   // mW
     double controller_dynamic_power_mW{0.0};  // mW
@@ -67,7 +69,7 @@ struct ScalarUnitConfig {
 
 struct SIMDDataWidthConfig {
     // data bit-width of input and output of SIMD functor
-    std::array<int, SIMD_MAX_INPUT_NUM> inputs{0, 0, 0, 0};
+    SIMDInputsArray inputs{0, 0, 0, 0};
     int output{0};  // bit
 
     [[nodiscard]] static bool checkDataWidth(int width);
