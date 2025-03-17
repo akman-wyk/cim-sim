@@ -4,6 +4,7 @@
 
 #include "core/core.h"
 #include "decoder.h"
+#include "fmt/format.h"
 #include "isa/isa_v2.h"
 
 namespace cimsim {
@@ -91,24 +92,33 @@ std::shared_ptr<ExecuteInsPayload> DecoderV3::decodeSIMDIns(const InstV3& ins) c
     SIMDInsPayload p;
     p.ins.unit_type = ExecuteUnitType::simd;
 
-    p.input_cnt = ((ins.getOpcode() >> 2) & 0x11) + 1;
+    auto input_cnt = static_cast<unsigned int>(((ins.getOpcode() >> 2) & 0x11) + 1);
+    auto opcode = static_cast<unsigned int>(ins.getFunctType2());
 
     int i1_addr = reg_unit_->readRegister(ins.getR1(), false);
-    int i2_addr = (p.input_cnt < 2) ? 0 : reg_unit_->readRegister(ins.getR2(), false);
-    int i3_addr = (p.input_cnt < 3) ? 0 : reg_unit_->readRegister(SpecialRegId::input_3_address, true);
-    int i4_addr = (p.input_cnt < 4) ? 0 : reg_unit_->readRegister(SpecialRegId::input_4_address, true);
+    int i2_addr = (input_cnt < 2) ? 0 : reg_unit_->readRegister(ins.getR2(), false);
+    int i3_addr = (input_cnt < 3) ? 0 : reg_unit_->readRegister(SpecialRegId::input_3_address, true);
+    int i4_addr = (input_cnt < 4) ? 0 : reg_unit_->readRegister(SpecialRegId::input_4_address, true);
 
     int i1_bit_width = reg_unit_->readRegister(SpecialRegId::simd_input_1_bit_width, true);
-    int i2_bit_width = (p.input_cnt < 2) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_2_bit_width, true);
-    int i3_bit_width = (p.input_cnt < 3) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_3_bit_width, true);
-    int i4_bit_width = (p.input_cnt < 4) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_4_bit_width, true);
+    int i2_bit_width = (input_cnt < 2) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_2_bit_width, true);
+    int i3_bit_width = (input_cnt < 3) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_3_bit_width, true);
+    int i4_bit_width = (input_cnt < 4) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_4_bit_width, true);
 
-    p.opcode = static_cast<unsigned int>(ins.getFunctType2());
-    p.inputs_bit_width = std::array<int, SIMD_MAX_INPUT_NUM>{i1_bit_width, i2_bit_width, i3_bit_width, i4_bit_width};
-    p.inputs_address_byte = std::array<int, SIMD_MAX_INPUT_NUM>{i1_addr, i2_addr, i3_addr, i4_addr};
+    p.inputs_bit_width = SIMDInputsArray{i1_bit_width, i2_bit_width, i3_bit_width, i4_bit_width};
+    p.inputs_address_byte = SIMDInputsArray{i1_addr, i2_addr, i3_addr, i4_addr};
     p.output_bit_width = reg_unit_->readRegister(SpecialRegId::simd_output_bit_width, true);
     p.output_address_byte = reg_unit_->readRegister(ins.getR3(), false);
     p.len = reg_unit_->readRegister(ins.getR4(), false);
+
+    const auto& [ins_cfg, func_cfg] = getSIMDInstructionAndFunctor(input_cnt, opcode, p.inputs_bit_width);
+    if (ins_cfg == nullptr || func_cfg == nullptr) {
+        std::cerr << fmt::format("No match {}, Invalid SIMD instruction: \n{}",
+                                 (ins_cfg == nullptr ? "inst" : "functor"), p.toString());
+        return std::make_shared<ExecuteInsPayload>(InstructionPayload{.unit_type = ExecuteUnitType::none});
+    }
+    p.ins_cfg = ins_cfg;
+    p.func_cfg = func_cfg;
 
     return std::make_shared<SIMDInsPayload>(p);
 }

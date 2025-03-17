@@ -22,7 +22,15 @@ public:
     Decoder(const char* name, const ChipConfig& chip_config, const SimConfig& sim_config, Core* core, Clock* clk)
         : BaseModule(name, sim_config, core, clk)
         , as_(AddressSapce::getInstance())
-        , simd_unit_config_(chip_config.core_config.simd_unit_config) {}
+        , simd_unit_config_(chip_config.core_config.simd_unit_config) {
+        for (const auto& ins_config : simd_unit_config_.instruction_list) {
+            simd_ins_config_map_.emplace(getSIMDInstructionIdentityCode(ins_config.input_cnt, ins_config.opcode),
+                                         &ins_config);
+        }
+        for (const auto& functor_config : simd_unit_config_.functor_list) {
+            simd_func_config_map_.emplace(functor_config.name, &functor_config);
+        }
+    }
 
     void bindRegUnit(RegUnit* reg_unit) {
         this->reg_unit_ = reg_unit;
@@ -35,6 +43,35 @@ public:
 
     virtual std::shared_ptr<ExecuteInsPayload> decode(const Inst& ins, int pc, int& pc_increment,
                                                       ResourceAllocatePayload& conflict_info) = 0;
+
+protected:
+    static unsigned int getSIMDInstructionIdentityCode(unsigned int input_cnt, unsigned int opcode) {
+        return ((input_cnt << SIMD_INSTRUCTION_OPCODE_BIT_LENGTH) | opcode);
+    }
+
+    std::pair<const SIMDInstructionConfig*, const SIMDFunctorConfig*> getSIMDInstructionAndFunctor(
+        unsigned int input_cnt, unsigned int opcode, const SIMDInputsArray& inputs_bit_width) const {
+        auto ins_found = simd_ins_config_map_.find(getSIMDInstructionIdentityCode(input_cnt, opcode));
+        if (ins_found == simd_ins_config_map_.end()) {
+            return {nullptr, nullptr};
+        }
+
+        auto* ins_config = ins_found->second;
+        for (const auto& bind_info : ins_config->functor_binding_list) {
+            if (bind_info.input_bit_width.inputs == inputs_bit_width) {
+                if (auto functor_found = simd_func_config_map_.find(bind_info.functor_name);
+                    functor_found != simd_func_config_map_.end()) {
+                    if (auto* functor_config = functor_found->second;
+                        input_cnt == functor_config->input_cnt &&
+                        inputs_bit_width == functor_config->data_bit_width.inputs) {
+                        return {ins_config, functor_config};
+                    }
+                }
+            }
+        }
+
+        return {ins_config, nullptr};
+    }
 
 private:
     virtual std::shared_ptr<ExecuteInsPayload> decodeCimIns(const Inst& ins) const = 0;
@@ -52,6 +89,10 @@ protected:
 
     RegUnit* reg_unit_{};
     std::unordered_map<std::string, ExecuteUnit*> execute_unit_map_;
+
+private:
+    std::unordered_map<unsigned int, const SIMDInstructionConfig*> simd_ins_config_map_;
+    std::unordered_map<std::string, const SIMDFunctorConfig*> simd_func_config_map_;
 };
 
 class DecoderV1 : public Decoder<InstV1> {

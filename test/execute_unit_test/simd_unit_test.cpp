@@ -18,8 +18,8 @@ struct SIMDTestInfo {
     TestExpectedInfo expected{};
 };
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(SIMDInsPayload, ins, input_cnt, opcode, inputs_bit_width,
-                                               output_bit_width, inputs_address_byte, output_address_byte, len)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(SIMDInsPayload, ins, inputs_bit_width, output_bit_width,
+                                               inputs_address_byte, output_address_byte, len)
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(SIMDTestInstruction, payload)
 
@@ -35,6 +35,13 @@ public:
         reporter.addSubModule(local_memory_unit_.getName(), local_memory_unit_.getEnergyReporter());
         reporter.addSubModule(test_unit_.getName(), test_unit_.getEnergyReporter());
         return std::move(reporter);
+    }
+
+    SIMDInsPayload decode(const SIMDInsPayload& payload) override {
+        auto p = payload;
+        p.ins_cfg = &test_unit_config_.instruction_list[1];
+        p.func_cfg = &test_unit_config_.functor_list[1];
+        return p;
     }
 };
 

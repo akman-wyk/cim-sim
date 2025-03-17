@@ -71,6 +71,10 @@ public:
         return true;
     }
 
+    virtual InsPayload decode(const InsPayload& payload) {
+        return payload;
+    }
+
 private:
     [[noreturn]] void issue() {
         wait(8, SC_NS);
@@ -80,7 +84,7 @@ private:
                 if (ins_index_ < ins_list_.size()) {
                     ins_list_[ins_index_].payload.ins.ins_id = ins_id++;
                     ins_list_[ins_index_].payload.ins.unit_type = type_;
-                    cur_ins_conflict_info_ = test_unit_.getDataConflictInfo(ins_list_[ins_index_].payload);
+                    cur_ins_conflict_info_ = test_unit_.getDataConflictInfo(decode(ins_list_[ins_index_].payload));
                     decode_new_ins_trigger_.notify();
                 } else {
                     id_finish_.write(true);
@@ -90,7 +94,7 @@ private:
 
             if (!id_stall_.read() && cur_ins_conflict_info_.unit_type != +ExecuteUnitType::none) {
                 signals_.id_ex_payload_.write(
-                    ExecuteUnitPayload{.payload = std::make_shared<InsPayload>(ins_list_[ins_index_].payload)});
+                    ExecuteUnitPayload{.payload = std::make_shared<InsPayload>(decode(ins_list_[ins_index_].payload))});
                 ins_index_++;
 
                 cur_ins_conflict_info_ = ResourceAllocatePayload{.ins_id = -1, .unit_type = ExecuteUnitType::none};
