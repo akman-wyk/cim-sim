@@ -259,6 +259,30 @@
           "config_file": "config/test/macro_simulation_test_config.json",
           "instruction_file": "test_data/core_v2/core_test_data_13.json",
           "report_file": "report/Core_test_report.txt"
+        },
+        {
+          "comments": "Test for SIMD instructions with 2-cycle-2-pipeline-stage functor",
+          "config_file": "config/test/SIMD_test_config_2.json",
+          "instruction_file": "test_data/core_v2/core_test_data_14.json",
+          "report_file": "report/Core_test_report.txt"
+        },
+        {
+          "comments": "Test for SIMD instructions with 8-cycle-4-pipeline-stage functor and 3-cycle read",
+          "config_file": "config/test/SIMD_test_config_2.json",
+          "instruction_file": "test_data/core_v2/core_test_data_15.json",
+          "report_file": "report/Core_test_report.txt"
+        },
+        {
+          "comments": "Test for SIMD instructions with 8-cycle-4-pipeline-stage functor and 1-cycle read",
+          "config_file": "config/test/SIMD_test_config_2.json",
+          "instruction_file": "test_data/core_v2/core_test_data_16.json",
+          "report_file": "report/Core_test_report.txt"
+        },
+        {
+          "comments": "Test for SIMD instructions with 8-cycle-4-pipeline-stage and 2-cycle-2-pipeline-stage functors",
+          "config_file": "config/test/SIMD_test_config_2.json",
+          "instruction_file": "test_data/core_v2/core_test_data_17.json",
+          "report_file": "report/Core_test_report.txt"
         }
       ]
     },

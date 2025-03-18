@@ -34,7 +34,7 @@ public:
 
     void addDynamicEnergyPJ(double energy);
     void addDynamicEnergyPJ(double latency, double power);
-    void addDynamicEnergyPJ(double latency, double power, const sc_core::sc_time& time_tag, int id_tag);
+    void addDynamicEnergyPJWithTime(double latency, double power, int id_tag = 0);
 
     void addPipelineDynamicEnergyPJ(int unit_latency_cycle, int pipeline_length, double period, double power);
 
@@ -51,7 +51,7 @@ private:
     double dynamic_energy_ = 0.0;  // pJ
     double activity_time_ = 0.0;   // ns
 
-    std::unordered_map<int, sc_core::sc_time> dynamic_time_tag_map_{};
+    std::unordered_map<int, sc_core::sc_time> dynamic_end_time_tag_map_{};
     sc_core::sc_time activity_time_tag_{0.0, SC_NS};
 };
 

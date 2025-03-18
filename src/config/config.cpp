@@ -189,8 +189,10 @@ bool SIMDFunctorConfig::checkValid() const {
                   << std::endl;
         return false;
     }
-    if (!check_positive(functor_cnt)) {
-        std::cerr << fmt::format("SIMDFunctorConfig of '{}' not valid, 'functor_cnt' must be positive", name)
+    if (!check_positive(functor_cnt, pipeline_stage_cnt)) {
+        std::cerr << fmt::format(
+                         "SIMDFunctorConfig of '{}' not valid, 'functor_cnt, pipeline_stage_cnt' must be positive",
+                         name)
                   << std::endl;
         return false;
     }
@@ -201,6 +203,14 @@ bool SIMDFunctorConfig::checkValid() const {
                   << std::endl;
         return false;
     }
+    if (latency_cycle % pipeline_stage_cnt != 0) {
+        std::cerr
+            << fmt::format(
+                   "SIMDFunctorConfig of '{}' not valid, 'latency_cycle' must be divisible by 'pipeline_stage_cnt'",
+                   name)
+            << std::endl;
+        return false;
+    }
     if (!data_bit_width.checkValid(input_cnt, true)) {
         std::cerr << fmt::format("SIMDFunctorConfig of '{}' not valid", name) << std::endl;
         return false;
@@ -209,7 +219,8 @@ bool SIMDFunctorConfig::checkValid() const {
 }
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(SIMDFunctorConfig, name, input_cnt, data_bit_width, functor_cnt,
-                                               latency_cycle, static_power_per_functor_mW, dynamic_power_per_functor_mW)
+                                               latency_cycle, pipeline_stage_cnt, static_power_per_functor_mW,
+                                               dynamic_power_per_functor_mW)
 
 bool SIMDInstructionFunctorBindingConfig::checkValid(const unsigned int input_cnt) const {
     if (functor_name.empty()) {

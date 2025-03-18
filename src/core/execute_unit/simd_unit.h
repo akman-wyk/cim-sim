@@ -29,7 +29,7 @@ struct SIMDInstructionInfo {
     std::vector<SIMDInputOutputInfo> vector_inputs{};
     SIMDInputOutputInfo output{};
 
-    const SIMDFunctorConfig* functor_config{nullptr};
+    int functor_cnt{0};
     bool use_pipeline{false};
 };
 
@@ -40,9 +40,54 @@ struct SIMDBatchInfo {
     bool last_batch{false};
 };
 
-struct SIMDSubmodulePayload {
+struct SIMDStagePayload {
     SIMDInstructionInfo ins_info;
     SIMDBatchInfo batch_info;
+};
+
+using SIMDStageSocket = SubmoduleSocket<SIMDStagePayload>;
+
+void waitAndStartNextStage(const SIMDStagePayload& cur_payload, SIMDStageSocket& next_stage_socket);
+
+class SIMDFunctorPipelineStage : public BaseModule {
+public:
+    SC_HAS_PROCESS(SIMDFunctorPipelineStage);
+
+    explicit SIMDFunctorPipelineStage(const std::string& name, const SimConfig& sim_config, Core* core, Clock* clk,
+                                      const SIMDFunctorConfig& config, EnergyCounter& functor_energy_counter);
+
+    SIMDStageSocket* getExecuteSocket();
+    void setNextStageSocket(SIMDStageSocket* next_stage_socket);
+    void clearNextStageSocket();
+
+    [[noreturn]] void processExecute();
+
+private:
+    const double dynamic_power_per_functor_mW_{1.0};
+    int pipeline_stage_latency_cycle_{1};
+
+    SIMDStageSocket exec_socket_;
+    SIMDStageSocket* next_stage_socket_{nullptr};
+
+    EnergyCounter& functor_energy_counter_;
+};
+
+class SIMDFunctor {
+public:
+    explicit SIMDFunctor(const std::string& name, const SimConfig& sim_config, Core* core, Clock* clk,
+                         const SIMDFunctorConfig& functor_config, SIMDStageSocket* next_stage_socket);
+
+    SIMDStageSocket* getExecuteSocket();
+    [[nodiscard]] const SIMDFunctorConfig* getFunctorConfig() const;
+
+    [[nodiscard]] EnergyReporter getEnergyReporter() const;
+
+private:
+    const SIMDFunctorConfig& functor_config_;
+
+    std::vector<std::shared_ptr<SIMDFunctorPipelineStage>> stage_list_{};
+
+    EnergyCounter functor_energy_counter_;
 };
 
 class SIMDUnit : public ExecuteUnit {
@@ -52,28 +97,26 @@ public:
     SIMDUnit(const char* name, const SIMDUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
     [[noreturn]] void processIssue();
-    [[noreturn]] void processReadSubmodule();
-    [[noreturn]] void processExecuteSubmodule();
-    [[noreturn]] void processWriteSubmodule();
+    [[noreturn]] void processReadStage();
+    [[noreturn]] void processWriteStage();
 
     ResourceAllocatePayload getDataConflictInfo(const SIMDInsPayload& payload) const;
     ResourceAllocatePayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
 
-private:
-    static void waitAndStartNextSubmodule(const SIMDSubmodulePayload& cur_payload,
-                                          SubmoduleSocket<SIMDSubmodulePayload>& next_submodule_socket);
+    EnergyReporter getEnergyReporter() override;
 
-    std::pair<SIMDInstructionInfo, ResourceAllocatePayload> decodeAndGetInfo(const SIMDInstructionConfig* instruction,
-                                                                             const SIMDFunctorConfig* functor,
-                                                                             const SIMDInsPayload& payload) const;
+private:
+    std::pair<SIMDInstructionInfo, ResourceAllocatePayload> decodeAndGetInfo(const SIMDInsPayload& payload) const;
 
 private:
     const SIMDUnitConfig& config_;
 
+    std::unordered_map<const SIMDFunctorConfig*, std::shared_ptr<SIMDFunctor>> functor_map_{};
+    std::shared_ptr<SIMDFunctor> executing_functor_{nullptr};
+
     sc_core::sc_event cur_ins_next_batch_;
-    SubmoduleSocket<SIMDSubmodulePayload> read_submodule_socket_{};
-    SubmoduleSocket<SIMDSubmodulePayload> execute_submodule_socket_{};
-    SubmoduleSocket<SIMDSubmodulePayload> write_submodule_socket_{};
+    SIMDStageSocket read_stage_socket_{};
+    SIMDStageSocket write_stage_socket_{};
 };
 
 }  // namespace cimsim

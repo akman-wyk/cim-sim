@@ -85,6 +85,7 @@ struct SIMDFunctorConfig {
 
     int functor_cnt{32};
     int latency_cycle{1};                      // cycle
+    int pipeline_stage_cnt{1};                 // pipeline stage count
     double static_power_per_functor_mW{1.0};   // mW
     double dynamic_power_per_functor_mW{1.0};  // mW
 

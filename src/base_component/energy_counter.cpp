@@ -18,7 +18,7 @@ void EnergyCounter::clear() {
     static_power_ = 0.0;
     dynamic_energy_ = 0.0;
     activity_time_ = 0.0;
-    dynamic_time_tag_map_.clear();
+    dynamic_end_time_tag_map_.clear();
 }
 
 void EnergyCounter::setStaticPowerMW(double power) {
@@ -34,19 +34,32 @@ void EnergyCounter::addDynamicEnergyPJ(double latency, double power) {
     dynamic_energy_ += latency * power;
 }
 
-void EnergyCounter::addDynamicEnergyPJ(double latency, double power, const sc_core::sc_time& time_tag, int id_tag) {
-    auto found = dynamic_time_tag_map_.find(id_tag);
-    if (found == dynamic_time_tag_map_.end()) {
+void EnergyCounter::addDynamicEnergyPJWithTime(double latency, double power, int id_tag) {
+    auto& now_time = sc_core::sc_time_stamp();
+    auto end_time_tag = now_time + sc_time{latency, SC_NS};
+    auto found = dynamic_end_time_tag_map_.find(id_tag);
+
+    if (found == dynamic_end_time_tag_map_.end()) {
         dynamic_energy_ += latency * power;
-        dynamic_time_tag_map_.emplace(id_tag, time_tag);
-    } else if (found->second != time_tag) {
-        dynamic_energy_ += latency * power;
-        dynamic_time_tag_map_[id_tag] = time_tag;
+        dynamic_end_time_tag_map_.emplace(id_tag, end_time_tag);
+    } else if (auto& lastend_time = found->second; lastend_time < end_time_tag) {
+        auto new_dynamic_latency = latency;
+        if (now_time < lastend_time) {
+            auto overlap_time = lastend_time - now_time;
+            new_dynamic_latency -= (overlap_time.to_seconds() * 1e9);
+        }
+        dynamic_energy_ += new_dynamic_latency * power;
+        dynamic_end_time_tag_map_[id_tag] = end_time_tag;
     }
 
-    if (activity_time_tag_ != time_tag) {
-        activity_time_ += latency;
-        activity_time_tag_ = time_tag;
+    if (activity_time_tag_ < end_time_tag) {
+        auto new_activity_latency = latency;
+        if (now_time < activity_time_tag_) {
+            auto overlap_time = activity_time_tag_ - now_time;
+            new_activity_latency -= (overlap_time.to_seconds() * 1e9);
+        }
+        activity_time_ += new_activity_latency;
+        activity_time_tag_ = end_time_tag;
     }
 }
 

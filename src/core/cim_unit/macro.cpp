@@ -112,7 +112,7 @@ void Macro::processIPUAndIssue() {
             const auto &payload = macro_socket_.payload;
             const auto &cim_ins_info = payload.cim_ins_info;
             CORE_LOG(fmt::format("{} start, ins pc: {}, sub ins num: {}", getName(), cim_ins_info.ins_pc,
-                            cim_ins_info.sub_ins_num));
+                                 cim_ins_info.sub_ins_num));
 
             auto [batch_cnt, activation_compartment_num] = getBatchCountAndActivationCompartmentCount(payload);
             MacroSubInsInfo sub_ins_info{.cim_ins_info = cim_ins_info,
@@ -128,7 +128,8 @@ void Macro::processIPUAndIssue() {
                 submodule_payload.batch_info = {
                     .batch_num = batch, .first_batch = (batch == 0), .last_batch = (batch == batch_cnt - 1)};
                 CORE_LOG(fmt::format("{} start ipu and issue, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                                cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, submodule_payload.batch_info.batch_num));
+                                     cim_ins_info.ins_pc, cim_ins_info.sub_ins_num,
+                                     submodule_payload.batch_info.batch_num));
 
                 double dynamic_power_mW = config_.ipu.dynamic_power_mW;
                 double latency = config_.ipu.latency_cycle * period_ns_;
@@ -149,8 +150,8 @@ void Macro::processSRAMSubmodule() {
 
         const auto &payload = sram_socket_.payload;
         const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
-        CORE_LOG(fmt::format("{} start sram read, ins pc: {}, sub ins num: {}, batch: {}", getName(), cim_ins_info.ins_pc,
-                        cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+        CORE_LOG(fmt::format("{} start sram read, ins pc: {}, sub ins num: {}, batch: {}", getName(),
+                             cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double dynamic_power_mW = config_.sram.read_dynamic_power_per_bit_mW * macro_size_.bit_width_per_row * 1 *
                                   macro_size_.element_cnt_per_compartment * macro_size_.compartment_cnt_per_macro;
@@ -172,7 +173,7 @@ void Macro::processPostProcessSubmodule() {
         const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
         if (config_.bit_sparse && payload.sub_ins_info.bit_sparse) {
             CORE_LOG(fmt::format("{} start post process, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                            cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+                                 cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
             if (payload.batch_info.first_batch) {
                 int meta_size_byte = config_.bit_sparse_config.mask_bit_width *
@@ -206,14 +207,14 @@ void Macro::processAdderTreeSubmodule1() {
         const auto &payload = adder_tree_socket_1_.payload;
         const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
         CORE_LOG(fmt::format("{} start adder tree stage 1, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                        cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+                             cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double dynamic_power_mW = config_.adder_tree.dynamic_power_mW;
         double latency = period_ns_;
         for (int i = 0; i < macro_size_.element_cnt_per_compartment; i++) {
             if (getMaskBit(payload.sub_ins_info.activation_element_col_mask, i) != 0) {
-                adder_tree_energy_counter_.addDynamicEnergyPJ(
-                    latency, dynamic_power_mW * payload.sub_ins_info.simulated_macro_cnt, sc_core::sc_time_stamp(), i);
+                adder_tree_energy_counter_.addDynamicEnergyPJWithTime(
+                    latency, dynamic_power_mW * payload.sub_ins_info.simulated_macro_cnt, i);
             }
         }
         wait(latency, SC_NS);
@@ -231,14 +232,14 @@ void Macro::processAdderTreeSubmodule2() {
         const auto &payload = adder_tree_socket_2_.payload;
         const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
         CORE_LOG(fmt::format("{} start adder tree stage 2, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                        cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+                             cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double dynamic_power_mW = config_.adder_tree.dynamic_power_mW;
         double latency = period_ns_;
         for (int i = 0; i < macro_size_.element_cnt_per_compartment; i++) {
             if (getMaskBit(payload.sub_ins_info.activation_element_col_mask, i) != 0) {
-                adder_tree_energy_counter_.addDynamicEnergyPJ(
-                    latency, dynamic_power_mW * payload.sub_ins_info.simulated_macro_cnt, sc_core::sc_time_stamp(), i);
+                adder_tree_energy_counter_.addDynamicEnergyPJWithTime(
+                    latency, dynamic_power_mW * payload.sub_ins_info.simulated_macro_cnt, i);
             }
         }
         wait(latency, SC_NS);
@@ -255,8 +256,8 @@ void Macro::processShiftAdderSubmodule() {
 
         const auto &payload = shift_adder_socket_.payload;
         const auto &cim_ins_info = payload.sub_ins_info.cim_ins_info;
-        CORE_LOG(fmt::format("{} start shift adder, ins pc: {}, sub ins num: {}, batch: {}", getName(), cim_ins_info.ins_pc,
-                        cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
+        CORE_LOG(fmt::format("{} start shift adder, ins pc: {}, sub ins num: {}, batch: {}", getName(),
+                             cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
         double dynamic_power_mW =
             config_.shift_adder.dynamic_power_mW * payload.sub_ins_info.activation_element_col_cnt;

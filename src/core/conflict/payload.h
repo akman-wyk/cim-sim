@@ -3,6 +3,7 @@
 //
 
 #pragma once
+#include "config/config.h"
 #include "config/constant.h"
 #include "core/payload.h"
 #include "systemc.h"
@@ -61,6 +62,7 @@ public:
 public:
     int ins_id{-1};
     ExecuteUnitType unit_type{ExecuteUnitType::none};
+    const SIMDFunctorConfig* simd_functor_cfg{nullptr};
 
     MemoryBitmap read_memory_id;
     MemoryBitmap write_memory_id;
