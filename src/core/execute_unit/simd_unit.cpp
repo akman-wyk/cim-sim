@@ -10,19 +10,95 @@
 
 namespace cimsim {
 
+void waitAndStartNextStage(const cimsim::SIMDStagePayload& cur_payload, SIMDStageSocket& next_stage_socket) {
+    next_stage_socket.waitUntilFinishIfBusy();
+    if (cur_payload.batch_info.first_batch) {
+        next_stage_socket.payload.ins_info = cur_payload.ins_info;
+    }
+    next_stage_socket.payload.batch_info = cur_payload.batch_info;
+    next_stage_socket.start_exec.notify();
+}
+
+SIMDFunctorPipelineStage::SIMDFunctorPipelineStage(const std::string& name, const SimConfig& sim_config, Core* core,
+                                                   Clock* clk, const SIMDFunctorConfig& config,
+                                                   EnergyCounter& functor_energy_counter)
+    : BaseModule(name.c_str(), sim_config, core, clk)
+    , dynamic_power_per_functor_mW_(config.dynamic_power_per_functor_mW)
+    , pipeline_stage_latency_cycle_(config.latency_cycle / config.pipeline_stage_cnt)
+    , functor_energy_counter_(functor_energy_counter){SC_THREAD(processExecute)}
+
+          SIMDStageSocket
+          * SIMDFunctorPipelineStage::getExecuteSocket() {
+    return &exec_socket_;
+}
+
+void SIMDFunctorPipelineStage::setNextStageSocket(SIMDStageSocket* next_stage_socket) {
+    next_stage_socket_ = next_stage_socket;
+}
+
+void SIMDFunctorPipelineStage::clearNextStageSocket() {
+    next_stage_socket_ = nullptr;
+}
+
+void SIMDFunctorPipelineStage::processExecute() {
+    while (true) {
+        exec_socket_.waitUntilStart();
+
+        const auto& payload = exec_socket_.payload;
+        CORE_LOG(fmt::format("simd execute start, pipeline: {}, pc: {}, ins id: {}, batch: {}", getName(),
+                             payload.ins_info.ins.pc, payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
+
+        double dynamic_power_mW = dynamic_power_per_functor_mW_ * payload.batch_info.batch_vector_len;
+        double latency = pipeline_stage_latency_cycle_ * period_ns_;
+        functor_energy_counter_.addDynamicEnergyPJWithTime(latency, dynamic_power_mW);
+        wait(latency, SC_NS);
+
+        waitAndStartNextStage(payload, *next_stage_socket_);
+
+        exec_socket_.finish();
+    }
+}
+
+SIMDFunctor::SIMDFunctor(const std::string& name, const SimConfig& sim_config, Core* core, Clock* clk,
+                         const SIMDFunctorConfig& functor_config, SIMDStageSocket* next_stage_socket)
+    : functor_config_(functor_config) {
+    stage_list_.emplace_back(std::make_shared<SIMDFunctorPipelineStage>(
+        fmt::format("{}_pipeline_0", name), sim_config, core, clk, functor_config_, functor_energy_counter_));
+
+    for (int i = 1; i < functor_config_.pipeline_stage_cnt; i++) {
+        auto stage_ptr = std::make_shared<SIMDFunctorPipelineStage>(
+            fmt::format("{}_pipeline_{}", name, i), sim_config, core, clk, functor_config_, functor_energy_counter_);
+        stage_list_[i - 1]->setNextStageSocket(stage_ptr->getExecuteSocket());
+        stage_list_.emplace_back(stage_ptr);
+    }
+    stage_list_[stage_list_.size() - 1]->setNextStageSocket(next_stage_socket);
+
+    functor_energy_counter_.setStaticPowerMW(functor_config_.static_power_per_functor_mW * functor_config_.functor_cnt);
+}
+
+SIMDStageSocket* SIMDFunctor::getExecuteSocket() {
+    return stage_list_[0]->getExecuteSocket();
+}
+
+const SIMDFunctorConfig* SIMDFunctor::getFunctorConfig() const {
+    return &functor_config_;
+}
+
+EnergyReporter SIMDFunctor::getEnergyReporter() const {
+    return EnergyReporter{functor_energy_counter_};
+}
+
 SIMDUnit::SIMDUnit(const char* name, const SIMDUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk)
     : ExecuteUnit(name, sim_config, core, clk, ExecuteUnitType::simd), config_(config) {
     SC_THREAD(processIssue)
-    SC_THREAD(processReadSubmodule)
-    SC_THREAD(processExecuteSubmodule)
-    SC_THREAD(processWriteSubmodule)
+    SC_THREAD(processReadStage)
+    SC_THREAD(processWriteStage)
 
-    double SIMD_functors_total_static_power_mW = 0.0;
     for (const auto& functor_config : config_.functor_list) {
-        SIMD_functors_total_static_power_mW += functor_config.static_power_per_functor_mW * functor_config.functor_cnt;
+        auto functor = std::make_shared<SIMDFunctor>(functor_config.name, sim_config, core, clk, functor_config,
+                                                     &write_stage_socket_);
+        functor_map_.emplace(&functor_config, functor);
     }
-
-    energy_counter_.setStaticPowerMW(SIMD_functors_total_static_power_mW);
 }
 
 void SIMDUnit::processIssue() {
@@ -31,23 +107,27 @@ void SIMDUnit::processIssue() {
         auto payload = waitForExecuteAndGetPayload<SIMDInsPayload>();
 
         // Decode instruction
-        const auto& [ins_info, conflict_payload] = decodeAndGetInfo(payload->ins_cfg, payload->func_cfg, *payload);
+        const auto& [ins_info, conflict_payload] = decodeAndGetInfo(*payload);
         ports_.resource_allocate_.write(conflict_payload);
+
+        if (executing_functor_ == nullptr || executing_functor_->getFunctorConfig() != payload->func_cfg) {
+            executing_functor_ = functor_map_[payload->func_cfg];
+        }
 
         int vector_total_len = ins_info.vector_inputs.empty() ? 1 : payload->len;
         int process_times = IntDivCeil(vector_total_len, payload->func_cfg->functor_cnt);
-        SIMDSubmodulePayload submodule_payload{.ins_info = ins_info};
+        SIMDStagePayload stage_payload{.ins_info = ins_info};
         for (int batch = 0; batch < process_times; batch++) {
-            submodule_payload.batch_info = {
+            stage_payload.batch_info = {
                 .batch_vector_len = (batch == process_times - 1)
                                         ? (vector_total_len - batch * payload->func_cfg->functor_cnt)
                                         : payload->func_cfg->functor_cnt,
                 .batch_num = batch,
                 .first_batch = (batch == 0),
                 .last_batch = (batch == process_times - 1)};
-            waitAndStartNextSubmodule(submodule_payload, read_submodule_socket_);
+            waitAndStartNextStage(stage_payload, read_stage_socket_);
 
-            if (!submodule_payload.batch_info.last_batch) {
+            if (!stage_payload.batch_info.last_batch) {
                 wait(cur_ins_next_batch_);
             }
         }
@@ -56,11 +136,11 @@ void SIMDUnit::processIssue() {
     }
 }
 
-void SIMDUnit::processReadSubmodule() {
+void SIMDUnit::processReadStage() {
     while (true) {
-        read_submodule_socket_.waitUntilStart();
+        read_stage_socket_.waitUntilStart();
 
-        const auto& payload = read_submodule_socket_.payload;
+        const auto& payload = read_stage_socket_.payload;
         CORE_LOG(fmt::format("simd read start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
                              payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
 
@@ -74,46 +154,26 @@ void SIMDUnit::processReadSubmodule() {
         for (const auto& vector_input : payload.ins_info.vector_inputs) {
             int address_byte =
                 vector_input.start_address_byte + (payload.batch_info.batch_num * vector_input.data_bit_width *
-                                                   payload.ins_info.functor_config->functor_cnt / BYTE_TO_BIT);
+                                                   payload.ins_info.functor_cnt / BYTE_TO_BIT);
             int size_byte = vector_input.data_bit_width * payload.batch_info.batch_vector_len / BYTE_TO_BIT;
             memory_socket_.readLocal(payload.ins_info.ins, address_byte, size_byte);
         }
 
-        waitAndStartNextSubmodule(payload, execute_submodule_socket_);
+        waitAndStartNextStage(payload, *(executing_functor_->getExecuteSocket()));
 
         if (payload.ins_info.use_pipeline && !payload.batch_info.last_batch) {
             cur_ins_next_batch_.notify();
         }
 
-        read_submodule_socket_.finish();
+        read_stage_socket_.finish();
     }
 }
 
-void SIMDUnit::processExecuteSubmodule() {
+void SIMDUnit::processWriteStage() {
     while (true) {
-        execute_submodule_socket_.waitUntilStart();
+        write_stage_socket_.waitUntilStart();
 
-        const auto& payload = execute_submodule_socket_.payload;
-        CORE_LOG(fmt::format("simd execute start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
-                             payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
-
-        double dynamic_power_mW =
-            payload.ins_info.functor_config->dynamic_power_per_functor_mW * payload.batch_info.batch_vector_len;
-        double latency = payload.ins_info.functor_config->latency_cycle * period_ns_;
-        energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW);
-        wait(latency, SC_NS);
-
-        waitAndStartNextSubmodule(payload, write_submodule_socket_);
-
-        execute_submodule_socket_.finish();
-    }
-}
-
-void SIMDUnit::processWriteSubmodule() {
-    while (true) {
-        write_submodule_socket_.waitUntilStart();
-
-        const auto& payload = write_submodule_socket_.payload;
+        const auto& payload = write_stage_socket_.payload;
         CORE_LOG(fmt::format("simd write start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
                              payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
 
@@ -123,7 +183,7 @@ void SIMDUnit::processWriteSubmodule() {
 
         int address_byte = payload.ins_info.output.start_address_byte +
                            (payload.batch_info.batch_num * payload.ins_info.output.data_bit_width *
-                            payload.ins_info.functor_config->functor_cnt / BYTE_TO_BIT);
+                            payload.ins_info.functor_cnt / BYTE_TO_BIT);
         int size_byte = payload.ins_info.output.data_bit_width * payload.batch_info.batch_vector_len / BYTE_TO_BIT;
         memory_socket_.writeLocal(payload.ins_info.ins, address_byte, size_byte, {});
 
@@ -138,27 +198,25 @@ void SIMDUnit::processWriteSubmodule() {
             finishInstruction();
         }
 
-        write_submodule_socket_.finish();
+        write_stage_socket_.finish();
     }
 }
 
-void SIMDUnit::waitAndStartNextSubmodule(const cimsim::SIMDSubmodulePayload& cur_payload,
-                                         SubmoduleSocket<cimsim::SIMDSubmodulePayload>& next_submodule_socket) {
-    next_submodule_socket.waitUntilFinishIfBusy();
-    if (cur_payload.batch_info.first_batch) {
-        next_submodule_socket.payload.ins_info = cur_payload.ins_info;
+EnergyReporter SIMDUnit::getEnergyReporter() {
+    EnergyReporter reporter;
+    for (const auto& [functor_cfg, functor] : functor_map_) {
+        reporter.addSubModule(functor_cfg->name, EnergyReporter{functor->getEnergyReporter()});
     }
-    next_submodule_socket.payload.batch_info = cur_payload.batch_info;
-    next_submodule_socket.start_exec.notify();
+    return std::move(reporter);
 }
 
 std::pair<SIMDInstructionInfo, ResourceAllocatePayload> SIMDUnit::decodeAndGetInfo(
-    const SIMDInstructionConfig* instruction, const SIMDFunctorConfig* functor, const SIMDInsPayload& payload) const {
+    const SIMDInsPayload& payload) const {
     SIMDInputOutputInfo output = {payload.output_bit_width, payload.output_address_byte};
     std::vector<SIMDInputOutputInfo> vector_inputs;
     std::vector<SIMDInputOutputInfo> scalar_inputs;
     for (unsigned int i = 0; i < payload.ins_cfg->input_cnt; i++) {
-        if (instruction->inputs_type[i] == +SIMDInputType::vector) {
+        if (payload.ins_cfg->inputs_type[i] == +SIMDInputType::vector) {
             vector_inputs.emplace_back(
                 SIMDInputOutputInfo{payload.inputs_bit_width[i], payload.inputs_address_byte[i]});
         } else {
@@ -172,6 +230,7 @@ std::pair<SIMDInstructionInfo, ResourceAllocatePayload> SIMDUnit::decodeAndGetIn
         conflict_payload.addReadMemoryId(as_.getLocalMemoryId(vector_input.start_address_byte));
     }
     conflict_payload.addWriteMemoryId(as_.getLocalMemoryId(output.start_address_byte));
+    conflict_payload.simd_functor_cfg = payload.func_cfg;
 
     bool use_pipeline =
         config_.pipeline && !conflict_payload.write_memory_id.intersectionWith(conflict_payload.read_memory_id);
@@ -179,7 +238,7 @@ std::pair<SIMDInstructionInfo, ResourceAllocatePayload> SIMDUnit::decodeAndGetIn
                                  .scalar_inputs = scalar_inputs,
                                  .vector_inputs = vector_inputs,
                                  .output = output,
-                                 .functor_config = functor,
+                                 .functor_cnt = payload.func_cfg->functor_cnt,
                                  .use_pipeline = use_pipeline};
 
     return {ins_info, conflict_payload};
@@ -191,6 +250,7 @@ ResourceAllocatePayload SIMDUnit::getDataConflictInfo(const SIMDInsPayload& payl
         cur_ins_conflict_info.addReadMemoryId(as_.getLocalMemoryId(payload.inputs_address_byte[i]));
     }
     cur_ins_conflict_info.addWriteMemoryId(as_.getLocalMemoryId(payload.output_address_byte));
+    cur_ins_conflict_info.simd_functor_cfg = payload.func_cfg;
     return cur_ins_conflict_info;
 }
 

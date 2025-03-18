@@ -71,6 +71,11 @@ DEFINE_CIM_PAYLOAD_FUNCTIONS(ResourceAllocatePayload, ins_id, unit_type, read_me
                              used_memory_id)
 
 bool ResourceAllocatePayload::conflictWithIns(const ResourceAllocatePayload& ins_resource_allocate) const {
+    if (unit_type == +ExecuteUnitType::simd && ins_resource_allocate.unit_type == +ExecuteUnitType::simd &&
+        simd_functor_cfg != nullptr && ins_resource_allocate.simd_functor_cfg != nullptr &&
+        simd_functor_cfg != ins_resource_allocate.simd_functor_cfg) {
+        return true;
+    }
     if (ins_resource_allocate.unit_type == this->unit_type) {
         return this->write_memory_id.intersectionWith(ins_resource_allocate.read_memory_id);
     }
@@ -81,6 +86,7 @@ ResourceAllocatePayload& ResourceAllocatePayload::operator+=(const cimsim::Resou
     this->read_memory_id |= other.read_memory_id;
     this->write_memory_id |= other.write_memory_id;
     this->used_memory_id |= other.used_memory_id;
+    this->simd_functor_cfg = other.simd_functor_cfg;
     return *this;
 }
 

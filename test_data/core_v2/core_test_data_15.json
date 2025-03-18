@@ -1,0 +1,16 @@
+{
+  "comments": "test fot SIMD instructions with 8-cycle-4-pipeline-stage functor and 3-cycle read",
+  "code": [
+    {"opcode": 45, "rd": 16, "imm": 8, "asm": "S_LI 8 to $16"},
+    {"opcode": 45, "rd": 20, "imm": 8, "asm": "S_LI 8 to $20"},
+    {"opcode": 44, "rd": 0, "imm": 3072, "asm": "G_LI 1024 to $0"},
+    {"opcode": 44, "rd": 2, "imm": 64, "asm": "G_LI 64 to $2"},
+    {"opcode": 44, "rd": 3, "imm": 1024, "asm": "G_LI 2048 to $3"},
+    {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 2, "funct": 1, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $2, func: 1"},
+    {"opcode": 45, "rd": 0, "imm": 0, "asm": "S_LI 0 to $0"}
+  ],
+  "expected": {
+    "time_ns": 135,
+    "energy_pj": 1440
+  }
+}
