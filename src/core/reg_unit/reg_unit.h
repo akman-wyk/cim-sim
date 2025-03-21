@@ -29,7 +29,7 @@ class RegUnit : public BaseModule {
 public:
     SC_HAS_PROCESS(RegUnit);
 
-    RegUnit(const char* name, const RegisterUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    RegUnit(const sc_core::sc_module_name& name, const RegisterUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
     int getSpecialBoundGeneralId(int special_id) const;
 

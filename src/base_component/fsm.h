@@ -81,9 +81,9 @@ public:
     }
 
 public:
-    sc_core::sc_in<FSMPayload<T>> input_;
-    sc_core::sc_in<bool> enable_;
-    sc_core::sc_out<T> output_;
+    sc_core::sc_in<FSMPayload<T>> input_{"input"};
+    sc_core::sc_in<bool> enable_{"enable"};
+    sc_core::sc_out<T> output_{"output"};
 
     sc_core::sc_event start_exec_;
     sc_core::sc_event finish_exec_;

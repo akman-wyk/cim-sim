@@ -34,7 +34,7 @@ class MacroGroupTestModule : public BaseModule {
 public:
     SC_HAS_PROCESS(MacroGroupTestModule);
 
-    MacroGroupTestModule(const char* name, const Config& config, Clock* clk,
+    MacroGroupTestModule(const sc_core::sc_module_name& name, const Config& config, Clock* clk,
                          std::vector<MacroGroupTestInstruction> codes)
         : BaseModule(name, config.sim_config, nullptr, clk)
         , macro_group_("MacroGroup_0", config.chip_config.core_config.cim_unit_config, config.sim_config, nullptr,

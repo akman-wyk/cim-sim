@@ -31,15 +31,17 @@ public:
     SC_HAS_PROCESS(TestUnitModule);
 
 public:
-    ExecuteUnitTestModule(const char* name, const char* test_unit_name, const TestUnitConfig& test_unit_config,
-                          const Config& config, Clock* clk, std::vector<TestInstruction> codes, ExecuteUnitType type)
-        : BaseModule(name, config.sim_config, nullptr, clk)
+    ExecuteUnitTestModule(const sc_core::sc_module_name& name, const char* test_unit_name,
+                          const TestUnitConfig& test_unit_config, const Config& config, Clock* clk,
+                          std::vector<TestInstruction> codes, ExecuteUnitType type)
+        : BaseModule(name, config.sim_config, nullptr, clk), type_(type)
         , test_unit_config_(test_unit_config)
         , local_memory_unit_("LocalMemoryUnit", config.chip_config.core_config.local_memory_unit_config,
                              config.sim_config, nullptr, clk, false)
         , test_unit_(test_unit_name, test_unit_config, config.sim_config, nullptr, clk)
-        , unit_stall_handler_(decode_new_ins_trigger_, type)
-        , type_(type) {
+        , unit_stall_handler_("stall_handler", decode_new_ins_trigger_, type)
+
+        , signals_(type) {
         test_unit_.ports_.bind(signals_);
         test_unit_.ports_.id_finish_port_.bind(id_finish_);
         unit_stall_handler_.bind(signals_, unit_conflict_, &cur_ins_conflict_info_);
@@ -145,9 +147,9 @@ protected:
 
     // stall
     ConflictHandler unit_stall_handler_;
-    sc_core::sc_signal<bool> unit_conflict_;
-    sc_core::sc_signal<bool> id_stall_;
-    sc_core::sc_signal<bool> id_finish_;
+    sc_core::sc_signal<bool> unit_conflict_{"unit_conflict"};
+    sc_core::sc_signal<bool> id_stall_{"id_stall"};
+    sc_core::sc_signal<bool> id_finish_{"id_finish"};
 
     // id ex signals
     ExecuteUnitSignalPorts signals_;

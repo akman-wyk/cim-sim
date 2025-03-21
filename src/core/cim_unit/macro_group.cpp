@@ -10,18 +10,18 @@
 
 namespace cimsim {
 
-MacroGroup::MacroGroup(const char *name, const cimsim::CimUnitConfig &config, const cimsim::SimConfig &sim_config,
+MacroGroup::MacroGroup(const sc_core::sc_module_name& name, const cimsim::CimUnitConfig &config, const cimsim::SimConfig &sim_config,
                        cimsim::Core *core, cimsim::Clock *clk, bool macro_simulation)
     : BaseModule(name, sim_config, core, clk)
     , config_(config)
     , macro_size_(config.macro_size)
-    , controller_(std::string(name) + "_controller", config, sim_config, core, clk, next_sub_ins_, result_adder_socket_)
+    , controller_("Controller", config, sim_config, core, clk, next_sub_ins_, result_adder_socket_)
     , activation_macro_cnt_(config.macro_group_size) {
     SC_THREAD(processIssue)
     SC_THREAD(processResultAdderSubmodule)
 
     for (int i = 0; i < (macro_simulation ? 1 : config_.macro_group_size); i++) {
-        auto macro_name = fmt::format("{}_macro_{}", getName(), i);
+        auto macro_name = fmt::format("Macro_{}", i);
         bool independent_ipu = config_.value_sparse || i == 0;
         macro_list_.push_back(
             new Macro(macro_name.c_str(), config_, sim_config, core, clk, independent_ipu, &result_adder_socket_));

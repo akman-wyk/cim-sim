@@ -12,7 +12,7 @@ class RegBuffer : public MemoryHardware {
 public:
     SC_HAS_PROCESS(RegBuffer);
 
-    RegBuffer(const char* name, const RegBufferConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    RegBuffer(const sc_core::sc_module_name& name, const RegBufferConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
     sc_core::sc_time accessAndGetDelay(MemoryAccessPayload& payload) override;
 

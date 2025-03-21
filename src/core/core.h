@@ -30,7 +30,7 @@ class Core : public BaseModule {
 public:
     SC_HAS_PROCESS(Core);
 
-    Core(int core_id, const char* name, const Config& config, Clock* clk, std::vector<Instruction> ins_list,
+    Core(int core_id, const sc_core::sc_module_name& name, const Config& config, Clock* clk, std::vector<Instruction> ins_list,
          std::function<void()> finish_run_call);
     void bindNetwork(Network* network);
 
@@ -100,8 +100,8 @@ private:
     int pc_increment_{0};
     ResourceAllocatePayload cur_ins_conflict_info_;
     sc_core::sc_event decode_new_ins_trigger_;
-    sc_core::sc_signal<bool> id_finish_;
-    sc_core::sc_signal<bool> id_stall_;
+    sc_core::sc_signal<bool> id_finish_{"id_finish"};
+    sc_core::sc_signal<bool> id_stall_{"id_stall"};
 
     // finish run
     std::function<void()> finish_run_call_;

@@ -50,7 +50,7 @@ class CimControlUnitTestModule
     : public ExecuteUnitTestModule<CimControlUnitTestModule, CimControlUnit, CimUnitConfig, CimControlInsPayload,
                                    CimControlTestInstruction, CimControlTestExpectedInfo, CimControlTestInfo> {
 public:
-    CimControlUnitTestModule(const char* name, const char* test_unit_name, const CimUnitConfig& test_unit_config,
+    CimControlUnitTestModule(const sc_core::sc_module_name& name, const char* test_unit_name, const CimUnitConfig& test_unit_config,
                              const Config& config, Clock* clk, std::vector<CimControlTestInstruction> codes)
         : TestBaseModule(name, test_unit_name, test_unit_config, config, clk, std::move(codes),
                          ExecuteUnitType::cim_control)

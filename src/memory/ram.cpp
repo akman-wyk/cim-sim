@@ -10,7 +10,7 @@
 
 namespace cimsim {
 
-RAM::RAM(const char *name, const cimsim::RAMConfig &config, const cimsim::SimConfig &sim_config, cimsim::Core *core,
+RAM::RAM(const sc_core::sc_module_name& name, const cimsim::RAMConfig &config, const cimsim::SimConfig &sim_config, cimsim::Core *core,
          cimsim::Clock *clk)
     : MemoryHardware(name, sim_config, core, clk), config_(config) {
     if (data_mode_ == +DataMode::real_data) {

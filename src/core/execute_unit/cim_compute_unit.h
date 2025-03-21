@@ -31,7 +31,7 @@ class CimComputeUnit : public ExecuteUnit {
 public:
     SC_HAS_PROCESS(CimComputeUnit);
 
-    CimComputeUnit(const char* name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    CimComputeUnit(const sc_core::sc_module_name& name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
     void bindCimUnit(CimUnit* cim_unit);
 

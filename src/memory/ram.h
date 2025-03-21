@@ -17,7 +17,7 @@ class RAM : public MemoryHardware {
 public:
     SC_HAS_PROCESS(RAM);
 
-    RAM(const char* name, const RAMConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    RAM(const sc_core::sc_module_name& name, const RAMConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
     sc_core::sc_time accessAndGetDelay(MemoryAccessPayload& payload) override;
 

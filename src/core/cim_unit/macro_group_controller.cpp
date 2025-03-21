@@ -9,11 +9,11 @@
 
 namespace cimsim {
 
-MacroGroupController::MacroGroupController(const std::string &name, const cimsim::CimUnitConfig &config,
+MacroGroupController::MacroGroupController(const sc_core::sc_module_name& name, const cimsim::CimUnitConfig &config,
                                            const cimsim::SimConfig &sim_config, cimsim::Core *core, cimsim::Clock *clk,
                                            sc_core::sc_event &next_sub_ins,
                                            SubmoduleSocket<cimsim::MacroGroupSubmodulePayload> &result_adder_socket)
-    : BaseModule(name.c_str(), sim_config, core, clk)
+    : BaseModule(name, sim_config, core, clk)
     , config_(config)
     , next_sub_ins_(next_sub_ins)
     , result_adder_socket_(result_adder_socket) {

@@ -19,7 +19,7 @@ class ScalarUnit : public ExecuteUnit {
 public:
     SC_HAS_PROCESS(ScalarUnit);
 
-    ScalarUnit(const char* name, const ScalarUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    ScalarUnit(const sc_core::sc_module_name& name, const ScalarUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
     void bindRegUnit(RegUnit* reg_unit);
 

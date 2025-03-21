@@ -17,7 +17,7 @@ class MemoryUnit : public BaseModule {
 public:
     SC_HAS_PROCESS(MemoryUnit);
 
-    MemoryUnit(const char* name, const MemoryUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk,
+    MemoryUnit(const sc_core::sc_module_name& name, const MemoryUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk,
                bool is_global);
 
     void mountMemory(MemoryHardware* memory_hardware);

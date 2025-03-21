@@ -11,7 +11,7 @@ namespace cimsim {
 
 class Chip : public BaseModule {
 public:
-    Chip(const char* name, const Config& config, const std::vector<std::vector<Instruction>>& core_ins_list);
+    Chip(const sc_core::sc_module_name& name, const Config& config, const std::vector<std::vector<Instruction>>& core_ins_list);
 
     Reporter report(std::ostream& os, bool report_every_core_energy);
 

@@ -53,8 +53,9 @@ class SIMDFunctorPipelineStage : public BaseModule {
 public:
     SC_HAS_PROCESS(SIMDFunctorPipelineStage);
 
-    explicit SIMDFunctorPipelineStage(const std::string& name, const SimConfig& sim_config, Core* core, Clock* clk,
-                                      const SIMDFunctorConfig& config, EnergyCounter& functor_energy_counter);
+    explicit SIMDFunctorPipelineStage(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core,
+                                      Clock* clk, const SIMDFunctorConfig& config,
+                                      EnergyCounter& functor_energy_counter);
 
     SIMDStageSocket* getExecuteSocket();
     void setNextStageSocket(SIMDStageSocket* next_stage_socket);
@@ -72,9 +73,9 @@ private:
     EnergyCounter& functor_energy_counter_;
 };
 
-class SIMDFunctor {
+class SIMDFunctor : public BaseModule {
 public:
-    explicit SIMDFunctor(const std::string& name, const SimConfig& sim_config, Core* core, Clock* clk,
+    explicit SIMDFunctor(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk,
                          const SIMDFunctorConfig& functor_config, SIMDStageSocket* next_stage_socket);
 
     SIMDStageSocket* getExecuteSocket();
@@ -94,7 +95,8 @@ class SIMDUnit : public ExecuteUnit {
 public:
     SC_HAS_PROCESS(SIMDUnit);
 
-    SIMDUnit(const char* name, const SIMDUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    SIMDUnit(const sc_core::sc_module_name& name, const SIMDUnitConfig& config, const SimConfig& sim_config, Core* core,
+             Clock* clk);
 
     [[noreturn]] void processIssue();
     [[noreturn]] void processReadStage();

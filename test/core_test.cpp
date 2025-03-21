@@ -55,7 +55,7 @@ int sc_main(int argc, char* argv[]) {
         sc_stop();
         EnergyCounter::setRunningTimeNS(running_time);
     };
-    Core core(0, "Core_0", config, &clk, std::move(test_info.code), finish_run_call);
+    Core core{0, "Core_0", config, &clk, std::move(test_info.code), finish_run_call};
     sc_start();
 
     std::ofstream ofs;

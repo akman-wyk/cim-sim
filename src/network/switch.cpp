@@ -10,7 +10,7 @@
 
 namespace cimsim {
 
-Switch::Switch(const char* name, const SimConfig& sim_config, Core* core, Clock* clk, int core_id)
+Switch::Switch(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk, int core_id)
     : BaseModule(name, sim_config, core, clk), core_id_(core_id) {
     SC_THREAD(processTransport);
 }

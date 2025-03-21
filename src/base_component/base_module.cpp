@@ -6,7 +6,7 @@
 
 namespace cimsim {
 
-BaseModule::BaseModule(const char* name, const SimConfig& sim_config, Core* core, Clock* clk)
+BaseModule::BaseModule(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk)
     : sc_core::sc_module(name)
     , period_ns_(sim_config.period_ns)
     , sim_mode_(sim_config.sim_mode)

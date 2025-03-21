@@ -8,11 +8,12 @@
 
 namespace cimsim {
 
-class GlobalMemory {
+class GlobalMemory : public BaseModule {
 public:
-    GlobalMemory(const char* name, const GlobalMemoryConfig& config, const SimConfig& sim_config, Clock* clk);
+    GlobalMemory(const sc_core::sc_module_name& name, const GlobalMemoryConfig& config, const SimConfig& sim_config,
+                 Clock* clk);
 
-    EnergyReporter getEnergyReporter();
+    EnergyReporter getEnergyReporter() override;
 
     void bindNetwork(Network* network);
 
