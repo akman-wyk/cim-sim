@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <stack>
 #include <unordered_map>
 
 #include "systemc.h"
@@ -14,6 +15,11 @@ class EnergyCounter {
     // energy unit -- pJ
     // power unit  -- mW
     // time unit   -- ns
+public:
+    struct DynamicEnergyTag {
+        sc_core::sc_time end_time{0.0, SC_NS};
+        double power{0.0};
+    };
 
 public:
     static void setRunningTimeNS(double time);
@@ -25,18 +31,13 @@ private:
     static bool set_running_time_;
 
 public:
-    EnergyCounter() = default;
-    EnergyCounter(const EnergyCounter& another);
-
-    void clear();
+    explicit EnergyCounter(bool mult_pipeline_stage = false);
+    ~EnergyCounter();
 
     void setStaticPowerMW(double power);
-
     void addDynamicEnergyPJ(double energy);
     void addDynamicEnergyPJ(double latency, double power);
-    void addDynamicEnergyPJWithTime(double latency, double power, int id_tag = 0);
-
-    void addPipelineDynamicEnergyPJ(int unit_latency_cycle, int pipeline_length, double period, double power);
+    void addActivityTime(double latency);
 
     [[nodiscard]] double getStaticEnergyPJ() const;
     [[nodiscard]] double getDynamicEnergyPJ() const;
@@ -47,11 +48,15 @@ public:
     EnergyCounter& operator+=(const EnergyCounter& another);
 
 private:
+    void addPipelineStageDynamicEnergyPJ(double latency, double power);
+
+private:
+    const bool mult_pipeline_stage_;
     double static_power_ = 0.0;    // mW
     double dynamic_energy_ = 0.0;  // pJ
     double activity_time_ = 0.0;   // ns
 
-    std::unordered_map<int, sc_core::sc_time> dynamic_end_time_tag_map_{};
+    std::stack<DynamicEnergyTag>* dynamic_tag_stack_{};
     sc_core::sc_time activity_time_tag_{0.0, SC_NS};
 };
 

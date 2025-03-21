@@ -25,10 +25,12 @@ SIMDFunctorPipelineStage::SIMDFunctorPipelineStage(const sc_core::sc_module_name
     : BaseModule(name, sim_config, core, clk)
     , dynamic_power_per_functor_mW_(config.dynamic_power_per_functor_mW)
     , pipeline_stage_latency_cycle_(config.latency_cycle / config.pipeline_stage_cnt)
-    , functor_energy_counter_(functor_energy_counter){SC_THREAD(processExecute)}
+    , functor_energy_counter_(functor_energy_counter) {
 
-          SIMDStageSocket
-          * SIMDFunctorPipelineStage::getExecuteSocket() {
+    SC_THREAD(processExecute)
+}
+
+SIMDStageSocket* SIMDFunctorPipelineStage::getExecuteSocket() {
     return &exec_socket_;
 }
 
@@ -50,7 +52,7 @@ void SIMDFunctorPipelineStage::processExecute() {
 
         double dynamic_power_mW = dynamic_power_per_functor_mW_ * payload.batch_info.batch_vector_len;
         double latency = pipeline_stage_latency_cycle_ * period_ns_;
-        functor_energy_counter_.addDynamicEnergyPJWithTime(latency, dynamic_power_mW);
+        functor_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW);
         wait(latency, SC_NS);
 
         waitAndStartNextStage(payload, *next_stage_socket_);
@@ -61,7 +63,9 @@ void SIMDFunctorPipelineStage::processExecute() {
 
 SIMDFunctor::SIMDFunctor(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk,
                          const SIMDFunctorConfig& functor_config, SIMDStageSocket* next_stage_socket)
-    : BaseModule(name, sim_config, core, clk), functor_config_(functor_config) {
+    : BaseModule(name, sim_config, core, clk)
+    , functor_config_(functor_config)
+    , functor_energy_counter_(functor_config_.pipeline_stage_cnt > 1) {
     stage_list_.emplace_back(std::make_shared<SIMDFunctorPipelineStage>("Pipeline_0", sim_config, core, clk,
                                                                         functor_config_, functor_energy_counter_));
 

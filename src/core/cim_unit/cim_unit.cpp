@@ -10,7 +10,8 @@
 
 namespace cimsim {
 
-CimUnit::CimUnit(const sc_core::sc_module_name& name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk)
+CimUnit::CimUnit(const sc_core::sc_module_name& name, const CimUnitConfig& config, const SimConfig& sim_config,
+                 Core* core, Clock* clk)
     : MemoryHardware(name, sim_config, core, clk)
     , config_(config)
     , macro_size_(config_.macro_size)

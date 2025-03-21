@@ -10,7 +10,7 @@
 
 namespace cimsim {
 
-CimComputeUnit::CimComputeUnit(const sc_core::sc_module_name& name, const cimsim::CimUnitConfig &config,
+CimComputeUnit::CimComputeUnit(const sc_core::sc_module_name &name, const cimsim::CimUnitConfig &config,
                                const cimsim::SimConfig &sim_config, cimsim::Core *core, cimsim::Clock *clk)
     : ExecuteUnit(name, sim_config, core, clk, ExecuteUnitType::cim_compute)
     , config_(config)
@@ -76,12 +76,12 @@ void CimComputeUnit::processSubIns() {
     while (true) {
         process_sub_ins_socket_.waitUntilStart();
 
-        this->energy_counter_.addDynamicEnergyPJ(8 * period_ns_, 0);
+        this->energy_counter_.addActivityTime(8 * period_ns_);
 
         const auto &sub_ins_payload = process_sub_ins_socket_.payload;
         const auto &cim_ins_info = sub_ins_payload.cim_ins_info;
         CORE_LOG(fmt::format("Cim compute sub ins start, pc: {}, sub ins: {}", cim_ins_info.ins_pc,
-                        cim_ins_info.sub_ins_num));
+                             cim_ins_info.sub_ins_num));
 
         processSubInsReadData(sub_ins_payload);
         processSubInsCompute(sub_ins_payload);

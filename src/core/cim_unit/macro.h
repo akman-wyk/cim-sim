@@ -65,7 +65,7 @@ private:
     EnergyCounter sram_energy_counter_;
     EnergyCounter meta_buffer_energy_counter_;
     EnergyCounter post_process_energy_counter_;
-    EnergyCounter adder_tree_energy_counter_;
+    EnergyCounter adder_tree_energy_counter_{true};
     EnergyCounter shift_adder_energy_counter_;
     EnergyCounter result_adder_energy_counter_;
 
