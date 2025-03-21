@@ -15,7 +15,7 @@ class Core;
 
 class BaseModule : public sc_core::sc_module {
 public:
-    BaseModule(const char* name, const SimConfig& sim_config, Core* core, Clock* clk = nullptr);
+    BaseModule(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk = nullptr);
 
     virtual EnergyReporter getEnergyReporter();
 

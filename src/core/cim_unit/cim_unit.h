@@ -17,7 +17,7 @@ class CimUnit : public MemoryHardware {
 public:
     SC_HAS_PROCESS(CimUnit);
 
-    CimUnit(const char* name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    CimUnit(const sc_core::sc_module_name& name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
     EnergyReporter getEnergyReporter() override;
 

@@ -17,7 +17,7 @@ class Macro : public BaseModule {
 public:
     SC_HAS_PROCESS(Macro);
 
-    Macro(const char* name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk,
+    Macro(const sc_core::sc_module_name& name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk,
           bool independent_ipu, SubmoduleSocket<MacroGroupSubmodulePayload>* result_adder_socket_ptr = nullptr);
 
     void startExecute(MacroPayload payload);

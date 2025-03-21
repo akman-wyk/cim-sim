@@ -6,9 +6,11 @@
 
 namespace cimsim {
 
-GlobalMemory::GlobalMemory(const char* name, const GlobalMemoryConfig& config, const SimConfig& sim_config, Clock* clk)
-    : memory_unit_(name, config.global_memory_unit_config, sim_config, nullptr, clk, true)
-    , switch_("GlobalMemoryConfig", sim_config, nullptr, clk, config.global_memory_switch_id) {
+GlobalMemory::GlobalMemory(const sc_core::sc_module_name& name, const GlobalMemoryConfig& config,
+                           const SimConfig& sim_config, Clock* clk)
+    : BaseModule(name, sim_config, nullptr, clk)
+    , memory_unit_("MemoryUnit", config.global_memory_unit_config, sim_config, nullptr, clk, true)
+    , switch_("Switch", sim_config, nullptr, clk, config.global_memory_switch_id) {
     switch_.registerReceiveHandler([this](const std::shared_ptr<NetworkPayload>& payload) {
         memory_unit_.access(payload->getRequestPayload<MemoryAccessPayload>());
     });

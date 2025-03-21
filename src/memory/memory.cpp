@@ -10,25 +10,25 @@
 
 namespace cimsim {
 
-Memory::Memory(const std::string &name, const RAMConfig &ram_config, const SimConfig &sim_config, Core *core,
+Memory::Memory(const sc_core::sc_module_name& name, const RAMConfig &ram_config, const SimConfig &sim_config, Core *core,
                Clock *clk)
-    : BaseModule(name.c_str(), sim_config, core, clk), is_mount(false) {
-    hardware_ = new RAM(name.c_str(), ram_config, sim_config, core, clk);
-    as_offset_ = AddressSapce::getInstance().getMemoryAddressSpaceOffset(hardware_->getMemoryName());
+    : BaseModule(name, sim_config, core, clk), is_mount(false) {
+    hardware_ = new RAM("ram", ram_config, sim_config, core, clk);
+    as_offset_ = AddressSapce::getInstance().getMemoryAddressSpaceOffset(std::string{name});
     SC_THREAD(process);
 }
 
-Memory::Memory(const std::string &name, const RegBufferConfig &reg_buffer_config, const SimConfig &sim_config,
+Memory::Memory(const sc_core::sc_module_name& name, const RegBufferConfig &reg_buffer_config, const SimConfig &sim_config,
                Core *core, Clock *clk)
-    : BaseModule(name.c_str(), sim_config, core, clk), is_mount(false) {
-    hardware_ = new RegBuffer(name.c_str(), reg_buffer_config, sim_config, core, clk);
-    as_offset_ = AddressSapce::getInstance().getMemoryAddressSpaceOffset(hardware_->getMemoryName());
+    : BaseModule(name, sim_config, core, clk), is_mount(false) {
+    hardware_ = new RegBuffer("reg_buffer", reg_buffer_config, sim_config, core, clk);
+    as_offset_ = AddressSapce::getInstance().getMemoryAddressSpaceOffset(std::string{name});
     SC_THREAD(process);
 }
 
-Memory::Memory(const std::string &name, MemoryHardware *memory_hardware, const SimConfig &sim_config, Core *core,
+Memory::Memory(const sc_core::sc_module_name& name, MemoryHardware *memory_hardware, const SimConfig &sim_config, Core *core,
                Clock *clk)
-    : BaseModule(name.c_str(), sim_config, core, clk), is_mount(true) {
+    : BaseModule(name, sim_config, core, clk), is_mount(true) {
     hardware_ = memory_hardware;
     as_offset_ = AddressSapce::getInstance().getMemoryAddressSpaceOffset(hardware_->getMemoryName());
     SC_THREAD(process);

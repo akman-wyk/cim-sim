@@ -9,7 +9,7 @@
 
 namespace cimsim {
 
-Chip::Chip(const char* name, const Config& config, const std::vector<std::vector<Instruction>>& core_ins_list)
+Chip::Chip(const sc_core::sc_module_name& name, const Config& config, const std::vector<std::vector<Instruction>>& core_ins_list)
     : BaseModule(name, config.sim_config, nullptr, nullptr)
     , clk_("Clock", config.sim_config.period_ns)
     , global_memory_("GlobalMemory", config.chip_config.global_memory_config, config.sim_config, &clk_)

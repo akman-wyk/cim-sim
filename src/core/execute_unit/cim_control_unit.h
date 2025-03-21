@@ -16,7 +16,7 @@ class CimControlUnit : public ExecuteUnit {
 public:
     SC_HAS_PROCESS(CimControlUnit);
 
-    CimControlUnit(const char* name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    CimControlUnit(const sc_core::sc_module_name& name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
 
     void bindCimUnit(CimUnit* cim_unit);
 

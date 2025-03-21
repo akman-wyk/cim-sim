@@ -13,6 +13,8 @@
 namespace cimsim {
 
 struct ExecuteUnitSignalPorts {
+    explicit ExecuteUnitSignalPorts(ExecuteUnitType unit_type);
+
     sc_core::sc_signal<ExecuteUnitPayload> id_ex_payload_;
     sc_core::sc_signal<bool> id_ex_enable_;
     sc_core::sc_signal<bool> ready_;
@@ -34,14 +36,14 @@ struct ExecuteUnitRequestIOPorts {
 };
 
 struct ExecuteUnitResponseIOPorts {
-    sc_core::sc_in<ExecuteUnitPayload> id_ex_payload_port_;
-    sc_core::sc_in<bool> id_ex_enable_port_;
-    sc_core::sc_in<bool> id_finish_port_;
+    sc_core::sc_in<ExecuteUnitPayload> id_ex_payload_port_{"id_ex_payload_port"};
+    sc_core::sc_in<bool> id_ex_enable_port_{"id_ex_enable_port"};
+    sc_core::sc_in<bool> id_finish_port_{"id_finish_port"};
 
-    sc_core::sc_out<bool> ready_port_;
-    sc_core::sc_out<ResourceAllocatePayload> resource_allocate_;
-    sc_core::sc_out<ResourceReleasePayload> resource_release_;
-    sc_core::sc_out<bool> unit_finish_port_;
+    sc_core::sc_out<bool> ready_port_{"ready_port"};
+    sc_core::sc_out<ResourceAllocatePayload> resource_allocate_{"resource_allocate"};
+    sc_core::sc_out<ResourceReleasePayload> resource_release_{"resource_release"};
+    sc_core::sc_out<bool> unit_finish_port_{"unit_finish_port"};
 
     void bind(ExecuteUnitSignalPorts& signals) {
         id_ex_payload_port_.bind(signals.id_ex_payload_);
@@ -57,7 +59,8 @@ class ExecuteUnit : public BaseModule {
 public:
     SC_HAS_PROCESS(ExecuteUnit);
 
-    ExecuteUnit(const char* name, const SimConfig& sim_config, Core* core, Clock* clk, ExecuteUnitType type);
+    ExecuteUnit(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk,
+                ExecuteUnitType type);
 
     void checkInst();
     void processReleaseResource();
@@ -94,8 +97,8 @@ private:
     const ExecuteUnitType type_;
 
     FSM<ExecuteUnitPayload> fsm_;
-    sc_core::sc_signal<ExecuteUnitPayload> fsm_out_;
-    sc_core::sc_signal<FSMPayload<ExecuteUnitPayload>> fsm_in_;
+    sc_core::sc_signal<ExecuteUnitPayload> fsm_out_{"fsm_out"};
+    sc_core::sc_signal<FSMPayload<ExecuteUnitPayload>> fsm_in_{"fsm_in"};
 
     sc_core::sc_event release_resource_trigger_;
     int release_resource_ins_id_{-1};

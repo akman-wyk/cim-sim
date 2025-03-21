@@ -10,7 +10,7 @@
 
 namespace cimsim {
 
-CimControlUnit::CimControlUnit(const char *name, const cimsim::CimUnitConfig &config,
+CimControlUnit::CimControlUnit(const sc_core::sc_module_name &name, const cimsim::CimUnitConfig &config,
                                const cimsim::SimConfig &sim_config, cimsim::Core *core, cimsim::Clock *clk)
     : ExecuteUnit(name, sim_config, core, clk, ExecuteUnitType::cim_control)
     , config_(config)

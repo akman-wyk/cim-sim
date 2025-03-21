@@ -16,12 +16,12 @@ class Memory : public BaseModule {
 public:
     SC_HAS_PROCESS(Memory);
 
-    Memory(const std::string& name, const RAMConfig& ram_config, const SimConfig& sim_config, Core* core, Clock* clk);
+    Memory(const sc_core::sc_module_name& name, const RAMConfig& ram_config, const SimConfig& sim_config, Core* core, Clock* clk);
 
-    Memory(const std::string& name, const RegBufferConfig& reg_buffer_config, const SimConfig& sim_config, Core* core,
+    Memory(const sc_core::sc_module_name& name, const RegBufferConfig& reg_buffer_config, const SimConfig& sim_config, Core* core,
            Clock* clk);
 
-    Memory(const std::string& name, MemoryHardware* memory_hardware, const SimConfig& sim_config, Core* core,
+    Memory(const sc_core::sc_module_name& name, MemoryHardware* memory_hardware, const SimConfig& sim_config, Core* core,
            Clock* clk);
 
     ~Memory() override;

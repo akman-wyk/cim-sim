@@ -10,8 +10,8 @@
 
 namespace cimsim {
 
-Macro::Macro(const char *name, const cimsim::CimUnitConfig &config, const cimsim::SimConfig &sim_config,
-             cimsim::Core *core, cimsim::Clock *clk, bool independent_ipu,
+Macro::Macro(const sc_core::sc_module_name &name, const cimsim::CimUnitConfig &config,
+             const cimsim::SimConfig &sim_config, cimsim::Core *core, cimsim::Clock *clk, bool independent_ipu,
              SubmoduleSocket<MacroGroupSubmodulePayload> *result_adder_socket_ptr)
     : BaseModule(name, sim_config, core, clk)
     , config_(config)

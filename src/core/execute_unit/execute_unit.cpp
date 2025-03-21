@@ -9,7 +9,15 @@
 
 namespace cimsim {
 
-ExecuteUnit::ExecuteUnit(const char* name, const SimConfig& sim_config, Core* core, Clock* clk, ExecuteUnitType type)
+ExecuteUnitSignalPorts::ExecuteUnitSignalPorts(ExecuteUnitType unit_type)
+    : id_ex_payload_(fmt::format("{}_id_ex_payload", unit_type._to_string()).c_str())
+    , id_ex_enable_(fmt::format("{}_id_ex_enable", unit_type._to_string()).c_str())
+    , ready_(fmt::format("{}_ready", unit_type._to_string()).c_str())
+    , resource_allocate_(fmt::format("{}_resource_allocate", unit_type._to_string()).c_str())
+    , resource_release_(fmt::format("{}_resource_release", unit_type._to_string()).c_str())
+    , unit_finish_(fmt::format("{}_unit_finish", unit_type._to_string()).c_str()) {}
+
+ExecuteUnit::ExecuteUnit(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk, ExecuteUnitType type)
     : BaseModule(name, sim_config, core, clk), type_(type), fsm_("FSM", clk), as_(AddressSapce::getInstance()) {
     fsm_.input_.bind(fsm_in_);
     fsm_.enable_.bind(ports_.id_ex_enable_port_);

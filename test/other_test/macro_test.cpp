@@ -37,7 +37,7 @@ class MacroTestModule : public BaseModule {
 public:
     SC_HAS_PROCESS(MacroTestModule);
 
-    MacroTestModule(const char* name, const Config& config, Clock* clk, std::vector<MacroTestInstruction> codes,
+    MacroTestModule(const sc_core::sc_module_name& name, const Config& config, Clock* clk, std::vector<MacroTestInstruction> codes,
                     const MacroTestConfig& test_config)
         : BaseModule(name, config.sim_config, nullptr, clk)
         , macro_("macro", config.chip_config.core_config.cim_unit_config, config.sim_config, nullptr, clk,

@@ -16,7 +16,7 @@ class MacroGroupController : public BaseModule {
 public:
     SC_HAS_PROCESS(MacroGroupController);
 
-    MacroGroupController(const std::string& name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core,
+    MacroGroupController(const sc_core::sc_module_name& name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core,
                          Clock* clk, sc_core::sc_event& next_sub_ins,
                          SubmoduleSocket<MacroGroupSubmodulePayload>& result_adder_socket);
 

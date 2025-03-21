@@ -47,7 +47,7 @@ class TransferUnit : public ExecuteUnit {
 public:
     SC_HAS_PROCESS(TransferUnit);
 
-    TransferUnit(const char* name, const TransferUnitConfig& config, const SimConfig& sim_config, Core* core,
+    TransferUnit(const sc_core::sc_module_name& name, const TransferUnitConfig& config, const SimConfig& sim_config, Core* core,
                  Clock* clk, int core_id = 0, int global_memory_switch_id = -10);
 
     [[noreturn]] void processIssue();

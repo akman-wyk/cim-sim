@@ -16,7 +16,7 @@ class TestModule : public sc_core::sc_module {
 public:
     SC_HAS_PROCESS(TestModule);
 
-    TestModule(const char* name, const Config& config)
+    TestModule(const sc_core::sc_module_name& name, const Config& config)
         : sc_core::sc_module(name)
         , local_memory_unit_("local_memory_unit", config.chip_config.core_config.local_memory_unit_config,
                              config.sim_config, nullptr, nullptr, true) {

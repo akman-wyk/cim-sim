@@ -10,7 +10,7 @@ namespace cimsim {
 
 class MemoryHardware : public BaseModule {
 public:
-    MemoryHardware(const char* name, const SimConfig& sim_config, Core* core, Clock* clk)
+    MemoryHardware(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk)
         : BaseModule(name, sim_config, core, clk) {}
 
     virtual sc_core::sc_time accessAndGetDelay(MemoryAccessPayload& payload) = 0;

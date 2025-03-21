@@ -11,8 +11,9 @@
 
 namespace cimsim {
 
-TransferUnit::TransferUnit(const char* name, const TransferUnitConfig& config, const SimConfig& sim_config, Core* core,
-                           Clock* clk, int core_id, int global_memory_switch_id)
+TransferUnit::TransferUnit(const sc_core::sc_module_name& name, const TransferUnitConfig& config,
+                           const SimConfig& sim_config, Core* core, Clock* clk, int core_id,
+                           int global_memory_switch_id)
     : ExecuteUnit(name, sim_config, core, clk, ExecuteUnitType::transfer)
     , config_(config)
     , core_id_(core_id)

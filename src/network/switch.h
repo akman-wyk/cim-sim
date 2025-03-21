@@ -17,7 +17,7 @@ class Switch : public BaseModule {
     SC_HAS_PROCESS(Switch);
 
 public:
-    Switch(const char* name, const SimConfig& sim_config, Core* core, Clock* clk, int core_id);
+    Switch(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk, int core_id);
 
     [[noreturn]] void processTransport();
 

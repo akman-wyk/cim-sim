@@ -10,7 +10,7 @@
 
 namespace cimsim {
 
-RegBuffer::RegBuffer(const char *name, const cimsim::RegBufferConfig &config, const cimsim::SimConfig &sim_config,
+RegBuffer::RegBuffer(const sc_core::sc_module_name& name, const cimsim::RegBufferConfig &config, const cimsim::SimConfig &sim_config,
                      cimsim::Core *core, cimsim::Clock *clk)
     : MemoryHardware(name, sim_config, core, clk), config_(config) {
     if (data_mode_ == +DataMode::real_data) {
