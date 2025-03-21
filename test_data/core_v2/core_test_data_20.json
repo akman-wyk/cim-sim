@@ -1,0 +1,22 @@
+{
+  "comments": "test fot SIMD instructions with 8-cycle-4-pipeline-stage functor and 1-cycle read and unequal length inputs",
+  "code": [
+    {"opcode": 45, "rd": 16, "imm": 8, "asm": "S_LI 8 to $16"},
+    {"opcode": 45, "rd": 20, "imm": 8, "asm": "S_LI 8 to $20"},
+    {"opcode": 44, "rd": 0, "imm": 1024, "asm": "G_LI 1024 to $0"},
+    {"opcode": 44, "rd": 3, "imm": 2048, "asm": "G_LI 2048 to $3"},
+    {"opcode": 44, "rd": 4, "imm": 16, "asm": "G_LI 64 to $2"},
+    {"opcode": 44, "rd": 5, "imm": 1, "asm": "G_LI 64 to $2"},
+    {"opcode": 44, "rd": 6, "imm": 13, "asm": "G_LI 64 to $2"},
+    {"opcode": 44, "rd": 7, "imm": 7, "asm": "G_LI 64 to $2"},
+    {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 4, "funct": 1, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $4, func: 1"},
+    {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 5, "funct": 1, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $5, func: 1"},
+    {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 6, "funct": 1, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $6, func: 1"},
+    {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 7, "funct": 1, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $7, func: 1"},
+    {"opcode": 45, "rd": 0, "imm": 0, "asm": "S_LI 0 to $0"}
+  ],
+  "expected": {
+    "time_ns": 125,
+    "energy_pj": 1010
+  }
+}

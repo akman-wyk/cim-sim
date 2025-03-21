@@ -9,16 +9,14 @@ namespace cimsim {
 double EnergyCounter::running_time_ = 0.0;
 bool EnergyCounter::set_running_time_ = false;
 
-EnergyCounter::EnergyCounter(const EnergyCounter& another)
-    : static_power_(another.static_power_)
-    , dynamic_energy_(another.dynamic_energy_)
-    , activity_time_(another.activity_time_) {}
+EnergyCounter::EnergyCounter(bool mult_pipeline_stage) : mult_pipeline_stage_(mult_pipeline_stage) {
+    if (mult_pipeline_stage_) {
+        dynamic_tag_stack_ = new std::stack<DynamicEnergyTag>;
+    }
+}
 
-void EnergyCounter::clear() {
-    static_power_ = 0.0;
-    dynamic_energy_ = 0.0;
-    activity_time_ = 0.0;
-    dynamic_end_time_tag_map_.clear();
+EnergyCounter::~EnergyCounter() {
+    delete dynamic_tag_stack_;
 }
 
 void EnergyCounter::setStaticPowerMW(double power) {
@@ -30,27 +28,17 @@ void EnergyCounter::addDynamicEnergyPJ(double energy) {
 }
 
 void EnergyCounter::addDynamicEnergyPJ(double latency, double power) {
-    activity_time_ += latency;
-    dynamic_energy_ += latency * power;
+    if (mult_pipeline_stage_) {
+        addPipelineStageDynamicEnergyPJ(latency, power);
+    } else {
+        dynamic_energy_ += latency * power;
+    }
+    addActivityTime(latency);
 }
 
-void EnergyCounter::addDynamicEnergyPJWithTime(double latency, double power, int id_tag) {
+void EnergyCounter::addActivityTime(double latency) {
     auto& now_time = sc_core::sc_time_stamp();
     auto end_time_tag = now_time + sc_time{latency, SC_NS};
-    auto found = dynamic_end_time_tag_map_.find(id_tag);
-
-    if (found == dynamic_end_time_tag_map_.end()) {
-        dynamic_energy_ += latency * power;
-        dynamic_end_time_tag_map_.emplace(id_tag, end_time_tag);
-    } else if (auto& lastend_time = found->second; lastend_time < end_time_tag) {
-        auto new_dynamic_latency = latency;
-        if (now_time < lastend_time) {
-            auto overlap_time = lastend_time - now_time;
-            new_dynamic_latency -= (overlap_time.to_seconds() * 1e9);
-        }
-        dynamic_energy_ += new_dynamic_latency * power;
-        dynamic_end_time_tag_map_[id_tag] = end_time_tag;
-    }
 
     if (activity_time_tag_ < end_time_tag) {
         auto new_activity_latency = latency;
@@ -61,17 +49,6 @@ void EnergyCounter::addDynamicEnergyPJWithTime(double latency, double power, int
         activity_time_ += new_activity_latency;
         activity_time_tag_ = end_time_tag;
     }
-}
-
-void EnergyCounter::addPipelineDynamicEnergyPJ(int unit_latency_cycle, int pipeline_length, double period,
-                                               double power) {
-    if (pipeline_length <= 0) {
-        return;
-    }
-
-    int total_cycle = (unit_latency_cycle == 0) ? pipeline_length : (unit_latency_cycle - 1 + pipeline_length);
-    double total_latency = total_cycle * period;
-    addDynamicEnergyPJ(total_latency, power);
 }
 
 void EnergyCounter::setRunningTimeNS(double time) {
@@ -115,6 +92,48 @@ EnergyCounter& EnergyCounter::operator+=(const EnergyCounter& another) {
     dynamic_energy_ += another.dynamic_energy_;
     static_power_ += another.static_power_;
     return *this;
+}
+
+void EnergyCounter::addPipelineStageDynamicEnergyPJ(double latency, double power) {
+    static std::stack<DynamicEnergyTag> temp_stack{};
+
+    auto now_time = sc_core::sc_time_stamp();
+    auto end_time_tag = now_time + sc_time{latency, SC_NS};
+
+    while (!dynamic_tag_stack_->empty() && dynamic_tag_stack_->top().end_time <= now_time) {
+        dynamic_tag_stack_->pop();
+    }
+
+    while (!dynamic_tag_stack_->empty() && now_time < end_time_tag) {
+        auto cur_tag = dynamic_tag_stack_->top();
+        dynamic_tag_stack_->pop();
+
+        if (power > cur_tag.power) {
+            if (cur_tag.end_time > end_time_tag) {
+                dynamic_energy_ += (power - cur_tag.power) * ((end_time_tag - now_time).to_seconds() * 1e9);
+                temp_stack.push({.end_time = end_time_tag, .power = power});
+                temp_stack.push(cur_tag);
+            } else {
+                dynamic_energy_ += (power - cur_tag.power) * ((cur_tag.end_time - now_time).to_seconds() * 1e9);
+                temp_stack.push({.end_time = cur_tag.end_time, .power = power});
+            }
+        } else {
+            temp_stack.push(cur_tag);
+        }
+        now_time = cur_tag.end_time;
+    }
+    if (now_time < end_time_tag) {
+        dynamic_energy_ += power * ((end_time_tag - now_time).to_seconds() * 1e9);
+        temp_stack.push({.end_time = end_time_tag, .power = power});
+    }
+
+    while (!temp_stack.empty()) {
+        auto& cur_tag = temp_stack.top();
+        if (dynamic_tag_stack_->empty() || cur_tag.power > dynamic_tag_stack_->top().power) {
+            dynamic_tag_stack_->push(cur_tag);
+        }
+        temp_stack.pop();
+    }
 }
 
 }  // namespace cimsim

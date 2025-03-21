@@ -283,6 +283,24 @@
           "config_file": "config/test/SIMD_test_config_2.json",
           "instruction_file": "test_data/core_v2/core_test_data_17.json",
           "report_file": "report/Core_test_report.txt"
+        },
+        {
+          "comments": "test fot SIMD instructions with 2-cycle-2-pipeline-stage functors and unequal length inputs",
+          "config_file": "config/test/SIMD_test_config_2.json",
+          "instruction_file": "test_data/core_v2/core_test_data_18.json",
+          "report_file": "report/Core_test_report.txt"
+        },
+        {
+          "comments": "test fot SIMD instructions with 8-cycle-4-pipeline-stage functor and 3-cycle read and unequal length inputs",
+          "config_file": "config/test/SIMD_test_config_2.json",
+          "instruction_file": "test_data/core_v2/core_test_data_19.json",
+          "report_file": "report/Core_test_report.txt"
+        },
+        {
+          "comments": "test fot SIMD instructions with 8-cycle-4-pipeline-stage functor and 1-cycle read and unequal length inputs",
+          "config_file": "config/test/SIMD_test_config_2.json",
+          "instruction_file": "test_data/core_v2/core_test_data_20.json",
+          "report_file": "report/Core_test_report.txt"
         }
       ]
     },

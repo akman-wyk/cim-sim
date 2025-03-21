@@ -19,10 +19,12 @@ sc_core::sc_time Network::transferAndGetDelay(int src_id, int dst_id, int data_s
     auto per_flit_latency_ns = latency_map_[src_id][dst_id] * sim_config_.period_ns;
     auto per_flit_energy_pj = energy_map_[src_id][dst_id];
     int times = IntDivCeil(data_size_byte, config_.bus_width_byte);
+    double latency = times * per_flit_latency_ns;
 
     energy_counter_.addDynamicEnergyPJ(times * per_flit_energy_pj);
+    energy_counter_.addActivityTime(latency);
 
-    return sc_time{times * per_flit_latency_ns, SC_NS};
+    return sc_time{latency, SC_NS};
 }
 
 Switch* Network::getSwitch(int id) {

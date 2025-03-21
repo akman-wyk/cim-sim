@@ -133,7 +133,8 @@ void Macro::processIPUAndIssue() {
 
                 double dynamic_power_mW = config_.ipu.dynamic_power_mW;
                 double latency = config_.ipu.latency_cycle * period_ns_;
-                ipu_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW * sub_ins_info.simulated_group_cnt);
+                ipu_energy_counter_.addDynamicEnergyPJ(latency,
+                                                             dynamic_power_mW * sub_ins_info.simulated_group_cnt);
                 wait(latency, SC_NS);
 
                 waitAndStartNextSubmodule(submodule_payload, sram_socket_);
@@ -156,7 +157,8 @@ void Macro::processSRAMSubmodule() {
         double dynamic_power_mW = config_.sram.read_dynamic_power_per_bit_mW * macro_size_.bit_width_per_row * 1 *
                                   macro_size_.element_cnt_per_compartment * macro_size_.compartment_cnt_per_macro;
         double latency = config_.sram.read_latency_cycle * period_ns_;
-        sram_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW * payload.sub_ins_info.simulated_macro_cnt);
+        sram_energy_counter_.addDynamicEnergyPJ(latency,
+                                                      dynamic_power_mW * payload.sub_ins_info.simulated_macro_cnt);
         wait(latency, SC_NS);
 
         waitAndStartNextSubmodule(payload, post_process_socket_);
@@ -209,14 +211,10 @@ void Macro::processAdderTreeSubmodule1() {
         CORE_LOG(fmt::format("{} start adder tree stage 1, ins pc: {}, sub ins num: {}, batch: {}", getName(),
                              cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
-        double dynamic_power_mW = config_.adder_tree.dynamic_power_mW;
+        double dynamic_power_mW = config_.adder_tree.dynamic_power_mW * payload.sub_ins_info.activation_element_col_cnt;
         double latency = period_ns_;
-        for (int i = 0; i < macro_size_.element_cnt_per_compartment; i++) {
-            if (getMaskBit(payload.sub_ins_info.activation_element_col_mask, i) != 0) {
-                adder_tree_energy_counter_.addDynamicEnergyPJWithTime(
-                    latency, dynamic_power_mW * payload.sub_ins_info.simulated_macro_cnt, i);
-            }
-        }
+        adder_tree_energy_counter_.addDynamicEnergyPJ(
+            latency, dynamic_power_mW * payload.sub_ins_info.simulated_macro_cnt);
         wait(latency, SC_NS);
 
         waitAndStartNextSubmodule(payload, adder_tree_socket_2_);
@@ -234,14 +232,10 @@ void Macro::processAdderTreeSubmodule2() {
         CORE_LOG(fmt::format("{} start adder tree stage 2, ins pc: {}, sub ins num: {}, batch: {}", getName(),
                              cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info.batch_num));
 
-        double dynamic_power_mW = config_.adder_tree.dynamic_power_mW;
+        double dynamic_power_mW = config_.adder_tree.dynamic_power_mW * payload.sub_ins_info.activation_element_col_cnt;
         double latency = period_ns_;
-        for (int i = 0; i < macro_size_.element_cnt_per_compartment; i++) {
-            if (getMaskBit(payload.sub_ins_info.activation_element_col_mask, i) != 0) {
-                adder_tree_energy_counter_.addDynamicEnergyPJWithTime(
-                    latency, dynamic_power_mW * payload.sub_ins_info.simulated_macro_cnt, i);
-            }
-        }
+        adder_tree_energy_counter_.addDynamicEnergyPJ(
+            latency, dynamic_power_mW * payload.sub_ins_info.simulated_macro_cnt);
         wait(latency, SC_NS);
 
         waitAndStartNextSubmodule(payload, shift_adder_socket_);
@@ -262,14 +256,14 @@ void Macro::processShiftAdderSubmodule() {
         double dynamic_power_mW =
             config_.shift_adder.dynamic_power_mW * payload.sub_ins_info.activation_element_col_cnt;
         double latency = config_.shift_adder.latency_cycle * period_ns_;
-        shift_adder_energy_counter_.addDynamicEnergyPJ(latency,
-                                                       dynamic_power_mW * payload.sub_ins_info.simulated_macro_cnt);
+        shift_adder_energy_counter_.addDynamicEnergyPJ(
+            latency, dynamic_power_mW * payload.sub_ins_info.simulated_macro_cnt);
         wait(latency, SC_NS);
 
         if (payload.batch_info.last_batch) {
-            if (result_adder_socket_ptr_ != nullptr) {
-                result_adder_socket_ptr_->waitUntilFinishIfBusy();
-            }
+            // if (result_adder_socket_ptr_ != nullptr) {
+            //     result_adder_socket_ptr_->waitUntilFinishIfBusy();
+            // }
             dynamic_power_mW = config_.result_adder.dynamic_power_mW * payload.sub_ins_info.activation_element_col_cnt;
             latency = config_.result_adder.latency_cycle * period_ns_;
             result_adder_energy_counter_.addDynamicEnergyPJ(
