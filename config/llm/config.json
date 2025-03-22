@@ -225,13 +225,13 @@
         ]
       },
       "cim_unit_config": {
-        "macro_total_cnt": 64,
+        "macro_total_cnt": 16,
         "macro_group_size": 16,
         "macro_size": {
-          "compartment_cnt_per_macro": 1,
-          "element_cnt_per_compartment": 1,
-          "row_cnt_per_element": 1,
-          "bit_width_per_row": 1
+          "compartment_cnt_per_macro": 8,
+          "element_cnt_per_compartment": 8,
+          "row_cnt_per_element": 2048,
+          "bit_width_per_row": 16
         }
       },
       "local_memory_unit_config": {
