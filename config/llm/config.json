@@ -237,11 +237,53 @@
       "local_memory_unit_config": {
         "memory_list": [
           {
-            "name": "local",
+            "name": "transpose",
+            "type": "reg_buffer",
+            "duplicate_cnt": 2,
+            "hardware_config": {
+              "size_byte": 4096,
+              "width_byte": 16,
+              "write_latency_cycle": 1,
+              "read_latency_cycle": 1,
+              "static_power_mW": 1.0,
+              "write_dynamic_power_mW": 1.0,
+              "read_dynamic_power_mW": 1.0
+            }
+          },
+          {
+            "name": "local_memory",
             "type": "ram",
             "duplicate_cnt": 2,
             "hardware_config": {
-              "size_byte": 1024,
+              "size_byte": 131072,
+              "width_byte": 16,
+              "write_latency_cycle": 1,
+              "read_latency_cycle": 1,
+              "static_power_mW": 1.0,
+              "write_dynamic_power_mW": 1.0,
+              "read_dynamic_power_mW": 1.0
+            }
+          },
+          {
+            "name": "cim_input_reg_buffer",
+            "type": "reg_buffer",
+            "duplicate_cnt": 1,
+            "hardware_config": {
+              "size_byte": 32,
+              "width_byte": 16,
+              "write_latency_cycle": 1,
+              "read_latency_cycle": 1,
+              "static_power_mW": 1.0,
+              "write_dynamic_power_mW": 1.0,
+              "read_dynamic_power_mW": 1.0
+            }
+          },
+          {
+            "name": "cim_output_reg_buffer",
+            "type": "reg_buffer",
+            "duplicate_cnt": 1,
+            "hardware_config": {
+              "size_byte": 256,
               "width_byte": 16,
               "write_latency_cycle": 1,
               "read_latency_cycle": 1,
@@ -263,7 +305,7 @@
             "name": "global",
             "type": "ram",
             "hardware_config": {
-              "size_byte": 1024,
+              "size_byte": 33554432,
               "width_byte": 16,
               "write_latency_cycle": 1,
               "read_latency_cycle": 1,
@@ -281,9 +323,12 @@
       "network_config_file_path": "../test_data/chip/network_config_1.json"
     },
     "address_space_config": [
-      {"name": "cim_unit", "size": 1024},
-      {"name": "local", "size": 1024},
-      {"name": "global", "size": 1024}
+      {"name": "cim_unit", "size": 4194304},
+      {"name": "transpose", "size": 4096},
+      {"name": "local_memory", "size": 131072},
+      {"name": "pim_input_reg_buffer", "size": 32},
+      {"name": "pim_output_reg_buffer", "size": 256},
+      {"name": "global", "size": 33554432}
     ]
   },
   "sim_config": {
