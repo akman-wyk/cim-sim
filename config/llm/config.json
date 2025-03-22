@@ -7,8 +7,8 @@
         "dynamic_power_mW": 0.0,
         "special_register_binding": [
           {
-            "special": 29,
-            "general": 24
+            "special": 32,
+            "general": 32
           }
         ]
       },
@@ -16,11 +16,76 @@
         "pipeline": true,
         "functor_list": [
           {
-            "name": "test",
+            "name": "add-fp16",
+            "input_cnt": 2,
+            "data_bit_width": {
+              "input1": 16,
+              "input2": 16,
+              "output": 16
+            },
+            "functor_cnt": 16,
+            "latency_cycle": 1,
+            "static_power_per_functor_mW": 1.0,
+            "dynamic_power_per_functor_mW": 1.0
+          },
+          {
+            "name": "multiply-fp16",
+            "input_cnt": 2,
+            "data_bit_width": {
+              "input1": 16,
+              "input2": 16,
+              "output": 16
+            },
+            "functor_cnt": 16,
+            "latency_cycle": 1,
+            "static_power_per_functor_mW": 1.0,
+            "dynamic_power_per_functor_mW": 1.0
+          },
+          {
+            "name": "max-fp16",
+            "input_cnt": 2,
+            "data_bit_width": {
+              "input1": 16,
+              "input2": 16,
+              "output": 16
+            },
+            "functor_cnt": 16,
+            "latency_cycle": 1,
+            "static_power_per_functor_mW": 1.0,
+            "dynamic_power_per_functor_mW": 1.0
+          },
+          {
+            "name": "exp-fp16",
             "input_cnt": 1,
             "data_bit_width": {
-              "input1": 8,
-              "output": 8
+              "input1": 16,
+              "output": 16
+            },
+            "functor_cnt": 16,
+            "latency_cycle": 1,
+            "static_power_per_functor_mW": 1.0,
+            "dynamic_power_per_functor_mW": 1.0
+          },
+          {
+            "name": "div-fp16",
+            "input_cnt": 2,
+            "data_bit_width": {
+              "input1": 16,
+              "input2": 16,
+              "output": 16
+            },
+            "functor_cnt": 16,
+            "latency_cycle": 1,
+            "static_power_per_functor_mW": 1.0,
+            "dynamic_power_per_functor_mW": 1.0
+          },
+          {
+            "name": "sub-fp16",
+            "input_cnt": 2,
+            "data_bit_width": {
+              "input1": 16,
+              "input2": 16,
+              "output": 16
             },
             "functor_cnt": 16,
             "latency_cycle": 1,
@@ -30,18 +95,132 @@
         ],
         "instruction_list": [
           {
-            "name": "test",
-            "input_cnt": 1,
+            "name": "add",
+            "input_cnt": 2,
             "opcode": "0x00",
             "input1_type": "vector",
+            "input2_type": "vector",
             "functor_binding_list": [
               {
                 "input_bit_width": {
-                  "input1": 8
+                  "input1": 16,
+                  "input2": 16
                 },
-                "functor_name": "test"
+                "functor_name": "add-fp16"
               }
             ]
+          },
+          {
+            "name": "add-scalar",
+            "input_cnt": 2,
+            "opcode": "0x01",
+            "input1_type": "vector",
+            "input2_type": "scalar",
+            "functor_binding_list": [
+              {
+                "input_bit_width": {
+                  "input1": 16,
+                  "input2": 16
+                },
+                "functor_name": "add-fp16"
+              }
+            ]
+          },
+          {
+            "name": "multiply",
+            "input_cnt": 2,
+            "opcode": "0x02",
+            "input1_type": "vector",
+            "input2_type": "vector",
+            "functor_binding_list": [
+              {
+                "input_bit_width": {
+                  "input1": 16,
+                  "input2": 16
+                },
+                "functor_name": "multiply-fp16"
+              }
+            ]
+          },
+          {
+            "name": "vec-scalar-mul",
+            "input_cnt": 2,
+            "opcode": "0x07",
+            "input1_type": "vector",
+            "input2_type": "scalar",
+            "functor_binding_list": [
+              {
+                "input_bit_width": {
+                  "input1": 16,
+                  "input2": 16
+                },
+                "functor_name": "multiply-fp16"
+              }
+            ]
+          },
+          {
+            "name": "reduce-max",
+            "input_cnt": 1,
+            "opcode": "0x0b",
+            "input1_type": "vector",
+            "functor_binding_list": [{
+              "input_bit_width": {
+                "input1": 16
+              },
+              "functor_name": "max-fp16"
+            }]
+          },
+          {
+            "name": "vec-exp",
+            "input_cnt": 1,
+            "opcode": "0x0c",
+            "input1_type": "vector",
+            "functor_binding_list": [{
+              "input_bit_width": {
+                "input1": 16
+              },
+              "functor_name": "exp-fp16"
+            }]
+          },
+          {
+            "name": "reduce-sum",
+            "input_cnt": 1,
+            "opcode": "0x0d",
+            "input1_type": "vector",
+            "functor_binding_list": [{
+              "input_bit_width": {
+                "input1": 16
+              },
+              "functor_name": "add-fp16"
+            }]
+          },
+          {
+            "name": "vec-scalar-div",
+            "input_cnt": 2,
+            "opcode": "0x0e",
+            "input1_type": "vector",
+            "input2_type": "scalar",
+            "functor_binding_list": [{
+              "input_bit_width": {
+                "input1": 16,
+                "input2": 16
+              },
+              "functor_name": "div-fp16"
+            }]
+          },
+          {
+            "name": "vec-scalar-sub",
+            "input_cnt": 2,
+            "opcode": "0x0f",
+            "input1_type": "vector",
+            "input2_type": "scalar",
+            "functor_binding_list": [{
+              "input_bit_width": {
+                "input1": 16,
+                "input2": 16
+              },
+              "functor_name": "sub-fp16"
+            }]
           }
         ]
       },
