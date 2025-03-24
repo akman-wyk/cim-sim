@@ -3,7 +3,10 @@
 //
 
 #pragma once
-#include "base_component/base_module.h"
+#include <cstdint>
+#include <vector>
+
+#include "config/config.h"
 #include "memory_hardware.h"
 
 namespace cimsim {
@@ -12,9 +15,9 @@ class RegBuffer : public MemoryHardware {
 public:
     SC_HAS_PROCESS(RegBuffer);
 
-    RegBuffer(const sc_core::sc_module_name& name, const RegBufferConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    RegBuffer(const sc_module_name& name, const RegBufferConfig& config, const BaseInfo& base_info);
 
-    sc_core::sc_time accessAndGetDelay(MemoryAccessPayload& payload) override;
+    sc_time accessAndGetDelay(MemoryAccessPayload& payload) override;
 
     EnergyReporter getEnergyReporter() override;
 

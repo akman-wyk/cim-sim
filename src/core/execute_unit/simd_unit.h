@@ -3,13 +3,11 @@
 //
 
 #pragma once
-#include <string>
 #include <unordered_map>
 #include <utility>
 
 #include "base_component/submodule_socket.h"
 #include "config/config.h"
-#include "core/socket/memory_socket.h"
 #include "execute_unit.h"
 #include "payload.h"
 
@@ -50,9 +48,8 @@ class SIMDFunctorPipelineStage : public BaseModule {
 public:
     SC_HAS_PROCESS(SIMDFunctorPipelineStage);
 
-    explicit SIMDFunctorPipelineStage(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core,
-                                      Clock* clk, const SIMDFunctorConfig& config,
-                                      EnergyCounter& functor_energy_counter);
+    explicit SIMDFunctorPipelineStage(const sc_module_name& name, const BaseInfo& base_info,
+                                      const SIMDFunctorConfig& config, EnergyCounter& functor_energy_counter);
 
     SIMDStageSocket* getExecuteSocket();
     void setNextStageSocket(SIMDStageSocket* next_stage_socket);
@@ -71,8 +68,8 @@ private:
 
 class SIMDFunctor : public BaseModule {
 public:
-    explicit SIMDFunctor(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk,
-                         const SIMDFunctorConfig& functor_config, SIMDStageSocket* next_stage_socket);
+    explicit SIMDFunctor(const sc_module_name& name, const BaseInfo& base_info, const SIMDFunctorConfig& functor_config,
+                         SIMDStageSocket* next_stage_socket);
 
     SIMDStageSocket* getExecuteSocket();
     [[nodiscard]] const SIMDFunctorConfig* getFunctorConfig() const;
@@ -91,8 +88,7 @@ class SIMDUnit : public ExecuteUnit {
 public:
     SC_HAS_PROCESS(SIMDUnit);
 
-    SIMDUnit(const sc_core::sc_module_name& name, const SIMDUnitConfig& config, const SimConfig& sim_config, Core* core,
-             Clock* clk);
+    SIMDUnit(const sc_module_name& name, const SIMDUnitConfig& config, const BaseInfo& base_info, Clock* clk);
 
     [[noreturn]] void processIssue();
     [[noreturn]] void processReadStage();
@@ -112,7 +108,7 @@ private:
     std::unordered_map<const SIMDFunctorConfig*, std::shared_ptr<SIMDFunctor>> functor_map_{};
     std::shared_ptr<SIMDFunctor> executing_functor_{nullptr};
 
-    sc_core::sc_event cur_ins_next_batch_;
+    sc_event cur_ins_next_batch_;
     SIMDStageSocket read_stage_socket_{};
     SIMDStageSocket write_stage_socket_{};
 };

@@ -10,9 +10,9 @@
 
 namespace cimsim {
 
-ScalarUnit::ScalarUnit(const sc_core::sc_module_name &name, const cimsim::ScalarUnitConfig &config,
-                       const cimsim::SimConfig &sim_config, cimsim::Core *core, cimsim::Clock *clk)
-    : ExecuteUnit(name, sim_config, core, clk, ExecuteUnitType::scalar), config_(config) {
+ScalarUnit::ScalarUnit(const sc_module_name &name, const ScalarUnitConfig &config, const BaseInfo &base_info,
+                       Clock *clk)
+    : ExecuteUnit(name, base_info, clk, ExecuteUnitType::scalar), config_(config) {
     SC_THREAD(process)
     SC_THREAD(executeInst)
 

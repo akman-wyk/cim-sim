@@ -4,6 +4,7 @@
 
 #include "network_simulator.h"
 
+#include "constant.h"
 #include "systemc.h"
 #include "util/util.h"
 
@@ -141,7 +142,7 @@ void test_wrap(const std::string& test_config_file, bool& all_tests_passed) {
 }  // namespace cimsim
 
 int sc_main(int argc, char** argv) {
-    sc_core::sc_report_handler::set_actions(sc_core::SC_WARNING, sc_core::SC_DO_NOTHING);
+    sc_report_handler::set_actions(SC_WARNING, SC_DO_NOTHING);
 
     if (argc != 2) {
         std::cerr << "Usage: ./NetworkSimulator <test_config_file>" << std::endl;

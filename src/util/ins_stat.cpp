@@ -4,7 +4,6 @@
 
 #include "ins_stat.h"
 
-#include "core/core.h"
 #include "isa/isa.h"
 
 namespace cimsim {

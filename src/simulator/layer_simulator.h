@@ -7,14 +7,6 @@
 
 #include "chip/chip.h"
 #include "config/config.h"
-#include "core/core.h"
-
-#define TEST_PASSED           0
-#define TEST_FAILED           1
-#define INVALID_USAGE         2
-#define INVALID_CONFIG        3
-#define CHECK_INS_STAT_FAILED 4
-#define CHECK_REG_FAILED      5
 
 namespace cimsim {
 

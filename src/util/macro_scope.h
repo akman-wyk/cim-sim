@@ -488,6 +488,6 @@ namespace cimsim {
         out << " " #CLASS_NAME " Type\n";                                        \
         return out;                                                              \
     }                                                                            \
-    inline friend void sc_trace(sc_core::sc_trace_file* f, const CLASS_NAME& self, const std::string& name) {}
+    inline friend void sc_trace(sc_trace_file* f, const CLASS_NAME& self, const std::string& name) {}
 
 }  // namespace cimsim

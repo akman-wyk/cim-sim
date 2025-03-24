@@ -3,21 +3,20 @@
 //
 
 #pragma once
+#include <functional>
 #include <queue>
 
+#include "base_component/base_module.h"
 #include "network.h"
 #include "payload.h"
-#include "base_component/base_module.h"
 
 namespace cimsim {
-
-class SwitchSocket;
 
 class Switch : public BaseModule {
     SC_HAS_PROCESS(Switch);
 
 public:
-    Switch(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk, int core_id);
+    Switch(const sc_module_name& name, const BaseInfo& base_info);
 
     [[noreturn]] void processTransport();
 
@@ -33,12 +32,11 @@ public:
     void bindNetwork(Network* network);
 
 private:
-    sc_core::sc_event trigger_;
+    sc_event trigger_;
 
     std::queue<std::pair<std::shared_ptr<NetworkPayload>, NetworkTransferMode>> pending_queue_;
     std::function<void(const std::shared_ptr<NetworkPayload>&)> receive_handler_;
 
-    int core_id_;
     Network* network_{nullptr};
 };
 

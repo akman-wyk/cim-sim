@@ -17,8 +17,8 @@ ExecuteUnitSignalPorts::ExecuteUnitSignalPorts(ExecuteUnitType unit_type)
     , resource_release_(fmt::format("{}_resource_release", unit_type._to_string()).c_str())
     , unit_finish_(fmt::format("{}_unit_finish", unit_type._to_string()).c_str()) {}
 
-ExecuteUnit::ExecuteUnit(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk, ExecuteUnitType type)
-    : BaseModule(name, sim_config, core, clk), type_(type), fsm_("FSM", clk), as_(AddressSapce::getInstance()) {
+ExecuteUnit::ExecuteUnit(const sc_module_name& name, const BaseInfo& base_info, Clock* clk, ExecuteUnitType type)
+    : BaseModule(name, base_info), as_(AddressSapce::getInstance()), type_(type), fsm_("FSM", clk) {
     fsm_.input_.bind(fsm_in_);
     fsm_.enable_.bind(ports_.id_ex_enable_port_);
     fsm_.output_.bind(fsm_out_);

@@ -211,18 +211,21 @@ add_dependencies(ChipTest cim-simulator)
 target_link_libraries(ChipTest PRIVATE cim-simulator)
 target_include_directories(ChipTest PRIVATE src)
 
-add_executable(LayerSimulator "" src/simulator/layer_simulator.cpp src/simulator/layer_simulator.h)
+add_executable(LayerSimulator "" src/simulator/layer_simulator.cpp src/simulator/layer_simulator.h
+        src/simulator/constant.h)
 add_dependencies(LayerSimulator cim-simulator)
 target_link_libraries(LayerSimulator PRIVATE cim-simulator)
 target_include_directories(LayerSimulator PRIVATE src)
 
-add_executable(NetworkSimulator "" src/simulator/network_simulator.cpp src/simulator/network_simulator.h)
+add_executable(NetworkSimulator "" src/simulator/network_simulator.cpp src/simulator/network_simulator.h
+        src/simulator/constant.h)
 add_dependencies(NetworkSimulator cim-simulator)
 target_link_libraries(NetworkSimulator PRIVATE cim-simulator)
 target_include_directories(NetworkSimulator PRIVATE src)
 
 add_executable(UnitTest "" test/unit_test.cpp)
-add_dependencies(UnitTest nlohmann_json fmt)
+add_dependencies(UnitTest nlohmann_json fmt
+        SIMDUnitTest TransferUnitTest MacroTest MacroGroupTest CimComputeUnitTest CimControlUnitTest CoreTest ChipTest)
 target_link_libraries(UnitTest PUBLIC nlohmann_json fmt)
 target_include_directories(UnitTest PRIVATE src)
 target_include_directories(UnitTest PUBLIC packages/header-only)

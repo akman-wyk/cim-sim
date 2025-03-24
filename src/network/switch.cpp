@@ -4,14 +4,12 @@
 
 #include "switch.h"
 
-#include "core/core.h"
 #include "fmt/format.h"
 #include "util/log.h"
 
 namespace cimsim {
 
-Switch::Switch(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk, int core_id)
-    : BaseModule(name, sim_config, core, clk), core_id_(core_id) {
+Switch::Switch(const sc_module_name& name, const BaseInfo& base_info) : BaseModule(name, base_info) {
     SC_THREAD(processTransport);
 }
 

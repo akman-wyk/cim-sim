@@ -79,7 +79,7 @@ struct SIMDDataWidthConfig {
 };
 
 struct SIMDFunctorConfig {
-    std::string name{};  // need to write an execution function with the same name in file TODO
+    std::string name{};
     unsigned int input_cnt{2};
     SIMDDataWidthConfig data_bit_width{};
 

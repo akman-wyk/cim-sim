@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "base_component/energy_counter.h"
 #include "nlohmann/json.hpp"
 
 namespace cimsim {

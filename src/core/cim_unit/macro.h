@@ -5,6 +5,8 @@
 #pragma once
 #include <functional>
 
+#include "base_component/base_module.h"
+#include "config/config.h"
 #include "macro_module.h"
 
 namespace cimsim {
@@ -15,8 +17,7 @@ class Macro : public BaseModule {
 public:
     SC_HAS_PROCESS(Macro);
 
-    Macro(const sc_core::sc_module_name& name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core,
-          Clock* clk, bool independent_ipu);
+    Macro(const sc_module_name& name, const CimUnitConfig& config, const BaseInfo& base_info, bool independent_ipu);
 
     void startExecute(MacroPayload payload);
     void waitUntilFinishIfBusy();

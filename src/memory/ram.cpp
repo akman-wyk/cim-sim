@@ -4,15 +4,13 @@
 
 #include "ram.h"
 
-#include "core/core.h"
 #include "fmt/format.h"
 #include "util/util.h"
 
 namespace cimsim {
 
-RAM::RAM(const sc_core::sc_module_name& name, const cimsim::RAMConfig &config, const cimsim::SimConfig &sim_config, cimsim::Core *core,
-         cimsim::Clock *clk)
-    : MemoryHardware(name, sim_config, core, clk), config_(config) {
+RAM::RAM(const sc_module_name &name, const RAMConfig &config, const BaseInfo &base_info)
+    : MemoryHardware(name, base_info), config_(config) {
     if (data_mode_ == +DataMode::real_data) {
         initialData();
     }
@@ -20,14 +18,13 @@ RAM::RAM(const sc_core::sc_module_name& name, const cimsim::RAMConfig &config, c
     static_energy_counter_.setStaticPowerMW(config_.static_power_mW);
 }
 
-sc_core::sc_time RAM::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
+sc_time RAM::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
     if (payload.address_byte < 0 || payload.address_byte + payload.size_byte > config_.size_byte) {
         std::cerr << fmt::format("Core id: {}, Invalid memory access with ins NO.'{}': address {} overflow, size: {}, "
                                  "config size: {}",
-                                 core_->getCoreId(), payload.ins.pc, payload.address_byte, payload.size_byte,
-                                 config_.size_byte)
+                                 core_id_, payload.ins.pc, payload.address_byte, payload.size_byte, config_.size_byte)
                   << std::endl;
-        return {0.0, sc_core::SC_NS};
+        return {0.0, SC_NS};
     }
 
     int process_times = IntDivCeil(payload.size_byte, config_.width_byte);
@@ -49,7 +46,7 @@ sc_core::sc_time RAM::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
         }
     }
 
-    return {latency, sc_core::SC_NS};
+    return {latency, SC_NS};
 }
 
 void RAM::initialData() {

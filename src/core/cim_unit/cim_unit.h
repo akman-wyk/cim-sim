@@ -6,7 +6,6 @@
 
 #include <functional>
 
-#include "base_component/energy_counter.h"
 #include "config/config.h"
 #include "macro_group.h"
 #include "memory/memory_hardware.h"
@@ -17,12 +16,12 @@ class CimUnit : public MemoryHardware {
 public:
     SC_HAS_PROCESS(CimUnit);
 
-    CimUnit(const sc_core::sc_module_name& name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    CimUnit(const sc_module_name& name, const CimUnitConfig& config, const BaseInfo& base_info);
 
     EnergyReporter getEnergyReporter() override;
 
     // As a local memory
-    sc_core::sc_time accessAndGetDelay(MemoryAccessPayload& payload) override;
+    sc_time accessAndGetDelay(MemoryAccessPayload& payload) override;
     int getMemoryDataWidthByte(MemoryAccessType access_type) const override;
     int getMemorySizeByte() const override;
     const std::string& getMemoryName() override;

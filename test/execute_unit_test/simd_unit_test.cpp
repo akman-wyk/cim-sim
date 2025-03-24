@@ -4,7 +4,6 @@
 
 #include "../base/test_payload.h"
 #include "core/execute_unit/simd_unit.h"
-#include "core/payload.h"
 #include "execute_unit_test.h"
 
 namespace cimsim {

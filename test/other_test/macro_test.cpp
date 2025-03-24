@@ -37,10 +37,10 @@ class MacroTestModule : public BaseModule {
 public:
     SC_HAS_PROCESS(MacroTestModule);
 
-    MacroTestModule(const sc_core::sc_module_name& name, const Config& config, Clock* clk,
-                    std::vector<MacroTestInstruction> codes, const MacroTestConfig& test_config)
-        : BaseModule(name, config.sim_config, nullptr, clk)
-        , macro_("macro", config.chip_config.core_config.cim_unit_config, config.sim_config, nullptr, clk,
+    MacroTestModule(const sc_core::sc_module_name& name, const Config& config, std::vector<MacroTestInstruction> codes,
+                    const MacroTestConfig& test_config)
+        : BaseModule(name, BaseInfo{config.sim_config})
+        , macro_("macro", config.chip_config.core_config.cim_unit_config, BaseInfo{config.sim_config},
                  test_config.independent_ipu) {
         macro_ins_list_ = std::move(codes);
 
@@ -159,8 +159,7 @@ int sc_main(int argc, char* argv[]) {
     AddressSapce::initialize(config.chip_config);
 
     auto test_info = readTypeFromJsonFile<MacroTestInfo>(instruction_file);
-    Clock clk{"clock", config.sim_config.period_ns};
-    MacroTestModule test_module{"MacroTestModule", config, &clk, std::move(test_info.code), test_info.config};
+    MacroTestModule test_module{"MacroTestModule", config, std::move(test_info.code), test_info.config};
     sc_start();
 
     std::ofstream ofs;

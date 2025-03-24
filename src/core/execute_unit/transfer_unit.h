@@ -6,10 +6,8 @@
 
 #include "base_component/submodule_socket.h"
 #include "config/config.h"
-#include "core/socket/memory_socket.h"
 #include "core/socket/transmit_socket.h"
 #include "execute_unit.h"
-#include "network/payload.h"
 #include "payload.h"
 
 namespace cimsim {
@@ -46,8 +44,8 @@ class TransferUnit : public ExecuteUnit {
 public:
     SC_HAS_PROCESS(TransferUnit);
 
-    TransferUnit(const sc_core::sc_module_name& name, const TransferUnitConfig& config, const SimConfig& sim_config,
-                 Core* core, Clock* clk, int core_id = 0, int global_memory_switch_id = -10);
+    TransferUnit(const sc_module_name& name, const TransferUnitConfig& config, const BaseInfo& base_info, Clock* clk,
+                 int global_memory_switch_id = -10);
 
     [[noreturn]] void processIssue();
     [[noreturn]] void processReadSubmodule();
@@ -65,12 +63,11 @@ private:
 private:
     const TransferUnitConfig& config_;
 
-    sc_core::sc_event cur_ins_next_batch_;
+    sc_event cur_ins_next_batch_;
     SubmoduleSocket<TransferSubmodulePayload> read_submodule_socket_{};
     SubmoduleSocket<TransferSubmodulePayload> write_submodule_socket_{};
 
     // send receive
-    const int core_id_;
     const int global_memory_switch_id_;
     TransmitSocket transmit_socket_;
 };

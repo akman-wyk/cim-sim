@@ -19,7 +19,7 @@ public:
     TestModule(const sc_core::sc_module_name& name, const Config& config)
         : sc_core::sc_module(name)
         , local_memory_unit_("local_memory_unit", config.chip_config.core_config.local_memory_unit_config,
-                             config.sim_config, nullptr, nullptr, true) {
+                             BaseInfo{config.sim_config}, true) {
         SC_THREAD(process1)
         SC_THREAD(process2)
     }

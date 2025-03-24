@@ -37,7 +37,7 @@ void EnergyCounter::addDynamicEnergyPJ(double latency, double power) {
 }
 
 void EnergyCounter::addActivityTime(double latency) {
-    auto& now_time = sc_core::sc_time_stamp();
+    auto& now_time = sc_time_stamp();
     auto end_time_tag = now_time + sc_time{latency, SC_NS};
 
     if (activity_time_tag_ < end_time_tag) {
@@ -56,7 +56,7 @@ void EnergyCounter::setRunningTimeNS(double time) {
     set_running_time_ = true;
 }
 
-void EnergyCounter::setRunningTimeNS(const sc_core::sc_time& time) {
+void EnergyCounter::setRunningTimeNS(const sc_time& time) {
     setRunningTimeNS(time.to_seconds() * 1e9);
 }
 
@@ -97,7 +97,7 @@ EnergyCounter& EnergyCounter::operator+=(const EnergyCounter& another) {
 void EnergyCounter::addPipelineStageDynamicEnergyPJ(double latency, double power) {
     static std::stack<DynamicEnergyTag> temp_stack{};
 
-    auto now_time = sc_core::sc_time_stamp();
+    auto now_time = sc_time_stamp();
     auto end_time_tag = now_time + sc_time{latency, SC_NS};
 
     while (!dynamic_tag_stack_->empty() && dynamic_tag_stack_->top().end_time <= now_time) {

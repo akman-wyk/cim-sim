@@ -3,12 +3,10 @@
 //
 
 #pragma once
-#include <cstdint>
 #include <vector>
 
 #include "address_space/address_space.h"
 #include "base_component/base_module.h"
-#include "core/cim_unit/cim_unit.h"
 #include "memory.h"
 
 namespace cimsim {
@@ -17,8 +15,7 @@ class MemoryUnit : public BaseModule {
 public:
     SC_HAS_PROCESS(MemoryUnit);
 
-    MemoryUnit(const sc_core::sc_module_name& name, const MemoryUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk,
-               bool is_global);
+    MemoryUnit(const sc_module_name& name, const MemoryUnitConfig& config, const BaseInfo& base_info, bool is_global);
 
     void mountMemory(MemoryHardware* memory_hardware);
 

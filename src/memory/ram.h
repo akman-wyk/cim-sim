@@ -6,8 +6,6 @@
 #include <cstdint>
 #include <vector>
 
-#include "base_component/base_module.h"
-#include "base_component/energy_counter.h"
 #include "config/config.h"
 #include "memory_hardware.h"
 
@@ -17,9 +15,9 @@ class RAM : public MemoryHardware {
 public:
     SC_HAS_PROCESS(RAM);
 
-    RAM(const sc_core::sc_module_name& name, const RAMConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    RAM(const sc_module_name& name, const RAMConfig& config, const BaseInfo& base_info);
 
-    sc_core::sc_time accessAndGetDelay(MemoryAccessPayload& payload) override;
+    sc_time accessAndGetDelay(MemoryAccessPayload& payload) override;
 
     EnergyReporter getEnergyReporter() override;
 

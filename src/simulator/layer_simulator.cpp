@@ -5,12 +5,11 @@
 #include "layer_simulator.h"
 
 #include "argparse/argparse.hpp"
+#include "constant.h"
 #include "fmt/format.h"
 #include "util/util.h"
 
 namespace cimsim {
-
-const std::string GLOBAL_MEMORY_NAME = "global";
 
 LayerSimulator::LayerSimulator(std::string config_file, std::string instruction_file, bool check)
     : config_file_(std::move(config_file))
@@ -41,7 +40,7 @@ void LayerSimulator::run() {
 
     std::cout << "Start Simulation" << std::endl;
     if (config_.sim_config.sim_mode == +SimMode::run_until_time) {
-        sc_start(config_.sim_config.sim_time_ms, sc_core::SC_MS);
+        sc_start(config_.sim_config.sim_time_ms, SC_MS);
     } else {
         sc_start();
     }
@@ -167,7 +166,7 @@ CimArguments parseCimArguments(int argc, char* argv[]) {
 }
 
 int sc_main(int argc, char* argv[]) {
-    sc_core::sc_report_handler::set_actions(sc_core::SC_WARNING, sc_core::SC_DO_NOTHING);
+    sc_report_handler::set_actions(SC_WARNING, SC_DO_NOTHING);
 
     auto args = parseCimArguments(argc, argv);
 

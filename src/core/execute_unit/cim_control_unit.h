@@ -6,7 +6,6 @@
 #include "base_component/submodule_socket.h"
 #include "config/config.h"
 #include "core/cim_unit/cim_unit.h"
-#include "core/socket/memory_socket.h"
 #include "execute_unit.h"
 #include "payload.h"
 
@@ -16,7 +15,7 @@ class CimControlUnit : public ExecuteUnit {
 public:
     SC_HAS_PROCESS(CimControlUnit);
 
-    CimControlUnit(const sc_core::sc_module_name& name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    CimControlUnit(const sc_module_name& name, const CimUnitConfig& config, const BaseInfo& base_info, Clock* clk);
 
     void bindCimUnit(CimUnit* cim_unit);
 

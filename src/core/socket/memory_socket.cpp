@@ -22,18 +22,18 @@ MemorySocket::~MemorySocket() {
 
 void MemorySocket::bindLocalMemoryUnit(cimsim::MemoryUnit *local_memory_unit) {
     local_memory_unit_ = local_memory_unit;
-    finish_read_ = new sc_core::sc_event{};
-    finish_write_ = new sc_core::sc_event{};
+    finish_read_ = new sc_event{};
+    finish_write_ = new sc_event{};
 }
 
 void MemorySocket::bindSwitchAndGlobalMemory(Switch *_switch, int core_id, int global_memory_switch_id) {
     switch_ = _switch;
     core_id_ = core_id;
     global_memory_switch_id_ = global_memory_switch_id;
-    finish_load_ = new sc_core::sc_event{};
-    finish_store_ = new sc_core::sc_event{};
-    finish_load_trans_ = new sc_core::sc_event{};
-    finish_store_trans_ = new sc_core::sc_event{};
+    finish_load_ = new sc_event{};
+    finish_store_ = new sc_event{};
+    finish_load_trans_ = new sc_event{};
+    finish_store_trans_ = new sc_event{};
 }
 
 std::vector<uint8_t> MemorySocket::readLocal(const cimsim::InstructionPayload &ins, int address_byte, int size_byte) {

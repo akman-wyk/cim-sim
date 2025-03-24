@@ -17,7 +17,7 @@ struct FSMPayload {
         return valid == another.valid && payload == another.payload;
     }
 
-    friend void sc_trace(sc_core::sc_trace_file*, const FSMPayload&, const std::string&) {}
+    friend void sc_trace(sc_trace_file*, const FSMPayload&, const std::string&) {}
 
     friend std::ostream& operator<<(std::ostream& out, const FSMPayload&) {
         out << "FSMPayload Type\n";
@@ -26,11 +26,11 @@ struct FSMPayload {
 };
 
 template <class T>
-class FSM : public sc_core::sc_module {
+class FSM : public sc_module {
 public:
     SC_HAS_PROCESS(FSM);
 
-    FSM(const sc_core::sc_module_name& name, Clock* clk) : sc_core::sc_module(name), clk_(clk), is_ready_(true) {
+    FSM(const sc_module_name& name, Clock* clk) : sc_module(name), clk_(clk), is_ready_(true) {
         SC_METHOD(process)
         sensitive << trigger_;
 
@@ -81,16 +81,16 @@ public:
     }
 
 public:
-    sc_core::sc_in<FSMPayload<T>> input_{"input"};
-    sc_core::sc_in<bool> enable_{"enable"};
-    sc_core::sc_out<T> output_{"output"};
+    sc_in<FSMPayload<T>> input_{"input"};
+    sc_in<bool> enable_{"enable"};
+    sc_out<T> output_{"output"};
 
-    sc_core::sc_event start_exec_;
-    sc_core::sc_event finish_exec_;
+    sc_event start_exec_;
+    sc_event finish_exec_;
 
 private:
     Clock* clk_;
-    sc_core::sc_event trigger_;
+    sc_event trigger_;
     bool is_ready_;
     T value_;
 };

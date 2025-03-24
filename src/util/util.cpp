@@ -4,11 +4,7 @@
 
 #include "util.h"
 
-#include <fstream>
 #include <iostream>
-#include <string>
-
-#include "config/constant.h"
 
 namespace cimsim {
 

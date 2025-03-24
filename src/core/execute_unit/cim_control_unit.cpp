@@ -10,11 +10,9 @@
 
 namespace cimsim {
 
-CimControlUnit::CimControlUnit(const sc_core::sc_module_name &name, const cimsim::CimUnitConfig &config,
-                               const cimsim::SimConfig &sim_config, cimsim::Core *core, cimsim::Clock *clk)
-    : ExecuteUnit(name, sim_config, core, clk, ExecuteUnitType::cim_control)
-    , config_(config)
-    , macro_size_(config.macro_size) {
+CimControlUnit::CimControlUnit(const sc_module_name &name, const CimUnitConfig &config, const BaseInfo &base_info,
+                               Clock *clk)
+    : ExecuteUnit(name, base_info, clk, ExecuteUnitType::cim_control), config_(config), macro_size_(config.macro_size) {
     SC_THREAD(processIssue)
     SC_THREAD(processExecute)
 }

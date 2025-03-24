@@ -11,14 +11,14 @@
 
 namespace cimsim {
 
-class ConflictHandler : public sc_core::sc_module {
+class ConflictHandler : public sc_module {
 public:
     SC_HAS_PROCESS(ConflictHandler);
 
-    ConflictHandler(const sc_core::sc_module_name& name, const sc_core::sc_event& decode_new_ins_trigger,
+    ConflictHandler(const sc_module_name& name, const sc_event& decode_new_ins_trigger,
                     ExecuteUnitType execute_unit_type);
 
-    void bind(ExecuteUnitSignalPorts& signals, sc_core::sc_signal<bool>& conflict_signal,
+    void bind(ExecuteUnitSignalPorts& signals, sc_signal<bool>& conflict_signal,
               ResourceAllocatePayload* next_ins_resource_allocate_) {
         ready_.bind(signals.ready_);
         unit_ins_resource_allocate_.bind(signals.resource_allocate_);
@@ -34,11 +34,11 @@ private:
     void processUnitResourceConflict();
 
 public:
-    sc_core::sc_in<bool> ready_{"ready"};
-    sc_core::sc_in<ResourceAllocatePayload> unit_ins_resource_allocate_{"unit_ins_resource_allocate"};
-    sc_core::sc_in<ResourceReleasePayload> unit_ins_resource_release_{"unit_ins_resource_release"};
+    sc_in<bool> ready_{"ready"};
+    sc_in<ResourceAllocatePayload> unit_ins_resource_allocate_{"unit_ins_resource_allocate"};
+    sc_in<ResourceReleasePayload> unit_ins_resource_release_{"unit_ins_resource_release"};
 
-    sc_core::sc_out<bool> conflict_{"conflict"};
+    sc_out<bool> conflict_{"conflict"};
 
 private:
     const ExecuteUnitType execute_unit_type_;
@@ -46,7 +46,7 @@ private:
 
     std::unordered_map<int, ResourceAllocatePayload> unit_ins_resource_allocate_map_{};
     ResourceAllocatePayload unit_resource_allocate_;
-    sc_core::sc_event conflict_trigger_;
+    sc_event conflict_trigger_;
 };
 
 }  // namespace cimsim

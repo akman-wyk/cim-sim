@@ -10,25 +10,22 @@
 
 namespace cimsim {
 
-Memory::Memory(const sc_core::sc_module_name& name, const RAMConfig &ram_config, const SimConfig &sim_config, Core *core,
-               Clock *clk)
-    : BaseModule(name, sim_config, core, clk), is_mount(false) {
-    hardware_ = new RAM("ram", ram_config, sim_config, core, clk);
+Memory::Memory(const sc_module_name& name, const RAMConfig& ram_config, const BaseInfo& base_info)
+    : BaseModule(name, base_info), is_mount(false) {
+    hardware_ = new RAM("ram", ram_config, base_info);
     as_offset_ = AddressSapce::getInstance().getMemoryAddressSpaceOffset(std::string{name});
     SC_THREAD(process);
 }
 
-Memory::Memory(const sc_core::sc_module_name& name, const RegBufferConfig &reg_buffer_config, const SimConfig &sim_config,
-               Core *core, Clock *clk)
-    : BaseModule(name, sim_config, core, clk), is_mount(false) {
-    hardware_ = new RegBuffer("reg_buffer", reg_buffer_config, sim_config, core, clk);
+Memory::Memory(const sc_module_name& name, const RegBufferConfig& reg_buffer_config, const BaseInfo& base_info)
+    : BaseModule(name, base_info), is_mount(false) {
+    hardware_ = new RegBuffer("reg_buffer", reg_buffer_config, base_info);
     as_offset_ = AddressSapce::getInstance().getMemoryAddressSpaceOffset(std::string{name});
     SC_THREAD(process);
 }
 
-Memory::Memory(const sc_core::sc_module_name& name, MemoryHardware *memory_hardware, const SimConfig &sim_config, Core *core,
-               Clock *clk)
-    : BaseModule(name, sim_config, core, clk), is_mount(true) {
+Memory::Memory(const sc_module_name& name, MemoryHardware* memory_hardware, const BaseInfo& base_info)
+    : BaseModule(name, base_info), is_mount(true) {
     hardware_ = memory_hardware;
     as_offset_ = AddressSapce::getInstance().getMemoryAddressSpaceOffset(hardware_->getMemoryName());
     SC_THREAD(process);
@@ -77,7 +74,7 @@ void Memory::process() {
         auto payload_ptr = access_queue_.front();
         access_queue_.pop();
 
-        sc_core::sc_time access_delay = hardware_->accessAndGetDelay(*payload_ptr);
+        sc_time access_delay = hardware_->accessAndGetDelay(*payload_ptr);
         if (payload_ptr->ins.unit_type != +ExecuteUnitType::scalar) {
             wait(access_delay);
         }

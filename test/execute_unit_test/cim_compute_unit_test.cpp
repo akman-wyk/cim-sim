@@ -3,6 +3,7 @@
 //
 
 #include "../base/test_payload.h"
+#include "core/cim_unit/cim_unit.h"
 #include "core/execute_unit/cim_compute_unit.h"
 #include "execute_unit_test.h"
 
@@ -30,11 +31,12 @@ class CimComputeUnitTestModule
     : public ExecuteUnitTestModule<CimComputeUnitTestModule, CimComputeUnit, CimUnitConfig, CimComputeInsPayload,
                                    CimComputeTestInstruction, TestExpectedInfo, CimComputeTestInfo> {
 public:
-    CimComputeUnitTestModule(const sc_core::sc_module_name& name, const char* test_unit_name, const CimUnitConfig& test_unit_config,
-                             const Config& config, Clock* clk, std::vector<CimComputeTestInstruction> codes)
+    CimComputeUnitTestModule(const sc_core::sc_module_name& name, const char* test_unit_name,
+                             const CimUnitConfig& test_unit_config, const Config& config, Clock* clk,
+                             std::vector<CimComputeTestInstruction> codes)
         : TestBaseModule(name, test_unit_name, test_unit_config, config, clk, std::move(codes),
                          ExecuteUnitType::cim_compute)
-        , cim_unit_("CimUnit", config.chip_config.core_config.cim_unit_config, config.sim_config, nullptr, clk) {
+        , cim_unit_("CimUnit", config.chip_config.core_config.cim_unit_config, {config.sim_config}) {
         test_unit_.bindCimUnit(&cim_unit_);
         local_memory_unit_.mountMemory(&cim_unit_);
     }

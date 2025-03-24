@@ -11,7 +11,7 @@ namespace cimsim {
 
 class Chip : public BaseModule {
 public:
-    Chip(const sc_core::sc_module_name& name, const Config& config, const std::vector<std::vector<Instruction>>& core_ins_list);
+    Chip(const sc_module_name& name, const Config& config, const std::vector<std::vector<Instruction>>& core_ins_list);
 
     Reporter report(std::ostream& os, bool report_every_core_energy);
 
@@ -31,7 +31,7 @@ private:
     EnergyCounter energy_counter_;
 
     int finish_run_core_cnt_{0};
-    sc_core::sc_time running_time_{};
+    sc_time running_time_{};
 };
 
 }  // namespace cimsim

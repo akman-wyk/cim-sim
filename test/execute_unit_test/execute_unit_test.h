@@ -34,11 +34,12 @@ public:
     ExecuteUnitTestModule(const sc_core::sc_module_name& name, const char* test_unit_name,
                           const TestUnitConfig& test_unit_config, const Config& config, Clock* clk,
                           std::vector<TestInstruction> codes, ExecuteUnitType type)
-        : BaseModule(name, config.sim_config, nullptr, clk), type_(type)
+        : BaseModule(name, BaseInfo{config.sim_config})
+        , type_(type)
         , test_unit_config_(test_unit_config)
         , local_memory_unit_("LocalMemoryUnit", config.chip_config.core_config.local_memory_unit_config,
-                             config.sim_config, nullptr, clk, false)
-        , test_unit_(test_unit_name, test_unit_config, config.sim_config, nullptr, clk)
+                             BaseInfo{config.sim_config}, false)
+        , test_unit_(test_unit_name, test_unit_config, BaseInfo{config.sim_config}, clk)
         , unit_stall_handler_("stall_handler", decode_new_ins_trigger_, type)
 
         , signals_(type) {

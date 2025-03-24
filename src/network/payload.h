@@ -20,7 +20,7 @@ struct NetworkPayload {
     int src_id;
     int dst_id;
 
-    sc_core::sc_event* finish_network_trans{nullptr};
+    sc_event* finish_network_trans{nullptr};
 
     // one payload contains request and its response(optional)
     int request_data_size_byte;

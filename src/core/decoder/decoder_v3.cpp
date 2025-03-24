@@ -2,7 +2,6 @@
 // Created by wyk on 2025/2/28.
 //
 
-#include "core/core.h"
 #include "decoder.h"
 #include "fmt/format.h"
 #include "isa/isa_v2.h"
@@ -180,7 +179,7 @@ std::shared_ptr<ExecuteInsPayload> DecoderV3::decodeTransferIns(const InstV3& in
         }
     } else if ((opcode & OPCODE_MASK::TRANS_TYPE_5BIT) == OPCODE::SEND) {
         p.type = TransferType::send;
-        p.src_id = core_->getCoreId();
+        p.src_id = core_id_;
         p.src_address_byte = reg_unit_->readRegister(ins.getR1(), false);
         p.dst_id = reg_unit_->readRegister(ins.getR2(), false);
         p.dst_address_byte = reg_unit_->readRegister(ins.getR3(), false);
@@ -190,7 +189,7 @@ std::shared_ptr<ExecuteInsPayload> DecoderV3::decodeTransferIns(const InstV3& in
         p.type = TransferType::receive;
         p.src_id = reg_unit_->readRegister(ins.getR1(), false);
         p.src_address_byte = reg_unit_->readRegister(ins.getR2(), false);
-        p.dst_id = core_->getCoreId();
+        p.dst_id = core_id_;
         p.dst_address_byte = reg_unit_->readRegister(ins.getR3(), false);
         p.size_byte = reg_unit_->readRegister(ins.getR4(), false);
         p.transfer_id_tag = reg_unit_->readRegister(ins.getR5(), false);

@@ -13,9 +13,7 @@ using MacroGroupStageSocket = SubmoduleSocket<MacroGroupSubmodulePayload>;
 
 class MacroGroupPipelineStage : public BaseModule {
 public:
-    MacroGroupPipelineStage(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk,
-                            const std::string& macro_group_name, const std::string& module_name,
-                            int pipeline_stage_latency_cycle);
+    MacroGroupPipelineStage(const sc_module_name& name, const BaseInfo& base_info, int latency_cycle);
 
     [[noreturn]] virtual void processExecute() = 0;
 
@@ -25,19 +23,14 @@ public:
     bool last_batch_trigger_next_{false};
 
 protected:
-    const std::string& macro_group_name_;
-    const std::string& module_name_;
-
-    int pipeline_stage_latency_cycle_;
+    int latency_cycle_;
 };
 
 class MacroGroupPipelineNormalStage : public MacroGroupPipelineStage {
 public:
     SC_HAS_PROCESS(MacroGroupPipelineNormalStage);
 
-    MacroGroupPipelineNormalStage(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core,
-                                  Clock* clk, const std::string& macro_group_name, const std::string& module_name,
-                                  int pipeline_stage_latency_cycle);
+    MacroGroupPipelineNormalStage(const sc_module_name& name, const BaseInfo& base_info, int latency_cycle);
 
     [[noreturn]] void processExecute() override;
 };
@@ -46,9 +39,7 @@ class MacroGroupPipelineLastStage : public MacroGroupPipelineStage {
 public:
     SC_HAS_PROCESS(MacroGroupPipelineLastStage);
 
-    MacroGroupPipelineLastStage(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core,
-                                Clock* clk, const std::string& macro_group_name, const std::string& module_name,
-                                int pipeline_stage_latency_cycle);
+    MacroGroupPipelineLastStage(const sc_module_name& name, const BaseInfo& base_info, int latency_cycle);
 
     [[noreturn]] void processExecute() override;
 
@@ -59,8 +50,11 @@ public:
 
 class MacroGroupModule : public BaseModule {
 public:
-    MacroGroupModule(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk,
-                     const std::string& macro_group_name, int latency_cycle, int pipeline_stage_cnt, bool last_module);
+    MacroGroupModule(const sc_module_name& name, const BaseInfo& base_info, int latency_cycle, int pipeline_stage_cnt,
+                     bool last_module);
+
+    MacroGroupModule(const sc_module_name& name, const BaseInfo& base_info, const CimModuleConfig& module_config,
+                     bool last_module);
 
     MacroGroupStageSocket* getExecuteSocket() const;
     void bindNextStageSocket(MacroGroupStageSocket* next_stage_socket, bool last_batch_trigger);

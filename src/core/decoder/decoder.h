@@ -19,10 +19,8 @@ class Decoder : public BaseModule {
 public:
     using Instruction = Inst;
 
-    Decoder(const sc_core::sc_module_name& name, const ChipConfig& chip_config, const SimConfig& sim_config, Core* core, Clock* clk)
-        : BaseModule(name, sim_config, core, clk)
-        , as_(AddressSapce::getInstance())
-        , simd_unit_config_(chip_config.core_config.simd_unit_config) {
+    Decoder(const sc_module_name& name, const SIMDUnitConfig& simd_unit_config, const BaseInfo& base_info)
+        : BaseModule(name, base_info), as_(AddressSapce::getInstance()), simd_unit_config_(simd_unit_config) {
         for (const auto& ins_config : simd_unit_config_.instruction_list) {
             simd_ins_config_map_.emplace(getSIMDInstructionIdentityCode(ins_config.input_cnt, ins_config.opcode),
                                          &ins_config);

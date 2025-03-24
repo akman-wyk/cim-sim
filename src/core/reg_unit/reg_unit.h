@@ -5,7 +5,6 @@
 #pragma once
 #include <array>
 #include <unordered_map>
-#include <vector>
 
 #include "base_component/base_module.h"
 #include "config/config.h"
@@ -29,7 +28,7 @@ class RegUnit : public BaseModule {
 public:
     SC_HAS_PROCESS(RegUnit);
 
-    RegUnit(const sc_core::sc_module_name& name, const RegisterUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    RegUnit(const sc_module_name& name, const RegisterUnitConfig& config, const BaseInfo& base_info);
 
     int getSpecialBoundGeneralId(int special_id) const;
 

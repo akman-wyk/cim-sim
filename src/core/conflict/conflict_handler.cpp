@@ -8,9 +8,9 @@
 
 namespace cimsim {
 
-ConflictHandler::ConflictHandler(const sc_core::sc_module_name& name, const sc_core::sc_event& decode_new_ins_trigger,
+ConflictHandler::ConflictHandler(const sc_module_name& name, const sc_event& decode_new_ins_trigger,
                                  ExecuteUnitType execute_unit_type)
-    : sc_core::sc_module(name)
+    : sc_module(name)
     , execute_unit_type_(execute_unit_type)
     , unit_resource_allocate_({.unit_type = execute_unit_type}) {
     SC_METHOD(processUnitResourceAllocate)

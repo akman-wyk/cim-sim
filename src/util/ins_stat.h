@@ -8,7 +8,6 @@
 
 #include "config/config.h"
 #include "macro_scope.h"
-#include "nlohmann/json.hpp"
 
 namespace cimsim {
 

@@ -38,13 +38,13 @@ private:
     int core_id_{0};
     int global_memory_switch_id_{-1};
 
-    sc_core::sc_event* finish_read_{nullptr};
-    sc_core::sc_event* finish_write_{nullptr};
+    sc_event* finish_read_{nullptr};
+    sc_event* finish_write_{nullptr};
 
-    sc_core::sc_event* finish_load_{nullptr};
-    sc_core::sc_event* finish_store_{nullptr};
-    sc_core::sc_event* finish_load_trans_{nullptr};
-    sc_core::sc_event* finish_store_trans_{nullptr};
+    sc_event* finish_load_{nullptr};
+    sc_event* finish_store_{nullptr};
+    sc_event* finish_load_trans_{nullptr};
+    sc_event* finish_store_trans_{nullptr};
 };
 
 }  // namespace cimsim

@@ -5,18 +5,15 @@
 #include "transfer_unit.h"
 
 #include "fmt/format.h"
-#include "network/switch.h"
 #include "util/log.h"
 #include "util/util.h"
 
 namespace cimsim {
 
-TransferUnit::TransferUnit(const sc_core::sc_module_name& name, const TransferUnitConfig& config,
-                           const SimConfig& sim_config, Core* core, Clock* clk, int core_id,
-                           int global_memory_switch_id)
-    : ExecuteUnit(name, sim_config, core, clk, ExecuteUnitType::transfer)
+TransferUnit::TransferUnit(const sc_module_name& name, const TransferUnitConfig& config, const BaseInfo& base_info,
+                           Clock* clk, int global_memory_switch_id)
+    : ExecuteUnit(name, base_info, clk, ExecuteUnitType::transfer)
     , config_(config)
-    , core_id_(core_id)
     , global_memory_switch_id_(global_memory_switch_id) {
     SC_THREAD(processIssue)
     SC_THREAD(processReadSubmodule)

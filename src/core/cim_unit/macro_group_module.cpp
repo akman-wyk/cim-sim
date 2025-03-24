@@ -9,21 +9,13 @@
 
 namespace cimsim {
 
-MacroGroupPipelineStage::MacroGroupPipelineStage(const sc_core::sc_module_name& name, const SimConfig& sim_config,
-                                                 Core* core, Clock* clk, const std::string& macro_group_name,
-                                                 const std::string& module_name, int pipeline_stage_latency_cycle)
-    : BaseModule(name, sim_config, core, clk)
-    , macro_group_name_(macro_group_name)
-    , module_name_(module_name)
-    , pipeline_stage_latency_cycle_(pipeline_stage_latency_cycle) {}
+MacroGroupPipelineStage::MacroGroupPipelineStage(const sc_module_name& name, const BaseInfo& base_info,
+                                                 int latency_cycle)
+    : BaseModule(name, base_info), latency_cycle_(latency_cycle) {}
 
-MacroGroupPipelineNormalStage::MacroGroupPipelineNormalStage(const sc_core::sc_module_name& name,
-                                                             const SimConfig& sim_config, Core* core, Clock* clk,
-                                                             const std::string& macro_group_name,
-                                                             const std::string& module_name,
-                                                             int pipeline_stage_latency_cycle)
-    : MacroGroupPipelineStage(name, sim_config, core, clk, macro_group_name, module_name,
-                              pipeline_stage_latency_cycle) {
+MacroGroupPipelineNormalStage::MacroGroupPipelineNormalStage(const sc_module_name& name, const BaseInfo& base_info,
+                                                             int latency_cycle)
+    : MacroGroupPipelineStage(name, base_info, latency_cycle) {
     SC_THREAD(processExecute)
 }
 
@@ -33,10 +25,10 @@ MacroGroupPipelineNormalStage::MacroGroupPipelineNormalStage(const sc_core::sc_m
 
         const auto& payload = exec_socket_.payload;
         const auto& cim_ins_info = payload.sub_ins_info->cim_ins_info;
-        CORE_LOG(fmt::format("{} {} {} start, ins pc: {}, sub ins num: {}, batch: {}", macro_group_name_, module_name_,
-                             getName(), cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info->batch_num));
+        CORE_LOG(fmt::format("{} start, ins pc: {}, sub ins num: {}, batch: {}", getFullName(), cim_ins_info.ins_pc,
+                             cim_ins_info.sub_ins_num, payload.batch_info->batch_num));
 
-        double latency = pipeline_stage_latency_cycle_ * period_ns_;
+        double latency = latency_cycle_ * period_ns_;
         wait(latency, SC_NS);
 
         if (next_stage_socket_ != nullptr && (!last_batch_trigger_next_ || payload.batch_info->last_batch)) {
@@ -47,13 +39,9 @@ MacroGroupPipelineNormalStage::MacroGroupPipelineNormalStage(const sc_core::sc_m
     }
 }
 
-MacroGroupPipelineLastStage::MacroGroupPipelineLastStage(const sc_core::sc_module_name& name,
-                                                         const SimConfig& sim_config, Core* core, Clock* clk,
-                                                         const std::string& macro_group_name,
-                                                         const std::string& module_name,
-                                                         int pipeline_stage_latency_cycle)
-    : MacroGroupPipelineStage(name, sim_config, core, clk, macro_group_name, module_name,
-                              pipeline_stage_latency_cycle) {
+MacroGroupPipelineLastStage::MacroGroupPipelineLastStage(const sc_module_name& name, const BaseInfo& base_info,
+                                                         int latency_cycle)
+    : MacroGroupPipelineStage(name, base_info, latency_cycle) {
     SC_THREAD(processExecute)
 }
 
@@ -63,42 +51,39 @@ MacroGroupPipelineLastStage::MacroGroupPipelineLastStage(const sc_core::sc_modul
 
         const auto& payload = exec_socket_.payload;
         const auto& cim_ins_info = payload.sub_ins_info->cim_ins_info;
-        CORE_LOG(fmt::format("{} {} {} start, ins pc: {}, sub ins num: {}, batch: {}", macro_group_name_, module_name_,
-                             getName(), cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info->batch_num));
+        CORE_LOG(fmt::format("{} start, ins pc: {}, sub ins num: {}, batch: {}", getFullName(), cim_ins_info.ins_pc,
+                             cim_ins_info.sub_ins_num, payload.batch_info->batch_num));
 
         if (release_resource_func_ && payload.sub_ins_info->last_group && cim_ins_info.last_sub_ins) {
             release_resource_func_(cim_ins_info.ins_id);
         }
 
-        double latency = pipeline_stage_latency_cycle_ * period_ns_;
+        double latency = latency_cycle_ * period_ns_;
         wait(latency, SC_NS);
 
         if (finish_ins_func_ && payload.sub_ins_info->last_group && cim_ins_info.last_sub_ins) {
             finish_ins_func_();
         }
 
-        CORE_LOG(fmt::format("{} {} {} end, ins pc: {}, sub ins num: {}, batch: {}", macro_group_name_, module_name_,
-                             getName(), cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info->batch_num));
+        CORE_LOG(fmt::format("{} end, ins pc: {}, sub ins num: {}, batch: {}", getFullName(), cim_ins_info.ins_pc,
+                             cim_ins_info.sub_ins_num, payload.batch_info->batch_num));
 
         exec_socket_.finish();
     }
 }
 
-MacroGroupModule::MacroGroupModule(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core,
-                                   Clock* clk, const std::string& macro_group_name, int latency_cycle,
+MacroGroupModule::MacroGroupModule(const sc_module_name& name, const BaseInfo& base_info, int latency_cycle,
                                    int pipeline_stage_cnt, bool last_module)
-    : BaseModule(name, sim_config, core, clk), last_module_(last_module) {
+    : BaseModule(name, base_info), last_module_(last_module) {
     int pipeline_stage_latency_cycle = latency_cycle / pipeline_stage_cnt;
     for (int i = 0; i < pipeline_stage_cnt; i++) {
         std::shared_ptr<MacroGroupPipelineStage> stage_ptr;
         if (last_module_ && i == pipeline_stage_cnt - 1) {
-            stage_ptr = std::make_shared<MacroGroupPipelineLastStage>(fmt::format("pipeline_{}", i).c_str(), sim_config,
-                                                                      core, clk, macro_group_name, getName(),
+            stage_ptr = std::make_shared<MacroGroupPipelineLastStage>(fmt::format("pipeline_{}", i).c_str(), base_info,
                                                                       pipeline_stage_latency_cycle);
         } else {
             stage_ptr = std::make_shared<MacroGroupPipelineNormalStage>(fmt::format("pipeline_{}", i).c_str(),
-                                                                        sim_config, core, clk, macro_group_name,
-                                                                        getName(), pipeline_stage_latency_cycle);
+                                                                        base_info, pipeline_stage_latency_cycle);
         }
 
         if (i > 0) {
@@ -108,6 +93,10 @@ MacroGroupModule::MacroGroupModule(const sc_core::sc_module_name& name, const Si
         stage_list_.emplace_back(stage_ptr);
     }
 }
+
+MacroGroupModule::MacroGroupModule(const sc_module_name& name, const BaseInfo& base_info,
+                                   const CimModuleConfig& module_config, bool last_module)
+    : MacroGroupModule(name, base_info, module_config.latency_cycle, module_config.pipeline_stage_cnt, last_module) {}
 
 MacroGroupStageSocket* MacroGroupModule::getExecuteSocket() const {
     return &(stage_list_[0]->exec_socket_);

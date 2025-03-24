@@ -4,17 +4,16 @@
 
 #include "memory_unit.h"
 
-#include "core/core.h"
 #include "fmt/format.h"
 #include "util/util.h"
 
 namespace cimsim {
 
-MemoryUnit::MemoryUnit(const sc_core::sc_module_name &name, const cimsim::MemoryUnitConfig &config,
-                       const cimsim::SimConfig &sim_config, cimsim::Core *core, cimsim::Clock *clk, bool is_global)
-    : BaseModule(name, sim_config, core, clk)
+MemoryUnit::MemoryUnit(const sc_module_name &name, const MemoryUnitConfig &config, const BaseInfo &base_info,
+                       bool is_global)
+    : BaseModule(name, base_info)
     , config_(config)
-    , sim_config_(sim_config)
+    , sim_config_(base_info.sim_config)
     , as_(AddressSapce::getInstance())
     , is_global_(is_global) {
     memory_list_.resize(as_.getMemoryCount(is_global_));
@@ -22,10 +21,9 @@ MemoryUnit::MemoryUnit(const sc_core::sc_module_name &name, const cimsim::Memory
         for (int i = 0; i < mem_cfg.duplicate_cnt; i++) {
             std::string mem_name = getDuplicateMemoryName(mem_cfg.getMemoryName(), i, mem_cfg.duplicate_cnt);
             int mem_id = as_.getMemoryId(mem_name);
-            auto mem_ptr =
-                mem_cfg.type == +MemoryType::ram
-                    ? std::make_shared<Memory>(mem_name.c_str(), mem_cfg.ram_config, sim_config, core, clk)
-                    : std::make_shared<Memory>(mem_name.c_str(), mem_cfg.reg_buffer_config, sim_config, core, clk);
+            auto mem_ptr = mem_cfg.type == +MemoryType::ram
+                               ? std::make_shared<Memory>(mem_name.c_str(), mem_cfg.ram_config, base_info)
+                               : std::make_shared<Memory>(mem_name.c_str(), mem_cfg.reg_buffer_config, base_info);
             mem_ptr->setMemoryID(mem_id);
             memory_list_[mem_id] = mem_ptr;
         }
@@ -38,7 +36,7 @@ void MemoryUnit::mountMemory(MemoryHardware *memory_hardware) {
     auto memory_module_name =
         fmt::format("{}MountedMemory_{}", (is_global_ ? "Global" : "Local"), memory_hardware->getMemoryName());
     memory_list_[mem_id] =
-        std::make_shared<Memory>(memory_module_name.c_str(), memory_hardware, sim_config_, core_, clk_);
+        std::make_shared<Memory>(memory_module_name.c_str(), memory_hardware, BaseInfo{sim_config_, core_id_});
 }
 
 void MemoryUnit::access(const std::shared_ptr<MemoryAccessPayload> &payload) {

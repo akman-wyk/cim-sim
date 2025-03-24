@@ -3,30 +3,14 @@
 //
 
 #pragma once
-#include <cstdio>
-#include <iostream>
-#include <map>
 #include <string>
+#include <vector>
 
 #include "fmt/format.h"
 #include "nlohmann/json.hpp"
 #include "util/reporter.h"
 
-#define TEST_PASSED           0
-#define TEST_FAILED           1
-#define INVALID_USAGE         2
-#define INVALID_CONFIG        3
-#define CHECK_INS_STAT_FAILED 4
-#define CHECK_REG_FAILED      5
-
 namespace cimsim {
-
-const std::string TEMP_REPORT_DIR_NAME = "temp";
-const std::string CODE_FILE_NAME = "final_code.json";
-const std::string GLOBAL_IMAGE_FILE_NAME = "global_image";
-const std::string EXPECTED_INS_STAT_FILE_NAME = "stats.json";
-const std::string EXPECTED_REG_FILE_NAME = "regs.json";
-const std::string ACTUAL_REG_FILE_NAME = "regs.txt";
 
 struct LayerConfig {
     std::string sub_dir_name{};

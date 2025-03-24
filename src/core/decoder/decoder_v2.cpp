@@ -2,9 +2,9 @@
 // Created by wyk on 2025/3/5.
 //
 
-#include "core/core.h"
 #include "decoder.h"
 #include "fmt/format.h"
+#include "isa/isa_v2.h"
 
 namespace cimsim {
 
@@ -177,7 +177,7 @@ std::shared_ptr<ExecuteInsPayload> DecoderV2::decodeTransferIns(const InstV2& in
         }
     } else if (op == +OPCODE::SEND) {
         p.type = TransferType::send;
-        p.src_id = core_->getCoreId();
+        p.src_id = core_id_;
         p.src_address_byte = reg_unit_->readRegister(ins.rs, false);
         p.dst_id = reg_unit_->readRegister(ins.rt, false);
         p.dst_address_byte = reg_unit_->readRegister(ins.rd, false);
@@ -187,7 +187,7 @@ std::shared_ptr<ExecuteInsPayload> DecoderV2::decodeTransferIns(const InstV2& in
         p.type = TransferType::receive;
         p.src_id = reg_unit_->readRegister(ins.rs, false);
         p.src_address_byte = reg_unit_->readRegister(ins.rt, false);
-        p.dst_id = core_->getCoreId();
+        p.dst_id = core_id_;
         p.dst_address_byte = reg_unit_->readRegister(ins.rd, false);
         p.size_byte = reg_unit_->readRegister(ins.re, false);
         p.transfer_id_tag = reg_unit_->readRegister(ins.rf, false);
