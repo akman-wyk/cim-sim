@@ -31,4 +31,11 @@ struct SubmoduleSocket {
     }
 };
 
+template <class PayloadType>
+void waitAndStartNextStage(const PayloadType& cur_payload, SubmoduleSocket<PayloadType>& next_stage_socket) {
+    next_stage_socket.waitUntilFinishIfBusy();
+    next_stage_socket.payload = cur_payload;
+    next_stage_socket.start_exec.notify();
+}
+
 }  // namespace cimsim

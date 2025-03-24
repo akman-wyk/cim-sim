@@ -16,8 +16,8 @@ class MacroGroup : public BaseModule {
 public:
     SC_HAS_PROCESS(MacroGroup);
 
-    MacroGroup(const sc_core::sc_module_name& name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk,
-               bool macro_simulation = false);
+    MacroGroup(const sc_core::sc_module_name& name, const CimUnitConfig& config, const SimConfig& sim_config,
+               Core* core, Clock* clk, bool macro_simulation = false);
 
     void startExecute(MacroGroupPayload payload);
     void waitUntilFinishIfBusy();
@@ -33,7 +33,6 @@ public:
 
 private:
     [[noreturn]] void processIssue();
-    [[noreturn]] void processResultAdderSubmodule();
 
 private:
     const CimUnitConfig& config_;
@@ -45,9 +44,6 @@ private:
 
     SubmoduleSocket<MacroGroupPayload> macro_group_socket_{};
     SubmoduleSocket<MacroGroupSubmodulePayload> result_adder_socket_{};
-
-    std::function<void(int ins_id)> release_resource_func_;
-    std::function<void()> finish_ins_func_;
 
     sc_core::sc_event next_sub_ins_;
 };

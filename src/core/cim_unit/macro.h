@@ -13,20 +13,19 @@
 
 namespace cimsim {
 
+using MacroSubmoduleSocket = SubmoduleSocket<MacroSubmodulePayload>;
+
 class Macro : public BaseModule {
 public:
     SC_HAS_PROCESS(Macro);
 
-    Macro(const sc_core::sc_module_name& name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk,
-          bool independent_ipu, SubmoduleSocket<MacroGroupSubmodulePayload>* result_adder_socket_ptr = nullptr);
+    Macro(const sc_core::sc_module_name& name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core,
+          Clock* clk, bool independent_ipu);
 
     void startExecute(MacroPayload payload);
     void waitUntilFinishIfBusy();
 
     EnergyReporter getEnergyReporter() override;
-
-    static void waitAndStartNextSubmodule(const MacroSubmodulePayload& cur_payload,
-                                          SubmoduleSocket<MacroSubmodulePayload>& next_submodule_socket);
 
     void setFinishInsFunction(std::function<void()> finish_func);
 
@@ -41,6 +40,7 @@ private:
     [[noreturn]] void processAdderTreeSubmodule1();
     [[noreturn]] void processAdderTreeSubmodule2();
     [[noreturn]] void processShiftAdderSubmodule();
+    [[noreturn]] void processResultAdderSubmodule();
 
     std::pair<int, int> getBatchCountAndActivationCompartmentCount(const MacroPayload& payload) const;
 
@@ -49,17 +49,16 @@ private:
     const CimMacroSizeConfig& macro_size_;
     bool independent_ipu_;
     int activation_element_col_cnt_;
-    std::vector<unsigned char> activation_element_col_mask_{};
 
     SubmoduleSocket<MacroPayload> macro_socket_{};
 
-    SubmoduleSocket<MacroSubmodulePayload> sram_socket_{};
-    SubmoduleSocket<MacroSubmodulePayload> post_process_socket_{};
-    SubmoduleSocket<MacroSubmodulePayload> adder_tree_socket_1_{};
-    SubmoduleSocket<MacroSubmodulePayload> adder_tree_socket_2_{};
-    SubmoduleSocket<MacroSubmodulePayload> shift_adder_socket_{};
-
-    SubmoduleSocket<MacroGroupSubmodulePayload>* result_adder_socket_ptr_{nullptr};
+    sc_core::sc_event cur_sub_ins_next_batch_;
+    MacroSubmoduleSocket sram_socket_{};
+    MacroSubmoduleSocket post_process_socket_{};
+    MacroSubmoduleSocket adder_tree_socket_1_{};
+    MacroSubmoduleSocket adder_tree_socket_2_{};
+    MacroSubmoduleSocket shift_adder_socket_{};
+    MacroSubmoduleSocket result_adder_socket_{};
 
     EnergyCounter ipu_energy_counter_;
     EnergyCounter sram_energy_counter_;

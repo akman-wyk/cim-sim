@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 
 namespace cimsim {
@@ -33,21 +34,18 @@ struct MacroSubInsInfo {
     bool bit_sparse{false};
 
     int activation_element_col_cnt{0};
-    std::vector<unsigned char> activation_element_col_mask{};
-
     int simulated_group_cnt{1};
     int simulated_macro_cnt{1};
 };
 
 struct MacroBatchInfo {
     int batch_num{0};
-    bool first_batch{false};
     bool last_batch{false};
 };
 
 struct MacroSubmodulePayload {
-    MacroSubInsInfo sub_ins_info;
-    MacroBatchInfo batch_info;
+    std::shared_ptr<MacroSubInsInfo> sub_ins_info;
+    std::shared_ptr<MacroBatchInfo> batch_info;
 };
 
 struct MacroGroupPayload {
@@ -92,8 +90,8 @@ struct MacroGroupSubInsInfo {
 };
 
 struct MacroGroupSubmodulePayload {
-    MacroGroupSubInsInfo sub_ins_info{};
-    MacroBatchInfo batch_info{};
+    std::shared_ptr<MacroGroupSubInsInfo> sub_ins_info{};
+    std::shared_ptr<MacroBatchInfo> batch_info{};
 };
 
 }  // namespace cimsim

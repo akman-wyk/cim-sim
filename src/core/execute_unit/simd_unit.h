@@ -36,18 +36,15 @@ struct SIMDInstructionInfo {
 struct SIMDBatchInfo {
     int batch_vector_len{0};
     int batch_num{0};
-    bool first_batch{false};
     bool last_batch{false};
 };
 
 struct SIMDStagePayload {
-    SIMDInstructionInfo ins_info;
-    SIMDBatchInfo batch_info;
+    std::shared_ptr<SIMDInstructionInfo> ins_info;
+    std::shared_ptr<SIMDBatchInfo> batch_info;
 };
 
 using SIMDStageSocket = SubmoduleSocket<SIMDStagePayload>;
-
-void waitAndStartNextStage(const SIMDStagePayload& cur_payload, SIMDStageSocket& next_stage_socket);
 
 class SIMDFunctorPipelineStage : public BaseModule {
 public:
@@ -59,7 +56,6 @@ public:
 
     SIMDStageSocket* getExecuteSocket();
     void setNextStageSocket(SIMDStageSocket* next_stage_socket);
-    void clearNextStageSocket();
 
     [[noreturn]] void processExecute();
 

@@ -38,18 +38,17 @@ void TransferUnit::processIssue() {
         }
 
         int process_times = IntDivCeil(payload->size_byte, ins_info.batch_max_data_size_byte);
-        TransferSubmodulePayload submodule_payload{.ins_info = ins_info};
+        TransferSubmodulePayload submodule_payload{.ins_info = std::make_shared<TransferInstructionInfo>(ins_info)};
         for (int batch = 0; batch < process_times; batch++) {
-            submodule_payload.batch_info = {
+            submodule_payload.batch_info = std::make_shared<TransferBatchInfo>(TransferBatchInfo{
                 .batch_num = batch,
                 .batch_data_size_byte = (batch == process_times - 1)
                                             ? payload->size_byte - batch * ins_info.batch_max_data_size_byte
                                             : ins_info.batch_max_data_size_byte,
-                .first_batch = (batch == 0),
-                .last_batch = (batch == process_times - 1)};
-            waitAndStartNextSubmodule(submodule_payload, read_submodule_socket_);
+                .last_batch = (batch == process_times - 1)});
+            waitAndStartNextStage(submodule_payload, read_submodule_socket_);
 
-            if (!submodule_payload.batch_info.last_batch) {
+            if (!submodule_payload.batch_info->last_batch) {
                 wait(cur_ins_next_batch_);
             }
         }
@@ -63,23 +62,23 @@ void TransferUnit::processReadSubmodule() {
         read_submodule_socket_.waitUntilStart();
 
         auto& payload = read_submodule_socket_.payload;
-        CORE_LOG(fmt::format("transfer read start, pc: {}, batch: {}", payload.ins_info.ins.pc,
-                             payload.batch_info.batch_num));
+        CORE_LOG(fmt::format("transfer read start, pc: {}, batch: {}", payload.ins_info->ins.pc,
+                             payload.batch_info->batch_num));
 
-        int address_byte = payload.ins_info.src_start_address_byte +
-                           payload.batch_info.batch_num * payload.ins_info.batch_max_data_size_byte;
-        int size_byte = payload.batch_info.batch_data_size_byte;
-        if (auto type = payload.ins_info.type; type == +TransferType::receive) {
-            transmit_socket_.receiveData(payload.ins_info.src_id);
+        int address_byte = payload.ins_info->src_start_address_byte +
+                           payload.batch_info->batch_num * payload.ins_info->batch_max_data_size_byte;
+        int size_byte = payload.batch_info->batch_data_size_byte;
+        if (auto type = payload.ins_info->type; type == +TransferType::receive) {
+            transmit_socket_.receiveData(payload.ins_info->src_id);
         } else if (type == +TransferType::global_load) {
-            payload.batch_info.data = memory_socket_.loadGlobal(payload.ins_info.ins, address_byte, size_byte);
+            payload.batch_info->data = memory_socket_.loadGlobal(payload.ins_info->ins, address_byte, size_byte);
         } else {
-            payload.batch_info.data = memory_socket_.readLocal(payload.ins_info.ins, address_byte, size_byte);
+            payload.batch_info->data = memory_socket_.readLocal(payload.ins_info->ins, address_byte, size_byte);
         }
 
-        waitAndStartNextSubmodule(payload, write_submodule_socket_);
+        waitAndStartNextStage(payload, write_submodule_socket_);
 
-        if (!payload.batch_info.last_batch && payload.ins_info.use_pipeline) {
+        if (!payload.batch_info->last_batch && payload.ins_info->use_pipeline) {
             cur_ins_next_batch_.notify();
         }
 
@@ -92,33 +91,33 @@ void TransferUnit::processWriteSubmodule() {
         write_submodule_socket_.waitUntilStart();
 
         const auto& payload = write_submodule_socket_.payload;
-        CORE_LOG(fmt::format("transfer write start, pc: {}, batch: {}", payload.ins_info.ins.pc,
-                             payload.batch_info.batch_num));
+        CORE_LOG(fmt::format("transfer write start, pc: {}, batch: {}", payload.ins_info->ins.pc,
+                             payload.batch_info->batch_num));
 
-        if (payload.batch_info.last_batch) {
-            releaseResource(payload.ins_info.ins.ins_id);
+        if (payload.batch_info->last_batch) {
+            releaseResource(payload.ins_info->ins.ins_id);
         }
 
-        int address_byte = payload.ins_info.dst_start_address_byte +
-                           payload.batch_info.batch_num * payload.ins_info.batch_max_data_size_byte;
-        int size_byte = payload.batch_info.batch_data_size_byte;
-        if (auto type = payload.ins_info.type; type == +TransferType::send) {
-            transmit_socket_.sendData(payload.ins_info.dst_id, payload.ins_info.transfer_id_tag, address_byte,
+        int address_byte = payload.ins_info->dst_start_address_byte +
+                           payload.batch_info->batch_num * payload.ins_info->batch_max_data_size_byte;
+        int size_byte = payload.batch_info->batch_data_size_byte;
+        if (auto type = payload.ins_info->type; type == +TransferType::send) {
+            transmit_socket_.sendData(payload.ins_info->dst_id, payload.ins_info->transfer_id_tag, address_byte,
                                       size_byte);
         } else if (type == +TransferType::global_store) {
-            memory_socket_.storeGlobal(payload.ins_info.ins, address_byte, size_byte, payload.batch_info.data);
+            memory_socket_.storeGlobal(payload.ins_info->ins, address_byte, size_byte, payload.batch_info->data);
         } else {
-            memory_socket_.writeLocal(payload.ins_info.ins, address_byte, size_byte, payload.batch_info.data);
+            memory_socket_.writeLocal(payload.ins_info->ins, address_byte, size_byte, payload.batch_info->data);
         }
 
-        CORE_LOG(fmt::format("transfer write end, pc: {}, batch: {}", payload.ins_info.ins.pc,
-                             payload.batch_info.batch_num));
+        CORE_LOG(fmt::format("transfer write end, pc: {}, batch: {}", payload.ins_info->ins.pc,
+                             payload.batch_info->batch_num));
 
-        if (!payload.batch_info.last_batch && !payload.ins_info.use_pipeline) {
+        if (!payload.batch_info->last_batch && !payload.ins_info->use_pipeline) {
             cur_ins_next_batch_.notify();
         }
 
-        if (payload.batch_info.last_batch) {
+        if (payload.batch_info->last_batch) {
             finishInstruction();
         }
 
@@ -129,16 +128,6 @@ void TransferUnit::processWriteSubmodule() {
 void TransferUnit::bindSwitch(Switch* switch_) {
     memory_socket_.bindSwitchAndGlobalMemory(switch_, core_id_, global_memory_switch_id_);
     transmit_socket_.bindSwitch(switch_, core_id_);
-}
-
-void TransferUnit::waitAndStartNextSubmodule(cimsim::TransferSubmodulePayload& cur_payload,
-                                             SubmoduleSocket<cimsim::TransferSubmodulePayload>& next_submodule_socket) {
-    next_submodule_socket.waitUntilFinishIfBusy();
-    if (cur_payload.batch_info.first_batch) {
-        next_submodule_socket.payload.ins_info = cur_payload.ins_info;
-    }
-    next_submodule_socket.payload.batch_info = std::move(cur_payload.batch_info);
-    next_submodule_socket.start_exec.notify();
 }
 
 std::pair<TransferInstructionInfo, ResourceAllocatePayload> TransferUnit::decodeAndGetInfo(
