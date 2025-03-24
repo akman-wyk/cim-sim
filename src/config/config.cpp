@@ -370,10 +370,24 @@ bool CimModuleConfig::checkValid(const std::string& module_name) const {
                   << std::endl;
         return false;
     }
+    if (!check_positive(pipeline_stage_cnt)) {
+        std::cerr << fmt::format("CimModuleConfig of '{}' not valid, 'pipeline_stage_cnt' must be positive",
+                                 module_name)
+                  << std::endl;
+        return false;
+    }
+    if (latency_cycle % pipeline_stage_cnt != 0) {
+        std::cerr << fmt::format(
+                         "CimModuleConfig of '{}' not valid, 'latency_cycle' must be divisible by 'pipeline_stage_cnt'",
+                         module_name)
+                  << std::endl;
+        return false;
+    }
     return true;
 }
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CimModuleConfig, latency_cycle, static_power_mW, dynamic_power_mW)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CimModuleConfig, latency_cycle, pipeline_stage_cnt, static_power_mW,
+                                               dynamic_power_mW)
 
 bool CimSRAMConfig::checkValid() const {
     if (as_mode == +CimASMode::other) {

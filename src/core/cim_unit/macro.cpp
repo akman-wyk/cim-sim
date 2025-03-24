@@ -16,15 +16,20 @@ Macro::Macro(const sc_core::sc_module_name &name, const cimsim::CimUnitConfig &c
     , config_(config)
     , macro_size_(config.macro_size)
     , independent_ipu_(independent_ipu)
-    , activation_element_col_cnt_(config.macro_size.element_cnt_per_compartment) {
+    , activation_element_col_cnt_(config.macro_size.element_cnt_per_compartment)
+    , sram_read_("sram_read", sim_config, core, clk, config, getName(), getSRAMReadDynamicPower,
+                 config_.sram.read_latency_cycle, 1)
+    , post_process_("post_proecess", sim_config, core, clk, config, getName(), getPostProcessDynamicPower,
+                    config_.bit_sparse ? config_.bit_sparse_config.latency_cycle : 0, 1)
+    , adder_tree_("adder_tree", sim_config, core, clk, config, getName(), getAdderTreeDynamicPower,
+                  config_.adder_tree.latency_cycle, config_.adder_tree.pipeline_stage_cnt)
+    , shift_adder_("shift_adder", sim_config, core, clk, config, getName(), getShiftAdderDynamicPower,
+                   config_.shift_adder.latency_cycle, config_.shift_adder.pipeline_stage_cnt)
+    , result_adder_("result_adder", sim_config, core, clk, config, getName(), getResultAdderDynamicPower,
+                    config_.result_adder.latency_cycle, config_.result_adder.pipeline_stage_cnt) {
     SC_THREAD(processIPUAndIssue)
-    SC_THREAD(processSRAMSubmodule)
-    SC_THREAD(processPostProcessSubmodule)
-    SC_THREAD(processAdderTreeSubmodule1)
-    SC_THREAD(processAdderTreeSubmodule2)
-    SC_THREAD(processShiftAdderSubmodule)
-    SC_THREAD(processResultAdderSubmodule)
 
+    // set static energy power
     constexpr int ipu_cnt = 1;
     constexpr int sram_cnt = 1;
     const int post_process_cnt = config_.bit_sparse
@@ -36,11 +41,17 @@ Macro::Macro(const sc_core::sc_module_name &name, const cimsim::CimUnitConfig &c
     const int result_adder_cnt = macro_size_.element_cnt_per_compartment;
 
     ipu_energy_counter_.setStaticPowerMW(config_.ipu.static_power_mW * ipu_cnt);
-    sram_energy_counter_.setStaticPowerMW(config_.sram.static_power_mW * sram_cnt);
-    post_process_energy_counter_.setStaticPowerMW(config_.bit_sparse_config.static_power_mW * post_process_cnt);
-    adder_tree_energy_counter_.setStaticPowerMW(config_.adder_tree.static_power_mW * adder_tree_cnt);
-    shift_adder_energy_counter_.setStaticPowerMW(config_.shift_adder.static_power_mW * shift_adder_cnt);
-    result_adder_energy_counter_.setStaticPowerMW(config_.result_adder.static_power_mW * result_adder_cnt);
+    sram_read_.setStaticPower(config_.sram.static_power_mW * sram_cnt);
+    post_process_.setStaticPower(config_.bit_sparse_config.static_power_mW * post_process_cnt);
+    adder_tree_.setStaticPower(config_.adder_tree.static_power_mW * adder_tree_cnt);
+    shift_adder_.setStaticPower(config_.shift_adder.static_power_mW * shift_adder_cnt);
+    result_adder_.setStaticPower(config_.result_adder.static_power_mW * result_adder_cnt);
+
+    // bind next stage socket
+    sram_read_.bindNextStageSocket(post_process_.getExecuteSocket(), false);
+    post_process_.bindNextStageSocket(adder_tree_.getExecuteSocket(), false);
+    adder_tree_.bindNextStageSocket(shift_adder_.getExecuteSocket(), false);
+    shift_adder_.bindNextStageSocket(result_adder_.getExecuteSocket(), true);
 }
 
 void Macro::startExecute(cimsim::MacroPayload payload) {
@@ -60,16 +71,12 @@ EnergyReporter Macro::getEnergyReporter() {
     if (config_.bit_sparse) {
         macro_reporter.addSubModule("meta buffer", EnergyReporter{meta_buffer_energy_counter_});
     }
-    macro_reporter.addSubModule("sram read", EnergyReporter{sram_energy_counter_});
-    macro_reporter.addSubModule("post process", EnergyReporter{post_process_energy_counter_});
-    macro_reporter.addSubModule("adder tree", EnergyReporter{adder_tree_energy_counter_});
-    macro_reporter.addSubModule("shift adder", EnergyReporter{shift_adder_energy_counter_});
-    macro_reporter.addSubModule("result adder", EnergyReporter{result_adder_energy_counter_});
+    macro_reporter.addSubModule("sram read", sram_read_.getEnergyReporter());
+    macro_reporter.addSubModule("post process", post_process_.getEnergyReporter());
+    macro_reporter.addSubModule("adder tree", adder_tree_.getEnergyReporter());
+    macro_reporter.addSubModule("shift adder", shift_adder_.getEnergyReporter());
+    macro_reporter.addSubModule("result adder", result_adder_.getEnergyReporter());
     return std::move(macro_reporter);
-}
-
-void Macro::setFinishInsFunction(std::function<void()> finish_func) {
-    finish_ins_func_ = std::move(finish_func);
 }
 
 void Macro::setActivationElementColumn(const std::vector<unsigned char> &macros_activation_element_col_mask,
@@ -84,6 +91,10 @@ void Macro::setActivationElementColumn(const std::vector<unsigned char> &macros_
 
 int Macro::getActivationElementColumnCount() const {
     return activation_element_col_cnt_;
+}
+
+void Macro::bindNextModuleSocket(MacroStageSocket *next_module_socket) {
+    result_adder_.bindNextStageSocket(next_module_socket, false);
 }
 
 void Macro::processIPUAndIssue() {
@@ -130,148 +141,41 @@ void Macro::processIPUAndIssue() {
             ipu_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW * sub_ins_info.simulated_group_cnt);
             wait(latency, SC_NS);
 
-            waitAndStartNextStage(submodule_payload, sram_socket_);
+            waitAndStartNextStage(submodule_payload, *(sram_read_.getExecuteSocket()));
         }
 
         macro_socket_.finish();
     }
 }
 
-void Macro::processSRAMSubmodule() {
-    while (true) {
-        sram_socket_.waitUntilStart();
-
-        const auto &payload = sram_socket_.payload;
-        const auto &cim_ins_info = payload.sub_ins_info->cim_ins_info;
-        CORE_LOG(fmt::format("{} start sram read, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                             cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info->batch_num));
-
-        double dynamic_power_mW = config_.sram.read_dynamic_power_per_bit_mW * macro_size_.bit_width_per_row * 1 *
-                                  macro_size_.element_cnt_per_compartment * macro_size_.compartment_cnt_per_macro;
-        double latency = config_.sram.read_latency_cycle * period_ns_;
-        sram_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW * payload.sub_ins_info->simulated_macro_cnt);
-        wait(latency, SC_NS);
-
-        waitAndStartNextStage(payload, post_process_socket_);
-
-        sram_socket_.finish();
-    }
+double Macro::getSRAMReadDynamicPower(const CimUnitConfig &config, const MacroSubmodulePayload &payload) {
+    double dynamic_power_mW = config.sram.read_dynamic_power_per_bit_mW * config.macro_size.bit_width_per_row * 1 *
+                              config.macro_size.element_cnt_per_compartment *
+                              config.macro_size.compartment_cnt_per_macro;
+    return dynamic_power_mW * payload.sub_ins_info->simulated_macro_cnt;
 }
 
-void Macro::processPostProcessSubmodule() {
-    while (true) {
-        post_process_socket_.waitUntilStart();
-
-        const auto &payload = post_process_socket_.payload;
-        const auto &cim_ins_info = payload.sub_ins_info->cim_ins_info;
-        if (config_.bit_sparse && payload.sub_ins_info->bit_sparse) {
-            CORE_LOG(fmt::format("{} start post process, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                                 cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info->batch_num));
-
-            double dynamic_power_mW = config_.bit_sparse_config.dynamic_power_mW *
-                                      payload.sub_ins_info->activation_element_col_cnt *
-                                      payload.sub_ins_info->compartment_num;
-            double latency = config_.bit_sparse_config.latency_cycle * period_ns_;
-            post_process_energy_counter_.addDynamicEnergyPJ(
-                latency == 0.0 ? period_ns_ : latency, dynamic_power_mW * payload.sub_ins_info->simulated_macro_cnt);
-            wait(latency, SC_NS);
-        }
-
-        waitAndStartNextStage(payload, adder_tree_socket_1_);
-
-        post_process_socket_.finish();
-    }
+double Macro::getPostProcessDynamicPower(const CimUnitConfig &config, const MacroSubmodulePayload &payload) {
+    double dynamic_power_mW = config.bit_sparse_config.dynamic_power_mW *
+                              payload.sub_ins_info->activation_element_col_cnt * payload.sub_ins_info->compartment_num;
+    return config.bit_sparse && payload.sub_ins_info->bit_sparse
+               ? dynamic_power_mW * payload.sub_ins_info->simulated_macro_cnt
+               : 0;
 }
 
-void Macro::processAdderTreeSubmodule1() {
-    while (true) {
-        adder_tree_socket_1_.waitUntilStart();
-
-        const auto &payload = adder_tree_socket_1_.payload;
-        const auto &cim_ins_info = payload.sub_ins_info->cim_ins_info;
-        CORE_LOG(fmt::format("{} start adder tree stage 1, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                             cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info->batch_num));
-
-        double dynamic_power_mW =
-            config_.adder_tree.dynamic_power_mW * payload.sub_ins_info->activation_element_col_cnt;
-        double latency = period_ns_;
-        adder_tree_energy_counter_.addDynamicEnergyPJ(latency,
-                                                      dynamic_power_mW * payload.sub_ins_info->simulated_macro_cnt);
-        wait(latency, SC_NS);
-
-        waitAndStartNextStage(payload, adder_tree_socket_2_);
-
-        adder_tree_socket_1_.finish();
-    }
+double Macro::getAdderTreeDynamicPower(const CimUnitConfig &config, const MacroSubmodulePayload &payload) {
+    double dynamic_power_mW = config.adder_tree.dynamic_power_mW * payload.sub_ins_info->activation_element_col_cnt;
+    return dynamic_power_mW * payload.sub_ins_info->simulated_macro_cnt;
 }
 
-void Macro::processAdderTreeSubmodule2() {
-    while (true) {
-        adder_tree_socket_2_.waitUntilStart();
-
-        const auto &payload = adder_tree_socket_2_.payload;
-        const auto &cim_ins_info = payload.sub_ins_info->cim_ins_info;
-        CORE_LOG(fmt::format("{} start adder tree stage 2, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                             cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info->batch_num));
-
-        double dynamic_power_mW =
-            config_.adder_tree.dynamic_power_mW * payload.sub_ins_info->activation_element_col_cnt;
-        double latency = period_ns_;
-        adder_tree_energy_counter_.addDynamicEnergyPJ(latency,
-                                                      dynamic_power_mW * payload.sub_ins_info->simulated_macro_cnt);
-        wait(latency, SC_NS);
-
-        waitAndStartNextStage(payload, shift_adder_socket_);
-
-        adder_tree_socket_2_.finish();
-    }
+double Macro::getShiftAdderDynamicPower(const CimUnitConfig &config, const MacroSubmodulePayload &payload) {
+    double dynamic_power_mW = config.shift_adder.dynamic_power_mW * payload.sub_ins_info->activation_element_col_cnt;
+    return dynamic_power_mW * payload.sub_ins_info->simulated_macro_cnt;
 }
 
-void Macro::processShiftAdderSubmodule() {
-    while (true) {
-        shift_adder_socket_.waitUntilStart();
-
-        const auto &payload = shift_adder_socket_.payload;
-        const auto &cim_ins_info = payload.sub_ins_info->cim_ins_info;
-        CORE_LOG(fmt::format("{} start shift adder, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                             cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info->batch_num));
-
-        double dynamic_power_mW =
-            config_.shift_adder.dynamic_power_mW * payload.sub_ins_info->activation_element_col_cnt;
-        double latency = config_.shift_adder.latency_cycle * period_ns_;
-        shift_adder_energy_counter_.addDynamicEnergyPJ(latency,
-                                                       dynamic_power_mW * payload.sub_ins_info->simulated_macro_cnt);
-        wait(latency, SC_NS);
-
-        if (payload.batch_info->last_batch) {
-            waitAndStartNextStage(payload, result_adder_socket_);
-        }
-
-        shift_adder_socket_.finish();
-    }
-}
-
-void Macro::processResultAdderSubmodule() {
-    while (true) {
-        result_adder_socket_.waitUntilStart();
-
-        const auto &payload = result_adder_socket_.payload;
-        const auto &cim_ins_info = payload.sub_ins_info->cim_ins_info;
-        CORE_LOG(fmt::format("{} start result adder, ins pc: {}, sub ins num: {}, batch: {}", getName(),
-                             cim_ins_info.ins_pc, cim_ins_info.sub_ins_num, payload.batch_info->batch_num));
-
-        double dynamic_power_mW =
-            config_.result_adder.dynamic_power_mW * payload.sub_ins_info->activation_element_col_cnt;
-        double latency = config_.result_adder.latency_cycle * period_ns_;
-        result_adder_energy_counter_.addDynamicEnergyPJ(latency,
-                                                        dynamic_power_mW * payload.sub_ins_info->simulated_macro_cnt);
-
-        if (finish_ins_func_ && cim_ins_info.last_sub_ins && payload.batch_info->last_batch) {
-            finish_ins_func_();
-        }
-
-        result_adder_socket_.finish();
-    }
+double Macro::getResultAdderDynamicPower(const CimUnitConfig &config, const MacroSubmodulePayload &payload) {
+    double dynamic_power_mW = config.result_adder.dynamic_power_mW * payload.sub_ins_info->activation_element_col_cnt;
+    return dynamic_power_mW * payload.sub_ins_info->simulated_macro_cnt;
 }
 
 std::pair<int, int> Macro::getBatchCountAndActivationCompartmentCount(const MacroPayload &payload) const {

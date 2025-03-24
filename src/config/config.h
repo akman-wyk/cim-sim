@@ -137,6 +137,7 @@ struct CimMacroSizeConfig {
 
 struct CimModuleConfig {
     int latency_cycle{1};          // cycle
+    int pipeline_stage_cnt{1};     // count of pipeline stages
     double static_power_mW{1.0};   // mW
     double dynamic_power_mW{1.0};  // mW
 

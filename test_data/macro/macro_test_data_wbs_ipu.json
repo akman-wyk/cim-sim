@@ -101,7 +101,7 @@
     "independent_ipu": true
   },
   "expected": {
-    "time_ns": 270,
-    "energy_pj": 173765
+    "time_ns": 275,
+    "energy_pj": 175295
   }
 }

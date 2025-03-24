@@ -25,7 +25,8 @@
           "read_dynamic_power_per_bit_mW": 1.0
         },
         "adder_tree": {
-          "latency_cycle": 1,
+          "latency_cycle": 2,
+          "pipeline_stage_cnt": 2,
           "static_power_mW": 1.0,
           "dynamic_power_mW": 1.0
         },
