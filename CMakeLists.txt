@@ -118,6 +118,10 @@ add_library(cim-simulator STATIC ""
         src/util/reporter.h
         src/util/util.cpp
         src/util/util.h
+        src/core/cim_unit/macro_module.cpp
+        src/core/cim_unit/macro_module.h
+        src/core/cim_unit/macro_group_module.cpp
+        src/core/cim_unit/macro_group_module.h
 )
 set_target_properties(cim-simulator PROPERTIES OUTPUT_NAME "cim-simulator")
 target_include_directories(cim-simulator PRIVATE

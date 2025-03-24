@@ -37,23 +37,17 @@ class MacroTestModule : public BaseModule {
 public:
     SC_HAS_PROCESS(MacroTestModule);
 
-    MacroTestModule(const sc_core::sc_module_name& name, const Config& config, Clock* clk, std::vector<MacroTestInstruction> codes,
-                    const MacroTestConfig& test_config)
+    MacroTestModule(const sc_core::sc_module_name& name, const Config& config, Clock* clk,
+                    std::vector<MacroTestInstruction> codes, const MacroTestConfig& test_config)
         : BaseModule(name, config.sim_config, nullptr, clk)
         , macro_("macro", config.chip_config.core_config.cim_unit_config, config.sim_config, nullptr, clk,
                  test_config.independent_ipu) {
         macro_ins_list_ = std::move(codes);
 
         SC_THREAD(issue)
+        SC_THREAD(processFinishIns)
 
-        macro_.setFinishInsFunction([&]() {
-            running_ins_cnt_--;
-            if (id_finish_ && running_ins_cnt_ == 0) {
-                wait(SC_ZERO_TIME);
-                this->running_time_ = sc_core::sc_time_stamp();
-                sc_stop();
-            }
-        });
+        macro_.bindNextModuleSocket(&finish_ins);
     }
 
     EnergyReporter getEnergyReporter() override {
@@ -97,12 +91,31 @@ private:
         id_finish_ = true;
     }
 
+    [[noreturn]] void processFinishIns() {
+        while (true) {
+            finish_ins.waitUntilStart();
+
+            if (finish_ins.payload.sub_ins_info->cim_ins_info.last_sub_ins) {
+                running_ins_cnt_--;
+                if (id_finish_ && running_ins_cnt_ == 0) {
+                    wait(SC_ZERO_TIME);
+                    this->running_time_ = sc_core::sc_time_stamp();
+                    sc_stop();
+                }
+            }
+
+            finish_ins.finish();
+        }
+    }
+
 private:
     // instruction list
     std::vector<MacroTestInstruction> macro_ins_list_;
 
     // modules
     Macro macro_;
+
+    MacroStageSocket finish_ins;
 
     int running_ins_cnt_{0};
     bool id_finish_{false};

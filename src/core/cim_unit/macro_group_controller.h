@@ -5,10 +5,7 @@
 #pragma once
 #include <vector>
 
-#include "base_component/base_module.h"
-#include "base_component/submodule_socket.h"
-#include "config/config.h"
-#include "payload.h"
+#include "macro_group_module.h"
 
 namespace cimsim {
 
@@ -28,13 +25,7 @@ public:
     void setFinishInsFunc(std::function<void()> finish_ins_func);
 
 private:
-    [[noreturn]] void processIssue();
-    [[noreturn]] void processSRAMSubmodule();
-    [[noreturn]] void processPostProcessSubmodule();
-    [[noreturn]] void processAdderTreeSubmodule1();
-    [[noreturn]] void processAdderTreeSubmodule2();
-    [[noreturn]] void processShiftAdderSubmodule();
-    [[noreturn]] void processResultAdderSubmodule();
+    [[noreturn]] void processIPUAndIssue();
 
 private:
     const CimUnitConfig& config_;
@@ -42,20 +33,15 @@ private:
     // socket from MacroGroup
     SubmoduleSocket<MacroGroupControllerPayload> controller_socket_;
 
-    // sockets in MacroGroupController
-    sc_core::sc_event cur_sub_ins_next_batch_;
-    MacroGroupSubmoduleSocket sram_socket_{};
-    MacroGroupSubmoduleSocket post_process_socket_{};
-    MacroGroupSubmoduleSocket adder_tree_socket_1_{};
-    MacroGroupSubmoduleSocket adder_tree_socket_2_{};
-    MacroGroupSubmoduleSocket shift_adder_socket_{};
-    MacroGroupSubmoduleSocket result_adder_socket_{};
+    // modules in MacroGroupController
+    MacroGroupModule sram_read_;
+    MacroGroupModule post_process_;
+    MacroGroupModule adder_tree_;
+    MacroGroupModule shift_adder_;
+    MacroGroupModule result_adder_;
 
     // sockets to MacroGroup
     sc_core::sc_event& next_sub_ins_;
-
-    std::function<void(int ins_id)> release_resource_func_;
-    std::function<void()> finish_ins_func_;
 };
 
 }  // namespace cimsim
