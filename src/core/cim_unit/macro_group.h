@@ -8,7 +8,7 @@
 #include "base_component/base_module.h"
 #include "config/config.h"
 #include "macro.h"
-#include "macro_group_controller.h"
+#include "macro_group_module.h"
 
 namespace cimsim {
 
@@ -32,20 +32,23 @@ public:
     int getActivationElementColumnCount() const;
 
 private:
-    [[noreturn]] void processIssue();
+    [[noreturn]] void processIPUAndIssue();
 
 private:
     const CimUnitConfig& config_;
     const CimMacroSizeConfig& macro_size_;
 
-    MacroGroupController controller_;
     std::vector<Macro*> macro_list_;
     int activation_macro_cnt_{0};
 
     SubmoduleSocket<MacroGroupPayload> macro_group_socket_{};
-    SubmoduleSocket<MacroGroupSubmodulePayload> result_adder_socket_{};
 
-    sc_core::sc_event next_sub_ins_;
+    // modules in MacroGroup, for controlling
+    MacroGroupModule sram_read_;
+    MacroGroupModule post_process_;
+    MacroGroupModule adder_tree_;
+    MacroGroupModule shift_adder_;
+    MacroGroupModule result_adder_;
 };
 
 }  // namespace cimsim

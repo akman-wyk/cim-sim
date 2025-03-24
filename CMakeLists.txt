@@ -40,8 +40,10 @@ add_library(cim-simulator STATIC ""
         src/core/cim_unit/macro.h
         src/core/cim_unit/macro_group.cpp
         src/core/cim_unit/macro_group.h
-        src/core/cim_unit/macro_group_controller.cpp
-        src/core/cim_unit/macro_group_controller.h
+        src/core/cim_unit/macro_group_module.cpp
+        src/core/cim_unit/macro_group_module.h
+        src/core/cim_unit/macro_module.cpp
+        src/core/cim_unit/macro_module.h
         src/core/cim_unit/payload.h
 
         src/core/conflict/conflict_handler.cpp
@@ -118,10 +120,6 @@ add_library(cim-simulator STATIC ""
         src/util/reporter.h
         src/util/util.cpp
         src/util/util.h
-        src/core/cim_unit/macro_module.cpp
-        src/core/cim_unit/macro_module.h
-        src/core/cim_unit/macro_group_module.cpp
-        src/core/cim_unit/macro_group_module.h
 )
 set_target_properties(cim-simulator PROPERTIES OUTPUT_NAME "cim-simulator")
 target_include_directories(cim-simulator PRIVATE
