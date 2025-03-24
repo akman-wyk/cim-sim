@@ -3,8 +3,7 @@
 //
 
 #pragma once
-#include "config/config.h"
-#include "nlohmann/json.hpp"
+#include "config/constant.h"
 #include "util/macro_scope.h"
 
 namespace cimsim {

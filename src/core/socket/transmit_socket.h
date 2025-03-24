@@ -36,9 +36,9 @@ private:
     int expected_sender_core_id_{-1};  // execute recv and recv sender_core_id's send inst
     int expected_transfer_id_tag_{-1};
 
-    sc_core::sc_event* sender_wait_receiver_ready_{nullptr};
-    sc_core::sc_event* receiver_wait_sender_ready_{nullptr};
-    sc_core::sc_event* receiver_wait_data_ready_{nullptr};
+    sc_event* sender_wait_receiver_ready_{nullptr};
+    sc_event* receiver_wait_sender_ready_{nullptr};
+    sc_event* receiver_wait_data_ready_{nullptr};
 
     std::unordered_map<int, int> receiver_waiting_sender_map;  // <core_id_, transfer_id_tag>
 };

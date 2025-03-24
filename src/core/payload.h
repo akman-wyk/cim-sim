@@ -3,12 +3,7 @@
 //
 
 #pragma once
-#include <array>
-#include <cstdint>
-#include <sstream>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
+#include <ostream>
 
 #include "better-enums/enum.h"
 #include "util/macro_scope.h"

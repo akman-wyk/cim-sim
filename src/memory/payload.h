@@ -17,7 +17,7 @@ struct MemoryAccessPayload {
     int address_byte;  // byte
     int size_byte;     // byte
     std::vector<uint8_t> data;
-    sc_core::sc_event& finish_access;
+    sc_event& finish_access;
 };
 
 }  // namespace cimsim

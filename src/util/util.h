@@ -9,7 +9,7 @@
 #include <unordered_set>
 #include <vector>
 
-#include "config/config.h"
+#include "config/constant.h"
 #include "nlohmann/json.hpp"
 
 namespace cimsim {
@@ -32,7 +32,7 @@ inline auto getMaskBit(const std::vector<unsigned char>& mask_byte_data, int ind
 }
 
 template <class V>
-inline bool SetsIntersection(const std::unordered_set<V>& s1, const std::unordered_set<V>& s2) {
+bool SetsIntersection(const std::unordered_set<V>& s1, const std::unordered_set<V>& s2) {
     return std::any_of(s1.begin(), s1.end(), [&](V ele) { return s2.find(ele) != s2.end(); });
 }
 

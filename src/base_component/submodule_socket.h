@@ -11,8 +11,8 @@ template <class PayloadType>
 struct SubmoduleSocket {
     PayloadType payload;
     bool busy{false};
-    sc_core::sc_event start_exec;
-    sc_core::sc_event finish_exec;
+    sc_event start_exec;
+    sc_event finish_exec;
 
     void waitUntilStart() {
         wait(start_exec);

@@ -3,13 +3,11 @@
 //
 
 #pragma once
-#include <string>
 #include <unordered_map>
 
 #include "base_component/submodule_socket.h"
 #include "config/config.h"
 #include "core/reg_unit/reg_unit.h"
-#include "core/socket/memory_socket.h"
 #include "execute_unit.h"
 #include "payload.h"
 
@@ -19,7 +17,7 @@ class ScalarUnit : public ExecuteUnit {
 public:
     SC_HAS_PROCESS(ScalarUnit);
 
-    ScalarUnit(const sc_core::sc_module_name& name, const ScalarUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    ScalarUnit(const sc_module_name& name, const ScalarUnitConfig& config, const BaseInfo& base_info, Clock* clk);
 
     void bindRegUnit(RegUnit* reg_unit);
 

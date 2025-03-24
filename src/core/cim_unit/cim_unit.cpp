@@ -4,26 +4,24 @@
 
 #include "cim_unit.h"
 
-#include "core/core.h"
 #include "fmt/format.h"
 #include "util/util.h"
 
 namespace cimsim {
 
-CimUnit::CimUnit(const sc_core::sc_module_name& name, const CimUnitConfig& config, const SimConfig& sim_config,
-                 Core* core, Clock* clk)
-    : MemoryHardware(name, sim_config, core, clk)
+CimUnit::CimUnit(const sc_module_name& name, const CimUnitConfig& config, const BaseInfo& base_info)
+    : MemoryHardware(name, base_info)
     , config_(config)
     , macro_size_(config_.macro_size)
     , cim_byte_size_(config_.getByteSize())
     , cim_bit_width_(config_.getBitWidth())
     , cim_byte_width_(config_.getByteWidth())
     , config_group_cnt_(config_.macro_total_cnt / config_.macro_group_size)
-    , macro_simulation_(sim_config.data_mode == +DataMode::not_real_data && !config_.bit_sparse &&
+    , macro_simulation_(base_info.sim_config.data_mode == +DataMode::not_real_data && !config_.bit_sparse &&
                         !config_.input_bit_sparse && !config_.value_sparse) {
     for (int group_id = 0; group_id < (macro_simulation_ ? 1 : config_group_cnt_); group_id++) {
         auto macro_name = fmt::format("MacroGroup_{}", group_id);
-        auto macro_group = new MacroGroup{macro_name.c_str(), config_, sim_config, core, clk, macro_simulation_};
+        auto macro_group = new MacroGroup{macro_name.c_str(), config_, base_info, macro_simulation_};
         macro_group_list_.emplace_back(macro_group);
     }
 }
@@ -50,14 +48,13 @@ const std::string& CimUnit::getMemoryName() {
     return config_.name_as_memory;
 }
 
-sc_core::sc_time CimUnit::accessAndGetDelay(MemoryAccessPayload& payload) {
+sc_time CimUnit::accessAndGetDelay(MemoryAccessPayload& payload) {
     if (payload.address_byte < 0 || payload.address_byte + payload.size_byte > cim_byte_size_) {
         std::cerr << fmt::format("Core id: {}, Invalid memory access with ins NO.'{}': address {} overflow, size: {}, "
                                  "config size: {}",
-                                 core_->getCoreId(), payload.ins.pc, payload.address_byte, payload.size_byte,
-                                 cim_byte_size_)
+                                 core_id_, payload.ins.pc, payload.address_byte, payload.size_byte, cim_byte_size_)
                   << std::endl;
-        return {0.0, sc_core::SC_NS};
+        return {0.0, SC_NS};
     }
 
     int payload_bit_size = payload.size_byte * BYTE_TO_BIT;
@@ -73,7 +70,7 @@ sc_core::sc_time CimUnit::accessAndGetDelay(MemoryAccessPayload& payload) {
         sram_write_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW);
     }
 
-    return {latency, sc_core::SC_NS};
+    return {latency, SC_NS};
 }
 
 int CimUnit::getConfigMacroGroupCount() const {

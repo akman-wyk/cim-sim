@@ -10,10 +10,10 @@ namespace cimsim {
 
 class MemoryHardware : public BaseModule {
 public:
-    MemoryHardware(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk)
-        : BaseModule(name, sim_config, core, clk) {}
+    MemoryHardware(const sc_module_name& name, const BaseInfo& base_info)
+        : BaseModule(name, base_info) {}
 
-    virtual sc_core::sc_time accessAndGetDelay(MemoryAccessPayload& payload) = 0;
+    virtual sc_time accessAndGetDelay(MemoryAccessPayload& payload) = 0;
 
     EnergyReporter getEnergyReporter() override = 0;
 

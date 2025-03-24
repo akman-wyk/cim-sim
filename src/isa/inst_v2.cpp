@@ -31,8 +31,8 @@ namespace cimsim {
 
 #define INST_V2_TO_JSON_STR_WRITE_REGS(...) CIM_PASTE(INST_V2_TO_JSON_STR_WRITE_REG, DELIMITER_SPACE, __VA_ARGS__)
 
-#define INST_V2_TO_JSON_STR_WRITE_FLAG(flag)          \
-    if (flag) {                                       \
+#define INST_V2_TO_JSON_STR_WRITE_FLAG(flag)            \
+    if (flag) {                                         \
         ss << fmt::format(", \"{}\": {}", #flag, flag); \
     }
 

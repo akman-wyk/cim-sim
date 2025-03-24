@@ -4,20 +4,21 @@
 
 #include "chip.h"
 
-#include "core/core.h"
 #include "fmt/format.h"
 
 namespace cimsim {
 
-Chip::Chip(const sc_core::sc_module_name& name, const Config& config, const std::vector<std::vector<Instruction>>& core_ins_list)
-    : BaseModule(name, config.sim_config, nullptr, nullptr)
+Chip::Chip(const sc_module_name& name, const Config& config, const std::vector<std::vector<Instruction>>& core_ins_list)
+    : BaseModule(name, BaseInfo{.sim_config = config.sim_config})
     , clk_("Clock", config.sim_config.period_ns)
-    , global_memory_("GlobalMemory", config.chip_config.global_memory_config, config.sim_config, &clk_)
+    , global_memory_("GlobalMemory", config.chip_config.global_memory_config, config.sim_config)
     , network_("Network", config.chip_config.network_config, config.sim_config) {
+    int global_id = config.chip_config.global_memory_config.global_memory_switch_id;
     for (int core_id = 0; core_id < config.chip_config.core_cnt; core_id++) {
         std::string core_name = fmt::format("Core_{}", core_id);
-        auto core = std::make_shared<Core>(core_id, core_name.c_str(), config, &clk_, core_ins_list[core_id],
-                                           [this]() { this->processFinishRun(); });
+        BaseInfo base_info{config.sim_config, core_id};
+        auto core = std::make_shared<Core>(core_name.c_str(), config.chip_config.core_config, base_info, &clk_,
+                                           global_id, core_ins_list[core_id], [this]() { this->processFinishRun(); });
         core->bindNetwork(&network_);
         core_list_.emplace_back(std::move(core));
     }
@@ -60,7 +61,7 @@ EnergyReporter Chip::getCoresEnergyReporter() {
 void Chip::processFinishRun() {
     finish_run_core_cnt_++;
     if (finish_run_core_cnt_ == core_list_.size()) {
-        running_time_ = sc_core::sc_time_stamp();
+        running_time_ = sc_time_stamp();
         sc_stop();
     }
 }

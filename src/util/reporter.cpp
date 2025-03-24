@@ -3,7 +3,6 @@
 //
 #include "reporter.h"
 
-#include "base_component/energy_counter.h"
 #include "fmt/format.h"
 
 namespace cimsim {

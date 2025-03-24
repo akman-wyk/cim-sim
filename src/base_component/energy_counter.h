@@ -5,7 +5,6 @@
 #pragma once
 
 #include <stack>
-#include <unordered_map>
 
 #include "systemc.h"
 
@@ -17,13 +16,13 @@ class EnergyCounter {
     // time unit   -- ns
 public:
     struct DynamicEnergyTag {
-        sc_core::sc_time end_time{0.0, SC_NS};
+        sc_time end_time{0.0, SC_NS};
         double power{0.0};
     };
 
 public:
     static void setRunningTimeNS(double time);
-    static void setRunningTimeNS(const sc_core::sc_time& time);
+    static void setRunningTimeNS(const sc_time& time);
     static double getRunningTimeNS();
 
 private:
@@ -57,7 +56,7 @@ private:
     double activity_time_ = 0.0;   // ns
 
     std::stack<DynamicEnergyTag>* dynamic_tag_stack_{};
-    sc_core::sc_time activity_time_tag_{0.0, SC_NS};
+    sc_time activity_time_tag_{0.0, SC_NS};
 };
 
 }  // namespace cimsim

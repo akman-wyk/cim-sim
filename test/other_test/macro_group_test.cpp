@@ -7,9 +7,9 @@
 #include "../base/test_macro.h"
 #include "address_space/address_space.h"
 #include "base_component/base_module.h"
+#include "config/config.h"
 #include "core/cim_unit/macro_group.h"
 #include "core/cim_unit/payload.h"
-#include "nlohmann/json.hpp"
 #include "util/macro_scope.h"
 #include "util/util.h"
 
@@ -34,11 +34,10 @@ class MacroGroupTestModule : public BaseModule {
 public:
     SC_HAS_PROCESS(MacroGroupTestModule);
 
-    MacroGroupTestModule(const sc_core::sc_module_name& name, const Config& config, Clock* clk,
+    MacroGroupTestModule(const sc_core::sc_module_name& name, const Config& config,
                          std::vector<MacroGroupTestInstruction> codes)
-        : BaseModule(name, config.sim_config, nullptr, clk)
-        , macro_group_("MacroGroup_0", config.chip_config.core_config.cim_unit_config, config.sim_config, nullptr,
-                       clk) {
+        : BaseModule(name, BaseInfo{config.sim_config})
+        , macro_group_("MacroGroup_0", config.chip_config.core_config.cim_unit_config, BaseInfo{config.sim_config}) {
         macro_group_ins_list_ = std::move(codes);
 
         SC_THREAD(issue)
@@ -133,8 +132,7 @@ int sc_main(int argc, char* argv[]) {
     AddressSapce::initialize(config.chip_config);
 
     auto test_info = readTypeFromJsonFile<MacroGroupTestInfo>(instruction_file);
-    Clock clk{"clock", config.sim_config.period_ns};
-    MacroGroupTestModule test_module{"MacroGroupTestModule", config, &clk, std::move(test_info.code)};
+    MacroGroupTestModule test_module{"MacroGroupTestModule", config, std::move(test_info.code)};
     sc_start();
 
     std::ofstream ofs;

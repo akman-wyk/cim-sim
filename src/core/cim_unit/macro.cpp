@@ -10,23 +10,19 @@
 
 namespace cimsim {
 
-Macro::Macro(const sc_core::sc_module_name &name, const cimsim::CimUnitConfig &config,
-             const cimsim::SimConfig &sim_config, cimsim::Core *core, cimsim::Clock *clk, bool independent_ipu)
-    : BaseModule(name, sim_config, core, clk)
+Macro::Macro(const sc_module_name &name, const cimsim::CimUnitConfig &config, const BaseInfo &base_info,
+             bool independent_ipu)
+    : BaseModule(name, base_info)
     , config_(config)
     , macro_size_(config.macro_size)
     , independent_ipu_(independent_ipu)
     , activation_element_col_cnt_(config.macro_size.element_cnt_per_compartment)
-    , sram_read_("sram_read", sim_config, core, clk, config, getName(), getSRAMReadDynamicPower,
-                 config_.sram.read_latency_cycle, 1)
-    , post_process_("post_proecess", sim_config, core, clk, config, getName(), getPostProcessDynamicPower,
+    , sram_read_("sram_read", base_info, config, getSRAMReadDynamicPower, config_.sram.read_latency_cycle, 1)
+    , post_process_("post_proecess", base_info, config, getPostProcessDynamicPower,
                     config_.bit_sparse ? config_.bit_sparse_config.latency_cycle : 0, 1)
-    , adder_tree_("adder_tree", sim_config, core, clk, config, getName(), getAdderTreeDynamicPower,
-                  config_.adder_tree.latency_cycle, config_.adder_tree.pipeline_stage_cnt)
-    , shift_adder_("shift_adder", sim_config, core, clk, config, getName(), getShiftAdderDynamicPower,
-                   config_.shift_adder.latency_cycle, config_.shift_adder.pipeline_stage_cnt)
-    , result_adder_("result_adder", sim_config, core, clk, config, getName(), getResultAdderDynamicPower,
-                    config_.result_adder.latency_cycle, config_.result_adder.pipeline_stage_cnt) {
+    , adder_tree_("adder_tree", base_info, config, config.adder_tree, getAdderTreeDynamicPower)
+    , shift_adder_("shift_adder", base_info, config, config.shift_adder, getShiftAdderDynamicPower)
+    , result_adder_("result_adder", base_info, config, config.result_adder, getResultAdderDynamicPower) {
     SC_THREAD(processIPUAndIssue)
 
     // set static energy power

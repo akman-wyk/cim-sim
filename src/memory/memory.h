@@ -16,13 +16,9 @@ class Memory : public BaseModule {
 public:
     SC_HAS_PROCESS(Memory);
 
-    Memory(const sc_core::sc_module_name& name, const RAMConfig& ram_config, const SimConfig& sim_config, Core* core, Clock* clk);
-
-    Memory(const sc_core::sc_module_name& name, const RegBufferConfig& reg_buffer_config, const SimConfig& sim_config, Core* core,
-           Clock* clk);
-
-    Memory(const sc_core::sc_module_name& name, MemoryHardware* memory_hardware, const SimConfig& sim_config, Core* core,
-           Clock* clk);
+    Memory(const sc_module_name& name, const RAMConfig& ram_config, const BaseInfo& base_info);
+    Memory(const sc_module_name& name, const RegBufferConfig& reg_buffer_config, const BaseInfo& base_info);
+    Memory(const sc_module_name& name, MemoryHardware* memory_hardware, const BaseInfo& base_info);
 
     ~Memory() override;
 
@@ -47,7 +43,7 @@ private:
     std::queue<std::shared_ptr<MemoryAccessPayload>> access_queue_;
     MemoryHardware* hardware_;
 
-    sc_core::sc_event start_process_;
+    sc_event start_process_;
 };
 
 }  // namespace cimsim

@@ -6,21 +6,24 @@
 
 namespace cimsim {
 
-BaseModule::BaseModule(const sc_core::sc_module_name& name, const SimConfig& sim_config, Core* core, Clock* clk)
-    : sc_core::sc_module(name)
-    , period_ns_(sim_config.period_ns)
-    , sim_mode_(sim_config.sim_mode)
-    , data_mode_(sim_config.data_mode)
-    , core_(core)
-    , clk_(clk)
-    , name(name) {}
+BaseModule::BaseModule(const sc_module_name& name, const BaseInfo& base_info)
+    : sc_module(name)
+    , period_ns_(base_info.sim_config.period_ns)
+    , sim_mode_(base_info.sim_config.sim_mode)
+    , data_mode_(base_info.sim_config.data_mode)
+    , core_id_(base_info.core_id)
+    , name_(name) {}
 
 EnergyReporter BaseModule::getEnergyReporter() {
     return EnergyReporter{energy_counter_};
 }
 
 const std::string& BaseModule::getName() const {
-    return name;
+    return name_;
+}
+
+const char* BaseModule::getFullName() const {
+    return name();
 }
 
 }  // namespace cimsim

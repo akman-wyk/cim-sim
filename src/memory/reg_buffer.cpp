@@ -4,15 +4,13 @@
 
 #include "reg_buffer.h"
 
-#include "core/core.h"
 #include "fmt/format.h"
 #include "util/util.h"
 
 namespace cimsim {
 
-RegBuffer::RegBuffer(const sc_core::sc_module_name& name, const cimsim::RegBufferConfig &config, const cimsim::SimConfig &sim_config,
-                     cimsim::Core *core, cimsim::Clock *clk)
-    : MemoryHardware(name, sim_config, core, clk), config_(config) {
+RegBuffer::RegBuffer(const sc_module_name &name, const cimsim::RegBufferConfig &config, const BaseInfo &base_info)
+    : MemoryHardware(name, base_info), config_(config) {
     if (data_mode_ == +DataMode::real_data) {
         initialData();
     }
@@ -20,14 +18,13 @@ RegBuffer::RegBuffer(const sc_core::sc_module_name& name, const cimsim::RegBuffe
     static_energy_counter_.setStaticPowerMW(config_.static_power_mW);
 }
 
-sc_core::sc_time RegBuffer::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
+sc_time RegBuffer::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
     if (payload.address_byte < 0 || payload.address_byte + payload.size_byte > config_.size_byte) {
         std::cerr << fmt::format("Core id: {}, Invalid memory access with ins NO.'{}': address {} overflow, size: {}, "
                                  "config size: {}",
-                                 core_->getCoreId(), payload.ins.pc, payload.address_byte, payload.size_byte,
-                                 config_.size_byte)
+                                 core_id_, payload.ins.pc, payload.address_byte, payload.size_byte, config_.size_byte)
                   << std::endl;
-        return {0.0, sc_core::SC_NS};
+        return {0.0, SC_NS};
     }
 
     if (payload.access_type == +MemoryAccessType::read) {
@@ -42,7 +39,7 @@ sc_core::sc_time RegBuffer::accessAndGetDelay(cimsim::MemoryAccessPayload &paylo
             std::copy_n(data_.begin() + payload.address_byte, payload.size_byte, payload.data.begin());
         }
 
-        return {0, sc_core::SC_NS};
+        return {0, SC_NS};
     } else {
         int write_data_size_byte =
             (payload.size_byte <= config_.write_max_width_byte) ? payload.size_byte : config_.write_max_width_byte;
@@ -54,7 +51,7 @@ sc_core::sc_time RegBuffer::accessAndGetDelay(cimsim::MemoryAccessPayload &paylo
             std::copy(payload.data.begin(), payload.data.end(), data_.begin() + payload.address_byte);
         }
 
-        return {period_ns_, sc_core::SC_NS};
+        return {period_ns_, SC_NS};
     }
 }
 

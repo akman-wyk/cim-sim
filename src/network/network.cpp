@@ -4,8 +4,6 @@
 
 #include "network.h"
 
-#include <utility>
-
 #include "util/util.h"
 
 namespace cimsim {
@@ -15,7 +13,7 @@ Network::Network(std::string name, const NetworkConfig& config, const SimConfig&
     readLatencyEnergyFile(config.network_config_file_path);
 }
 
-sc_core::sc_time Network::transferAndGetDelay(int src_id, int dst_id, int data_size_byte) {
+sc_time Network::transferAndGetDelay(int src_id, int dst_id, int data_size_byte) {
     auto per_flit_latency_ns = latency_map_[src_id][dst_id] * sim_config_.period_ns;
     auto per_flit_energy_pj = energy_map_[src_id][dst_id];
     int times = IntDivCeil(data_size_byte, config_.bus_width_byte);

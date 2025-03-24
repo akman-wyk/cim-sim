@@ -2,7 +2,6 @@
 // Created by wyk on 2025/3/5.
 //
 
-#include "core/core.h"
 #include "decoder.h"
 #include "fmt/format.h"
 #include "isa/isa.h"
@@ -193,7 +192,7 @@ std::shared_ptr<ExecuteInsPayload> DecoderV1::decodeTransferIns(const InstV1& in
         p.src_address_byte = reg_unit_->readRegister(ins.rs1, false);
         p.dst_address_byte = reg_unit_->readRegister(ins.rd2, false);
         p.size_byte = reg_unit_->readRegister(ins.reg_len, false);
-        p.src_id = core_->getCoreId();
+        p.src_id = core_id_;
         p.dst_id = reg_unit_->readRegister(ins.rd1, false);
         p.transfer_id_tag = reg_unit_->readRegister(ins.reg_id, false);
     } else if (ins.type == +TransferInstType::receive) {
@@ -202,7 +201,7 @@ std::shared_ptr<ExecuteInsPayload> DecoderV1::decodeTransferIns(const InstV1& in
         p.dst_address_byte = reg_unit_->readRegister(ins.rd, false);
         p.size_byte = reg_unit_->readRegister(ins.reg_len, false);
         p.src_id = reg_unit_->readRegister(ins.rs1, false);
-        p.dst_id = core_->getCoreId();
+        p.dst_id = core_id_;
         p.transfer_id_tag = reg_unit_->readRegister(ins.reg_id, false);
     }
     return std::make_shared<TransferInsPayload>(p);

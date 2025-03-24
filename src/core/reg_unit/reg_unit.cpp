@@ -8,9 +8,8 @@
 
 namespace cimsim {
 
-RegUnit::RegUnit(const sc_core::sc_module_name &name, const cimsim::RegisterUnitConfig &config,
-                 const cimsim::SimConfig &sim_config, cimsim::Core *core, cimsim::Clock *clk)
-    : BaseModule(name, sim_config, core, clk), config_(config) {
+RegUnit::RegUnit(const sc_module_name &name, const RegisterUnitConfig &config, const BaseInfo &base_info)
+    : BaseModule(name, base_info), config_(config) {
     for (const auto &[special, general] : config_.special_register_binding) {
         special_bind_map_.emplace(special, general);
     }

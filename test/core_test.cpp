@@ -8,7 +8,6 @@
 #include "config/config.h"
 #include "core/core.h"
 #include "fmt/format.h"
-#include "nlohmann/json.hpp"
 #include "systemc.h"
 #include "util/util.h"
 
@@ -55,7 +54,10 @@ int sc_main(int argc, char* argv[]) {
         sc_stop();
         EnergyCounter::setRunningTimeNS(running_time);
     };
-    Core core{0, "Core_0", config, &clk, std::move(test_info.code), finish_run_call};
+    BaseInfo base_info{config.sim_config, 0};
+    int global_id = config.chip_config.global_memory_config.global_memory_switch_id;
+    Core core{"Core_0",  config.chip_config.core_config, base_info,      &clk,
+              global_id, std::move(test_info.code),      finish_run_call};
     sc_start();
 
     std::ofstream ofs;

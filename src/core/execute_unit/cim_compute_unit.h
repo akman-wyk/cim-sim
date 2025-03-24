@@ -8,7 +8,6 @@
 #include "base_component/submodule_socket.h"
 #include "config/config.h"
 #include "core/cim_unit/cim_unit.h"
-#include "core/socket/memory_socket.h"
 #include "execute_unit.h"
 #include "payload.h"
 
@@ -31,7 +30,7 @@ class CimComputeUnit : public ExecuteUnit {
 public:
     SC_HAS_PROCESS(CimComputeUnit);
 
-    CimComputeUnit(const sc_core::sc_module_name& name, const CimUnitConfig& config, const SimConfig& sim_config, Core* core, Clock* clk);
+    CimComputeUnit(const sc_module_name& name, const CimUnitConfig& config, const BaseInfo& base_info, Clock* clk);
 
     void bindCimUnit(CimUnit* cim_unit);
 
@@ -58,7 +57,7 @@ private:
 
     CimUnit* cim_unit_{nullptr};
 
-    sc_core::sc_event next_sub_ins_;
+    sc_event next_sub_ins_;
     SubmoduleSocket<CimComputeSubInsPayload> process_sub_ins_socket_;
     SubmoduleSocket<CimComputeReadDataPayload> read_value_sparse_mask_socket_;
     SubmoduleSocket<CimComputeReadDataPayload> read_bit_sparse_meta_socket_;

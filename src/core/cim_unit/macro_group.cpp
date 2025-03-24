@@ -10,22 +10,18 @@
 
 namespace cimsim {
 
-MacroGroup::MacroGroup(const sc_core::sc_module_name &name, const cimsim::CimUnitConfig &config,
-                       const cimsim::SimConfig &sim_config, cimsim::Core *core, cimsim::Clock *clk,
+MacroGroup::MacroGroup(const sc_module_name &name, const CimUnitConfig &config, const BaseInfo &base_info,
                        bool macro_simulation)
-    : BaseModule(name, sim_config, core, clk)
+    : BaseModule(name, base_info)
     , config_(config)
     , macro_size_(config.macro_size)
     , activation_macro_cnt_(config.macro_group_size)
-    , sram_read_("sram_read", sim_config, core, clk, getName(), config_.sram.read_latency_cycle, 1, false)
-    , post_process_("post_process", sim_config, core, clk, getName(),
-                    config_.bit_sparse ? config_.bit_sparse_config.latency_cycle : 0, 1, false)
-    , adder_tree_("adder_tree", sim_config, core, clk, getName(), config_.adder_tree.latency_cycle,
-                  config_.adder_tree.pipeline_stage_cnt, false)
-    , shift_adder_("shift_adder", sim_config, core, clk, getName(), config_.shift_adder.latency_cycle,
-                   config_.shift_adder.pipeline_stage_cnt, false)
-    , result_adder_("result_adder", sim_config, core, clk, getName(), config_.result_adder.latency_cycle,
-                    config_.result_adder.pipeline_stage_cnt, true) {
+    , sram_read_("sram_read", base_info, config_.sram.read_latency_cycle, 1, false)
+    , post_process_("post_process", base_info, config_.bit_sparse ? config_.bit_sparse_config.latency_cycle : 0, 1,
+                    false)
+    , adder_tree_("adder_tree", base_info, config_.adder_tree, false)
+    , shift_adder_("shift_adder", base_info, config_.shift_adder, false)
+    , result_adder_("result_adder", base_info, config_.result_adder, true) {
     SC_THREAD(processIPUAndIssue)
 
     sram_read_.bindNextStageSocket(post_process_.getExecuteSocket(), false);
@@ -36,7 +32,7 @@ MacroGroup::MacroGroup(const sc_core::sc_module_name &name, const cimsim::CimUni
     for (int i = 0; i < (macro_simulation ? 1 : config_.macro_group_size); i++) {
         auto macro_name = fmt::format("Macro_{}", i);
         bool independent_ipu = config_.value_sparse || i == 0;
-        macro_list_.push_back(new Macro(macro_name.c_str(), config_, sim_config, core, clk, independent_ipu));
+        macro_list_.push_back(new Macro(macro_name.c_str(), config_, base_info, independent_ipu));
     }
 }
 

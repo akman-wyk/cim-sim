@@ -22,9 +22,9 @@ void TransmitSocket::bindSwitch(Switch* _switch, int core_id) {
         [this](const std::shared_ptr<NetworkPayload>& payload) { this->switchReceiveHandler(payload); });
 
     core_id_ = core_id;
-    sender_wait_receiver_ready_ = new sc_core::sc_event{};
-    receiver_wait_sender_ready_ = new sc_core::sc_event{};
-    receiver_wait_data_ready_ = new sc_core::sc_event{};
+    sender_wait_receiver_ready_ = new sc_event{};
+    receiver_wait_sender_ready_ = new sc_event{};
+    receiver_wait_data_ready_ = new sc_event{};
 }
 
 void TransmitSocket::sendHandshake(int dst_id, int transfer_id_tag) {

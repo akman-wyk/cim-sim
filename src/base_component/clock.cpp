@@ -6,7 +6,7 @@
 
 namespace cimsim {
 
-Clock::Clock(const sc_core::sc_module_name& name, double period) : sc_core::sc_module(name), period_(period) {
+Clock::Clock(const sc_module_name& name, double period) : sc_module(name), period_(period) {
     SC_THREAD(process)
 
     SC_METHOD(endPosEdge)
@@ -15,7 +15,7 @@ Clock::Clock(const sc_core::sc_module_name& name, double period) : sc_core::sc_m
 
 void Clock::process() {
     while (true) {
-        wait(period_, sc_core::SC_NS);
+        wait(period_, SC_NS);
 
         // at positive edge
         is_pos_edge_ = true;
@@ -26,12 +26,12 @@ void Clock::process() {
 
         // Wait until all events currently waiting to be executed are processed, notify end_pos_edge_.
         // That is, notify end_pos_edge_ at next delta cycle
-        end_pos_edge_.notify(sc_core::SC_ZERO_TIME);
+        end_pos_edge_.notify(SC_ZERO_TIME);
         // positive edge end
     }
 }
 
-void Clock::notifyNextPosEdge(sc_core::sc_event* event) {
+void Clock::notifyNextPosEdge(sc_event* event) {
     pos_edge_events_.insert(event);
 }
 

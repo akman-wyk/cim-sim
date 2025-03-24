@@ -20,7 +20,7 @@ class Network {
 public:
     Network(std::string name, const NetworkConfig& config, const SimConfig& sim_config);
 
-    sc_core::sc_time transferAndGetDelay(int src_id, int dst_id, int data_size_byte);
+    sc_time transferAndGetDelay(int src_id, int dst_id, int data_size_byte);
 
     Switch* getSwitch(int id);
     void registerSwitch(int id, Switch* switch_ptr);

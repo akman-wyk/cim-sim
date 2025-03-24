@@ -4,8 +4,6 @@
 
 #include "core.h"
 
-#include <utility>
-
 #include "fmt/format.h"
 #include "util/log.h"
 
@@ -19,25 +17,23 @@ Core::ExecuteUnitInfo::ExecuteUnitInfo(ExecuteUnitType type, ExecuteUnit *execut
     , signals(type)
     , conflict_signal(fmt::format("{}_conflict_signal", type._to_string()).c_str()) {}
 
-Core::Core(int core_id, const sc_core::sc_module_name &name, const Config &config, Clock *clk,
+Core::Core(const sc_module_name &name, const CoreConfig &config, const BaseInfo &base_info, Clock *clk, int global_id,
            std::vector<Instruction> ins_list, std::function<void()> finish_run_call)
-    : BaseModule(name, config.sim_config, this, clk)
-    , core_id_(core_id)
-    , core_config_(config.chip_config.core_config)
+    : BaseModule(name, base_info)
+    , core_config_(config)
     , ins_list_(std::move(ins_list))
 
-    , cim_unit_("CimUnit", core_config_.cim_unit_config, config.sim_config, this, clk)
-    , local_memory_unit_("LocalMemoryUnit", core_config_.local_memory_unit_config, config.sim_config, this, clk, false)
-    , reg_unit_("RegUnit", core_config_.register_unit_config, config.sim_config, this, clk)
-    , core_switch_("Switch", config.sim_config, this, clk, core_id)
-    , decoder_("Decoder", config.chip_config, config.sim_config, this, clk)
+    , cim_unit_("CimUnit", core_config_.cim_unit_config, base_info)
+    , local_memory_unit_("LocalMemoryUnit", core_config_.local_memory_unit_config, base_info, false)
+    , reg_unit_("RegUnit", core_config_.register_unit_config, base_info)
+    , core_switch_("Switch", base_info)
+    , decoder_("Decoder", config.simd_unit_config, base_info)
 
-    , scalar_unit_("ScalarUnit", core_config_.scalar_unit_config, config.sim_config, this, clk)
-    , simd_unit_("SIMDUnit", core_config_.simd_unit_config, config.sim_config, this, clk)
-    , transfer_unit_("TransferUnit", core_config_.transfer_unit_config, config.sim_config, this, clk, core_id,
-                     config.chip_config.global_memory_config.global_memory_switch_id)
-    , cim_compute_unit_("CimComputeUnit", core_config_.cim_unit_config, config.sim_config, this, clk)
-    , cim_control_unit_("CimControlUnit", core_config_.cim_unit_config, config.sim_config, this, clk)
+    , scalar_unit_("ScalarUnit", core_config_.scalar_unit_config, base_info, clk)
+    , simd_unit_("SIMDUnit", core_config_.simd_unit_config, base_info, clk)
+    , transfer_unit_("TransferUnit", core_config_.transfer_unit_config, base_info, clk, global_id)
+    , cim_compute_unit_("CimComputeUnit", core_config_.cim_unit_config, base_info, clk)
+    , cim_control_unit_("CimControlUnit", core_config_.cim_unit_config, base_info, clk)
 
     , finish_run_call_(std::move(finish_run_call)) {
     setThreadAndMethod();
@@ -188,13 +184,12 @@ void Core::setThreadAndMethod() {
     SC_METHOD(processIdExEnable)
     sensitive << id_stall_;
 
-    processStall_handle_ = sc_core::sc_get_curr_simcontext()->create_method_process(
-        "processStall", false, static_cast<sc_core::SC_ENTRY_FUNC>(&SC_CURRENT_USER_MODULE::processStall), this,
-        nullptr);
+    processStall_handle_ = sc_get_curr_simcontext()->create_method_process(
+        "processStall", false, static_cast<SC_ENTRY_FUNC>(&SC_CURRENT_USER_MODULE::processStall), this, nullptr);
     sensitive << processStall_handle_ << id_finish_;
 
-    processFinishRun_handle_ = sc_core::sc_get_curr_simcontext()->create_method_process(
-        "processFinishRun", false, static_cast<sc_core::SC_ENTRY_FUNC>(&SC_CURRENT_USER_MODULE::processFinishRun), this,
+    processFinishRun_handle_ = sc_get_curr_simcontext()->create_method_process(
+        "processFinishRun", false, static_cast<SC_ENTRY_FUNC>(&SC_CURRENT_USER_MODULE::processFinishRun), this,
         nullptr);
 }
 

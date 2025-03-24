@@ -30,8 +30,8 @@ class Core : public BaseModule {
 public:
     SC_HAS_PROCESS(Core);
 
-    Core(int core_id, const sc_core::sc_module_name& name, const Config& config, Clock* clk, std::vector<Instruction> ins_list,
-         std::function<void()> finish_run_call);
+    Core(const sc_module_name& name, const CoreConfig& config, const BaseInfo& base_info, Clock* clk, int global_id,
+         std::vector<Instruction> ins_list, std::function<void()> finish_run_call);
     void bindNetwork(Network* network);
 
     EnergyReporter getEnergyReporter() override;
@@ -69,7 +69,6 @@ private:
     void setThreadAndMethod();
 
 private:
-    const int core_id_;
     const CoreConfig& core_config_;
 
     // instruction
@@ -99,9 +98,9 @@ private:
     std::shared_ptr<ExecuteInsPayload> cur_ins_payload_;
     int pc_increment_{0};
     ResourceAllocatePayload cur_ins_conflict_info_;
-    sc_core::sc_event decode_new_ins_trigger_;
-    sc_core::sc_signal<bool> id_finish_{"id_finish"};
-    sc_core::sc_signal<bool> id_stall_{"id_stall"};
+    sc_event decode_new_ins_trigger_;
+    sc_signal<bool> id_finish_{"id_finish"};
+    sc_signal<bool> id_stall_{"id_stall"};
 
     // finish run
     std::function<void()> finish_run_call_;
