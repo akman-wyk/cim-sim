@@ -10,15 +10,6 @@
 
 namespace cimsim {
 
-void waitAndStartNextStage(const cimsim::SIMDStagePayload& cur_payload, SIMDStageSocket& next_stage_socket) {
-    next_stage_socket.waitUntilFinishIfBusy();
-    if (cur_payload.batch_info.first_batch) {
-        next_stage_socket.payload.ins_info = cur_payload.ins_info;
-    }
-    next_stage_socket.payload.batch_info = cur_payload.batch_info;
-    next_stage_socket.start_exec.notify();
-}
-
 SIMDFunctorPipelineStage::SIMDFunctorPipelineStage(const sc_core::sc_module_name& name, const SimConfig& sim_config,
                                                    Core* core, Clock* clk, const SIMDFunctorConfig& config,
                                                    EnergyCounter& functor_energy_counter)
@@ -38,19 +29,15 @@ void SIMDFunctorPipelineStage::setNextStageSocket(SIMDStageSocket* next_stage_so
     next_stage_socket_ = next_stage_socket;
 }
 
-void SIMDFunctorPipelineStage::clearNextStageSocket() {
-    next_stage_socket_ = nullptr;
-}
-
 void SIMDFunctorPipelineStage::processExecute() {
     while (true) {
         exec_socket_.waitUntilStart();
 
         const auto& payload = exec_socket_.payload;
         CORE_LOG(fmt::format("simd execute start, pipeline: {}, pc: {}, ins id: {}, batch: {}", getName(),
-                             payload.ins_info.ins.pc, payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
+                             payload.ins_info->ins.pc, payload.ins_info->ins.ins_id, payload.batch_info->batch_num));
 
-        double dynamic_power_mW = dynamic_power_per_functor_mW_ * payload.batch_info.batch_vector_len;
+        double dynamic_power_mW = dynamic_power_per_functor_mW_ * payload.batch_info->batch_vector_len;
         double latency = pipeline_stage_latency_cycle_ * period_ns_;
         functor_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW);
         wait(latency, SC_NS);
@@ -119,20 +106,24 @@ void SIMDUnit::processIssue() {
             executing_functor_ = functor_map_[payload->func_cfg];
         }
 
+        for (const auto& scalar_input : ins_info.scalar_inputs) {
+            memory_socket_.readLocal(ins_info.ins, scalar_input.start_address_byte,
+                                     scalar_input.data_bit_width / BYTE_TO_BIT);
+        }
+
         int vector_total_len = ins_info.vector_inputs.empty() ? 1 : payload->len;
         int process_times = IntDivCeil(vector_total_len, payload->func_cfg->functor_cnt);
-        SIMDStagePayload stage_payload{.ins_info = ins_info};
+        SIMDStagePayload stage_payload{.ins_info = std::make_shared<SIMDInstructionInfo>(ins_info)};
         for (int batch = 0; batch < process_times; batch++) {
-            stage_payload.batch_info = {
-                .batch_vector_len = (batch == process_times - 1)
-                                        ? (vector_total_len - batch * payload->func_cfg->functor_cnt)
-                                        : payload->func_cfg->functor_cnt,
-                .batch_num = batch,
-                .first_batch = (batch == 0),
-                .last_batch = (batch == process_times - 1)};
+            stage_payload.batch_info = std::make_shared<SIMDBatchInfo>(
+                SIMDBatchInfo{.batch_vector_len = (batch == process_times - 1)
+                                                      ? (vector_total_len - batch * payload->func_cfg->functor_cnt)
+                                                      : payload->func_cfg->functor_cnt,
+                              .batch_num = batch,
+                              .last_batch = (batch == process_times - 1)});
             waitAndStartNextStage(stage_payload, read_stage_socket_);
 
-            if (!stage_payload.batch_info.last_batch) {
+            if (!stage_payload.batch_info->last_batch) {
                 wait(cur_ins_next_batch_);
             }
         }
@@ -146,27 +137,20 @@ void SIMDUnit::processReadStage() {
         read_stage_socket_.waitUntilStart();
 
         const auto& payload = read_stage_socket_.payload;
-        CORE_LOG(fmt::format("simd read start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
-                             payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
+        CORE_LOG(fmt::format("simd read start, pc: {}, ins id: {}, batch: {}", payload.ins_info->ins.pc,
+                             payload.ins_info->ins.ins_id, payload.batch_info->batch_num));
 
-        if (payload.batch_info.first_batch) {
-            for (const auto& scalar_input : payload.ins_info.scalar_inputs) {
-                memory_socket_.readLocal(payload.ins_info.ins, scalar_input.start_address_byte,
-                                         scalar_input.data_bit_width / BYTE_TO_BIT);
-            }
-        }
-
-        for (const auto& vector_input : payload.ins_info.vector_inputs) {
+        for (const auto& vector_input : payload.ins_info->vector_inputs) {
             int address_byte =
-                vector_input.start_address_byte + (payload.batch_info.batch_num * vector_input.data_bit_width *
-                                                   payload.ins_info.functor_cnt / BYTE_TO_BIT);
-            int size_byte = vector_input.data_bit_width * payload.batch_info.batch_vector_len / BYTE_TO_BIT;
-            memory_socket_.readLocal(payload.ins_info.ins, address_byte, size_byte);
+                vector_input.start_address_byte + (payload.batch_info->batch_num * vector_input.data_bit_width *
+                                                   payload.ins_info->functor_cnt / BYTE_TO_BIT);
+            int size_byte = vector_input.data_bit_width * payload.batch_info->batch_vector_len / BYTE_TO_BIT;
+            memory_socket_.readLocal(payload.ins_info->ins, address_byte, size_byte);
         }
 
         waitAndStartNextStage(payload, *(executing_functor_->getExecuteSocket()));
 
-        if (payload.ins_info.use_pipeline && !payload.batch_info.last_batch) {
+        if (payload.ins_info->use_pipeline && !payload.batch_info->last_batch) {
             cur_ins_next_batch_.notify();
         }
 
@@ -179,27 +163,27 @@ void SIMDUnit::processWriteStage() {
         write_stage_socket_.waitUntilStart();
 
         const auto& payload = write_stage_socket_.payload;
-        CORE_LOG(fmt::format("simd write start, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
-                             payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
+        CORE_LOG(fmt::format("simd write start, pc: {}, ins id: {}, batch: {}", payload.ins_info->ins.pc,
+                             payload.ins_info->ins.ins_id, payload.batch_info->batch_num));
 
-        if (payload.batch_info.last_batch) {
-            releaseResource(payload.ins_info.ins.ins_id);
+        if (payload.batch_info->last_batch) {
+            releaseResource(payload.ins_info->ins.ins_id);
         }
 
-        int address_byte = payload.ins_info.output.start_address_byte +
-                           (payload.batch_info.batch_num * payload.ins_info.output.data_bit_width *
-                            payload.ins_info.functor_cnt / BYTE_TO_BIT);
-        int size_byte = payload.ins_info.output.data_bit_width * payload.batch_info.batch_vector_len / BYTE_TO_BIT;
-        memory_socket_.writeLocal(payload.ins_info.ins, address_byte, size_byte, {});
+        int address_byte = payload.ins_info->output.start_address_byte +
+                           (payload.batch_info->batch_num * payload.ins_info->output.data_bit_width *
+                            payload.ins_info->functor_cnt / BYTE_TO_BIT);
+        int size_byte = payload.ins_info->output.data_bit_width * payload.batch_info->batch_vector_len / BYTE_TO_BIT;
+        memory_socket_.writeLocal(payload.ins_info->ins, address_byte, size_byte, {});
 
-        CORE_LOG(fmt::format("simd write end, pc: {}, ins id: {}, batch: {}", payload.ins_info.ins.pc,
-                             payload.ins_info.ins.ins_id, payload.batch_info.batch_num));
+        CORE_LOG(fmt::format("simd write end, pc: {}, ins id: {}, batch: {}", payload.ins_info->ins.pc,
+                             payload.ins_info->ins.ins_id, payload.batch_info->batch_num));
 
-        if (!payload.ins_info.use_pipeline && !payload.batch_info.last_batch) {
+        if (!payload.ins_info->use_pipeline && !payload.batch_info->last_batch) {
             cur_ins_next_batch_.notify();
         }
 
-        if (payload.batch_info.last_batch) {
+        if (payload.batch_info->last_batch) {
             finishInstruction();
         }
 

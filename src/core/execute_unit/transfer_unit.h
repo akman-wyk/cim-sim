@@ -33,22 +33,21 @@ struct TransferInstructionInfo {
 struct TransferBatchInfo {
     int batch_num{0};
     int batch_data_size_byte{0};
-    bool first_batch{false};
     bool last_batch{false};
     std::vector<unsigned char> data{};
 };
 
 struct TransferSubmodulePayload {
-    TransferInstructionInfo ins_info;
-    TransferBatchInfo batch_info;
+    std::shared_ptr<TransferInstructionInfo> ins_info;
+    std::shared_ptr<TransferBatchInfo> batch_info;
 };
 
 class TransferUnit : public ExecuteUnit {
 public:
     SC_HAS_PROCESS(TransferUnit);
 
-    TransferUnit(const sc_core::sc_module_name& name, const TransferUnitConfig& config, const SimConfig& sim_config, Core* core,
-                 Clock* clk, int core_id = 0, int global_memory_switch_id = -10);
+    TransferUnit(const sc_core::sc_module_name& name, const TransferUnitConfig& config, const SimConfig& sim_config,
+                 Core* core, Clock* clk, int core_id = 0, int global_memory_switch_id = -10);
 
     [[noreturn]] void processIssue();
     [[noreturn]] void processReadSubmodule();
@@ -60,9 +59,6 @@ public:
     ResourceAllocatePayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
 
 private:
-    static void waitAndStartNextSubmodule(TransferSubmodulePayload& cur_payload,
-                                          SubmoduleSocket<TransferSubmodulePayload>& next_submodule_socket);
-
     std::pair<TransferInstructionInfo, ResourceAllocatePayload> decodeAndGetInfo(
         const TransferInsPayload& payload) const;
 
