@@ -48,8 +48,8 @@ class SIMDFunctorPipelineStage : public BaseModule {
 public:
     SC_HAS_PROCESS(SIMDFunctorPipelineStage);
 
-    explicit SIMDFunctorPipelineStage(const sc_module_name& name, const BaseInfo& base_info,
-                                      const SIMDFunctorConfig& config, EnergyCounter& functor_energy_counter);
+    SIMDFunctorPipelineStage(const sc_module_name& name, const BaseInfo& base_info, const SIMDFunctorConfig& config,
+                             EnergyCounter& functor_energy_counter);
 
     SIMDStageSocket* getExecuteSocket();
     void setNextStageSocket(SIMDStageSocket* next_stage_socket);
@@ -58,7 +58,7 @@ public:
 
 private:
     const double dynamic_power_per_functor_mW_{1.0};
-    int pipeline_stage_latency_cycle_{1};
+    const int pipeline_stage_latency_cycle_{1};
 
     SIMDStageSocket exec_socket_;
     SIMDStageSocket* next_stage_socket_{nullptr};
@@ -68,12 +68,11 @@ private:
 
 class SIMDFunctor : public BaseModule {
 public:
-    explicit SIMDFunctor(const sc_module_name& name, const BaseInfo& base_info, const SIMDFunctorConfig& functor_config,
-                         SIMDStageSocket* next_stage_socket);
+    SIMDFunctor(const sc_module_name& name, const BaseInfo& base_info, const SIMDFunctorConfig& functor_config,
+                SIMDStageSocket* next_stage_socket);
 
-    SIMDStageSocket* getExecuteSocket();
+    [[nodiscard]] SIMDStageSocket* getExecuteSocket() const;
     [[nodiscard]] const SIMDFunctorConfig* getFunctorConfig() const;
-
     [[nodiscard]] EnergyReporter getEnergyReporter() const;
 
 private:

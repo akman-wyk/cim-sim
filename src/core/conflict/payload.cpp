@@ -76,6 +76,11 @@ bool ResourceAllocatePayload::conflictWithIns(const ResourceAllocatePayload& ins
         simd_functor_cfg != ins_resource_allocate.simd_functor_cfg) {
         return true;
     }
+    if (unit_type == +ExecuteUnitType::reduce && ins_resource_allocate.unit_type == +ExecuteUnitType::reduce &&
+        reduce_functor_cfg != nullptr && ins_resource_allocate.reduce_functor_cfg != nullptr &&
+        reduce_functor_cfg != ins_resource_allocate.reduce_functor_cfg) {
+        return true;
+    }
     if (ins_resource_allocate.unit_type == this->unit_type) {
         return this->write_memory_id.intersectionWith(ins_resource_allocate.read_memory_id);
     }
@@ -87,6 +92,7 @@ ResourceAllocatePayload& ResourceAllocatePayload::operator+=(const cimsim::Resou
     this->write_memory_id |= other.write_memory_id;
     this->used_memory_id |= other.used_memory_id;
     this->simd_functor_cfg = other.simd_functor_cfg;
+    this->reduce_functor_cfg = other.reduce_functor_cfg;
     return *this;
 }
 

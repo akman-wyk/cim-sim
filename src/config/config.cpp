@@ -136,7 +136,7 @@ DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(ScalarUnitConfig, default_functor
                                                default_functor_dynamic_power_mW, functor_list)
 
 // SIMDUnit
-bool SIMDDataWidthConfig::checkDataWidth(const int width) {
+bool checkDataWidth(const int width) {
     return width == 1 || width == 2 || width == 4 || width == 8 || width == 16 || width == 32 || width == 64;
 }
 
@@ -346,6 +346,63 @@ bool SIMDUnitConfig::checkValid() const {
 }
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(SIMDUnitConfig, pipeline, functor_list, instruction_list)
+
+bool ReduceFunctorConfig::checkValid() const {
+    if (name.empty()) {
+        std::cerr << "ReduceFunctorConfig not valid, 'name' must be non-empty" << std::endl;
+        return false;
+    }
+    if (funct > REDUCE_MAX_FUNCT) {
+        std::cerr << fmt::format("ReduceFunctorConfig of '{}' not valid, 'funct' must be not greater than {}", name,
+                                 REDUCE_MAX_FUNCT)
+                  << std::endl;
+        return false;
+    }
+    if (const bool valid = checkDataWidth(input_bit_width) && checkDataWidth(output_bit_width); !valid) {
+        std::cerr << "ReduceFunctorConfig not valid, input and output width must be one of the following values: "
+                     "ont-bit(1b), two-bit(2b), half-byte(4b), byte(8b), half-word(16b), word(32b), double-word(64b)"
+                  << std::endl;
+        return false;
+    }
+    if (!check_positive(reduce_input_cnt, pipeline_stage_cnt)) {
+        std::cerr << fmt::format(
+                         "SIMDFunctorConfig of '{}' not valid, 'reduce_input_cnt, pipeline_stage_cnt' must be positive",
+                         name)
+                  << std::endl;
+        return false;
+    }
+    if (!check_not_negative(latency_cycle, static_power_mW, dynamic_power_mW)) {
+        std::cerr << fmt::format("SIMDFunctorConfig of '{}' not valid, 'latency_cycle, static_power_mW, "
+                                 "dynamic_power_mW' must be non-negative",
+                                 name)
+                  << std::endl;
+        return false;
+    }
+    if (latency_cycle % pipeline_stage_cnt != 0) {
+        std::cerr
+            << fmt::format(
+                   "SIMDFunctorConfig of '{}' not valid, 'latency_cycle' must be divisible by 'pipeline_stage_cnt'",
+                   name)
+            << std::endl;
+        return false;
+    }
+    return true;
+}
+
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(ReduceFunctorConfig, name, funct, input_bit_width, output_bit_width,
+                                               reduce_input_cnt, latency_cycle, pipeline_stage_cnt, static_power_mW,
+                                               dynamic_power_mW)
+
+bool ReduceUnitConfig::checkValid() const {
+    if (!check_vector_valid(functor_list)) {
+        std::cerr << "ReduceUnitConfig not valid" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(ReduceUnitConfig, pipeline, functor_list)
 
 // CimUnit
 bool CimMacroSizeConfig::checkValid() const {
@@ -689,8 +746,8 @@ DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(TransferUnitConfig, pipeline)
 bool CoreConfig::checkValid() const {
     if (const bool valid = control_unit_config.checkValid() && register_unit_config.checkValid() &&
                            scalar_unit_config.checkValid() && simd_unit_config.checkValid() &&
-                           cim_unit_config.checkValid() && local_memory_unit_config.checkValid() &&
-                           transfer_unit_config.checkValid();
+                           reduce_unit_config.checkValid() && cim_unit_config.checkValid() &&
+                           local_memory_unit_config.checkValid() && transfer_unit_config.checkValid();
         !valid) {
         std::cerr << "CoreConfig not valid" << std::endl;
         return false;
@@ -700,8 +757,8 @@ bool CoreConfig::checkValid() const {
 }
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CoreConfig, control_unit_config, register_unit_config,
-                                               scalar_unit_config, simd_unit_config, cim_unit_config,
-                                               local_memory_unit_config, transfer_unit_config)
+                                               scalar_unit_config, simd_unit_config, reduce_unit_config,
+                                               cim_unit_config, local_memory_unit_config, transfer_unit_config)
 
 // NetworkConfig
 bool NetworkConfig::checkValid() const {

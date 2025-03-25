@@ -64,7 +64,7 @@
           {
             "name": "vqv",
             "input_cnt": 2,
-            "opcode": "0xff",
+            "opcode": "0x3f",
             "input1_type": "vector",
             "input2_type": "vector",
             "functor_binding_list": [

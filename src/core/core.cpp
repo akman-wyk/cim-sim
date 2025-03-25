@@ -27,10 +27,11 @@ Core::Core(const sc_module_name &name, const CoreConfig &config, const BaseInfo 
     , local_memory_unit_("LocalMemoryUnit", core_config_.local_memory_unit_config, base_info, false)
     , reg_unit_("RegUnit", core_config_.register_unit_config, base_info)
     , core_switch_("Switch", base_info)
-    , decoder_("Decoder", config.simd_unit_config, base_info)
+    , decoder_("Decoder", config, base_info)
 
     , scalar_unit_("ScalarUnit", core_config_.scalar_unit_config, base_info, clk)
     , simd_unit_("SIMDUnit", core_config_.simd_unit_config, base_info, clk)
+    , reduce_unit_("ReduceUnit", config.reduce_unit_config, base_info, clk)
     , transfer_unit_("TransferUnit", core_config_.transfer_unit_config, base_info, clk, global_id)
     , cim_compute_unit_("CimComputeUnit", core_config_.cim_unit_config, base_info, clk)
     , cim_control_unit_("CimControlUnit", core_config_.cim_unit_config, base_info, clk)
@@ -46,11 +47,12 @@ void Core::bindNetwork(Network *network) {
 
 EnergyReporter Core::getEnergyReporter() {
     EnergyReporter reporter;
-    reporter.addSubModule("ScalarUnit", EnergyReporter{scalar_unit_.getEnergyReporter()});
-    reporter.addSubModule("SIMDUnit", EnergyReporter{simd_unit_.getEnergyReporter()});
-    reporter.addSubModule("CimUnit", EnergyReporter{cim_compute_unit_.getEnergyReporter()});
-    reporter.addSubModule("CimUnit", EnergyReporter{cim_control_unit_.getEnergyReporter()});
-    reporter.addSubModule("LocalMemoryUnit", EnergyReporter{local_memory_unit_.getEnergyReporter()});
+    reporter.addSubModule("ScalarUnit", scalar_unit_.getEnergyReporter());
+    reporter.addSubModule("SIMDUnit", simd_unit_.getEnergyReporter());
+    reporter.addSubModule("ReduceUnit", reduce_unit_.getEnergyReporter());
+    reporter.addSubModule("CimUnit", cim_compute_unit_.getEnergyReporter());
+    reporter.addSubModule("CimUnit", cim_control_unit_.getEnergyReporter());
+    reporter.addSubModule("LocalMemoryUnit", local_memory_unit_.getEnergyReporter());
     return std::move(reporter);
 }
 
@@ -158,6 +160,7 @@ void Core::bindModules() {
     // bind execute unit
     bindExecuteUnit(ExecuteUnitType::scalar, &scalar_unit_);
     bindExecuteUnit(ExecuteUnitType::simd, &simd_unit_);
+    bindExecuteUnit(ExecuteUnitType::reduce, &reduce_unit_);
     bindExecuteUnit(ExecuteUnitType::transfer, &transfer_unit_);
     bindExecuteUnit(ExecuteUnitType::cim_compute, &cim_compute_unit_);
     bindExecuteUnit(ExecuteUnitType::cim_control, &cim_control_unit_);

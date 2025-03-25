@@ -18,8 +18,8 @@ std::shared_ptr<ExecuteInsPayload> DecoderV3::decode(const InstV3& ins, int pc, 
 
     if (int opcode = ins.getOpcode(); (opcode & OPCODE_MASK::INST_CLASS_2BIT) == OPCODE_CLASS::CIM) {
         payload = decodeCimIns(ins);
-    } else if ((opcode & OPCODE_MASK::INST_CLASS_2BIT) == OPCODE_CLASS::VEC_OP) {
-        payload = decodeSIMDIns(ins);
+    } else if ((opcode & OPCODE_MASK::INST_CLASS_2BIT) == OPCODE_CLASS::VECTOR) {
+        payload = decodeVectorIns(ins);
     } else if ((opcode & OPCODE_MASK::INST_CLASS_2BIT) == OPCODE_CLASS::SC) {
         payload = decodeScalarIns(ins);
     } else if ((opcode & OPCODE_MASK::INST_CLASS_3BIT) == OPCODE_CLASS::TRANS) {
@@ -87,7 +87,7 @@ std::shared_ptr<ExecuteInsPayload> DecoderV3::decodeCimIns(const InstV3& ins) co
     return payload;
 }
 
-std::shared_ptr<ExecuteInsPayload> DecoderV3::decodeSIMDIns(const InstV3& ins) const {
+std::shared_ptr<ExecuteInsPayload> DecoderV3::decodeVectorIns(const InstV3& ins) const {
     SIMDInsPayload p;
     p.ins.unit_type = ExecuteUnitType::simd;
 
@@ -96,17 +96,17 @@ std::shared_ptr<ExecuteInsPayload> DecoderV3::decodeSIMDIns(const InstV3& ins) c
 
     int i1_addr = reg_unit_->readRegister(ins.getR1(), false);
     int i2_addr = (input_cnt < 2) ? 0 : reg_unit_->readRegister(ins.getR2(), false);
-    int i3_addr = (input_cnt < 3) ? 0 : reg_unit_->readRegister(SpecialRegId::input_3_address, true);
-    int i4_addr = (input_cnt < 4) ? 0 : reg_unit_->readRegister(SpecialRegId::input_4_address, true);
+    int i3_addr = (input_cnt < 3) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_3_address, true);
+    int i4_addr = (input_cnt < 4) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_4_address, true);
 
-    int i1_bit_width = reg_unit_->readRegister(SpecialRegId::simd_input_1_bit_width, true);
-    int i2_bit_width = (input_cnt < 2) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_2_bit_width, true);
-    int i3_bit_width = (input_cnt < 3) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_3_bit_width, true);
-    int i4_bit_width = (input_cnt < 4) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_4_bit_width, true);
+    int i1_bit_width = reg_unit_->readRegister(SpecialRegId::vector_input_1_bit_width, true);
+    int i2_bit_width = (input_cnt < 2) ? 0 : reg_unit_->readRegister(SpecialRegId::vector_input_2_bit_width, true);
+    int i3_bit_width = (input_cnt < 3) ? 0 : reg_unit_->readRegister(SpecialRegId::vector_input_3_bit_width, true);
+    int i4_bit_width = (input_cnt < 4) ? 0 : reg_unit_->readRegister(SpecialRegId::vector_input_4_bit_width, true);
 
     p.inputs_bit_width = SIMDInputsArray{i1_bit_width, i2_bit_width, i3_bit_width, i4_bit_width};
     p.inputs_address_byte = SIMDInputsArray{i1_addr, i2_addr, i3_addr, i4_addr};
-    p.output_bit_width = reg_unit_->readRegister(SpecialRegId::simd_output_bit_width, true);
+    p.output_bit_width = reg_unit_->readRegister(SpecialRegId::vector_output_bit_width, true);
     p.output_address_byte = reg_unit_->readRegister(ins.getR3(), false);
     p.len = reg_unit_->readRegister(ins.getR4(), false);
 

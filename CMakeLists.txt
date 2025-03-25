@@ -64,6 +64,8 @@ add_library(cim-simulator STATIC ""
         src/core/execute_unit/execute_unit.h
         src/core/execute_unit/payload.cpp
         src/core/execute_unit/payload.h
+        src/core/execute_unit/reduce_unit.cpp
+        src/core/execute_unit/reduce_unit.h
         src/core/execute_unit/scalar_unit.cpp
         src/core/execute_unit/scalar_unit.h
         src/core/execute_unit/simd_unit.cpp

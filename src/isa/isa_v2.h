@@ -9,12 +9,12 @@
 namespace cimsim {
 
 BETTER_ENUM(OPCODE_CLASS, int,  // NOLINT(*-explicit-constructor)
-            CIM = 0b000000, VEC_OP = 0b010000, SC = 0b100000, TRANS = 0b110000, CONTROL = 0b111000)
+            CIM = 0b000000, VECTOR = 0b010000, SC = 0b100000, TRANS = 0b110000, CONTROL = 0b111000)
 
 BETTER_ENUM(OPCODE, int,  // NOLINT(*-explicit-constructor)
             CIM_MVM = 0b000000, CIM_CFG = 0b000100, CIM_OUT = 0b001000,
 
-            VEC_OP = 0b010000,
+            VEC_OP = 0b010000, REDUCE = 0b010001,
 
             SC_RR = 0b100000, SC_RI = 0b100100, SC_LD = 0b101000, SC_ST = 0b101001, SC_LDG = 0b101010,
             SC_STG = 0b101011, G_LI = 0b101100, S_LI = 0b101101, GS_MOV = 0b101110, SG_MOV = 0b101111,

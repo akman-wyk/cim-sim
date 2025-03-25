@@ -18,8 +18,8 @@ std::shared_ptr<ExecuteInsPayload> DecoderV2::decode(const InstV2& ins, int pc, 
 
     if (auto op_class = ins.getOpcodeClass(); op_class == +OPCODE_CLASS::CIM) {
         payload = decodeCimIns(ins);
-    } else if (op_class == +OPCODE_CLASS::VEC_OP) {
-        payload = decodeSIMDIns(ins);
+    } else if (op_class == +OPCODE_CLASS::VECTOR) {
+        payload = decodeVectorIns(ins);
     } else if (op_class == +OPCODE_CLASS::SC) {
         payload = decodeScalarIns(ins);
     } else if (op_class == +OPCODE_CLASS::TRANS) {
@@ -87,39 +87,15 @@ std::shared_ptr<ExecuteInsPayload> DecoderV2::decodeCimIns(const InstV2& ins) co
     return payload;
 }
 
-std::shared_ptr<ExecuteInsPayload> DecoderV2::decodeSIMDIns(const InstV2& ins) const {
-    SIMDInsPayload p;
-    p.ins.unit_type = ExecuteUnitType::simd;
-
-    auto input_cnt = static_cast<unsigned int>(((ins.opcode >> 2) & 0x11) + 1);
-    auto opcode = static_cast<unsigned int>(ins.funct);
-
-    int i1_addr = reg_unit_->readRegister(ins.rs, false);
-    int i2_addr = (input_cnt < 2) ? 0 : reg_unit_->readRegister(ins.rt, false);
-    int i3_addr = (input_cnt < 3) ? 0 : reg_unit_->readRegister(SpecialRegId::input_3_address, true);
-    int i4_addr = (input_cnt < 4) ? 0 : reg_unit_->readRegister(SpecialRegId::input_4_address, true);
-
-    int i1_bit_width = reg_unit_->readRegister(SpecialRegId::simd_input_1_bit_width, true);
-    int i2_bit_width = (input_cnt < 2) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_2_bit_width, true);
-    int i3_bit_width = (input_cnt < 3) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_3_bit_width, true);
-    int i4_bit_width = (input_cnt < 4) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_4_bit_width, true);
-
-    p.inputs_bit_width = SIMDInputsArray{i1_bit_width, i2_bit_width, i3_bit_width, i4_bit_width};
-    p.inputs_address_byte = SIMDInputsArray{i1_addr, i2_addr, i3_addr, i4_addr};
-    p.output_bit_width = reg_unit_->readRegister(SpecialRegId::simd_output_bit_width, true);
-    p.output_address_byte = reg_unit_->readRegister(ins.rd, false);
-    p.len = reg_unit_->readRegister(ins.re, false);
-
-    const auto& [ins_cfg, func_cfg] = getSIMDInstructionAndFunctor(input_cnt, opcode, p.inputs_bit_width);
-    if (ins_cfg == nullptr || func_cfg == nullptr) {
-        std::cerr << fmt::format("No match {}, Invalid SIMD instruction: \n{}",
-                                 (ins_cfg == nullptr ? "inst" : "functor"), p.toString());
-        return std::make_shared<ExecuteInsPayload>(InstructionPayload{.unit_type = ExecuteUnitType::none});
+std::shared_ptr<ExecuteInsPayload> DecoderV2::decodeVectorIns(const InstV2& ins) const {
+    auto op = ins.getOpcodeEnum();
+    if (op == +OPCODE::VEC_OP) {
+        return decodeSIMDIns(ins);
     }
-    p.ins_cfg = ins_cfg;
-    p.func_cfg = func_cfg;
-
-    return std::make_shared<SIMDInsPayload>(p);
+    if (op == +OPCODE::REDUCE) {
+        return decodeReduceIns(ins);
+    }
+    return nullptr;
 }
 
 std::shared_ptr<ExecuteInsPayload> DecoderV2::decodeScalarIns(const InstV2& ins) const {
@@ -212,6 +188,60 @@ int DecoderV2::decodeControlInsAndGetPCIncrement(const InstV2& ins) const {
         default: break;
     }
     return branch ? ins.imm : 1;
+}
+
+std::shared_ptr<ExecuteInsPayload> DecoderV2::decodeSIMDIns(const InstV2& ins) const {
+    SIMDInsPayload p;
+    p.ins.unit_type = ExecuteUnitType::simd;
+
+    auto input_cnt = static_cast<unsigned int>(((ins.opcode >> 2) & 0x11) + 1);
+    auto opcode = static_cast<unsigned int>(ins.funct);
+
+    int i1_addr = reg_unit_->readRegister(ins.rs, false);
+    int i2_addr = (input_cnt < 2) ? 0 : reg_unit_->readRegister(ins.rt, false);
+    int i3_addr = (input_cnt < 3) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_3_address, true);
+    int i4_addr = (input_cnt < 4) ? 0 : reg_unit_->readRegister(SpecialRegId::simd_input_4_address, true);
+
+    int i1_bit_width = reg_unit_->readRegister(SpecialRegId::vector_input_1_bit_width, true);
+    int i2_bit_width = (input_cnt < 2) ? 0 : reg_unit_->readRegister(SpecialRegId::vector_input_2_bit_width, true);
+    int i3_bit_width = (input_cnt < 3) ? 0 : reg_unit_->readRegister(SpecialRegId::vector_input_3_bit_width, true);
+    int i4_bit_width = (input_cnt < 4) ? 0 : reg_unit_->readRegister(SpecialRegId::vector_input_4_bit_width, true);
+
+    p.inputs_bit_width = SIMDInputsArray{i1_bit_width, i2_bit_width, i3_bit_width, i4_bit_width};
+    p.inputs_address_byte = SIMDInputsArray{i1_addr, i2_addr, i3_addr, i4_addr};
+    p.output_bit_width = reg_unit_->readRegister(SpecialRegId::vector_output_bit_width, true);
+    p.output_address_byte = reg_unit_->readRegister(ins.rd, false);
+    p.len = reg_unit_->readRegister(ins.re, false);
+
+    const auto& [ins_cfg, func_cfg] = getSIMDInstructionAndFunctor(input_cnt, opcode, p.inputs_bit_width);
+    if (ins_cfg == nullptr || func_cfg == nullptr) {
+        std::cerr << fmt::format("No match {}, Invalid SIMD instruction: \n{}",
+                                 (ins_cfg == nullptr ? "inst" : "functor"), p.toString());
+        return std::make_shared<ExecuteInsPayload>(InstructionPayload{.unit_type = ExecuteUnitType::none});
+    }
+    p.ins_cfg = ins_cfg;
+    p.func_cfg = func_cfg;
+
+    return std::make_shared<SIMDInsPayload>(p);
+}
+
+std::shared_ptr<ExecuteInsPayload> DecoderV2::decodeReduceIns(const InstV2& ins) const {
+    ReduceInsPayload p;
+    p.ins.unit_type = ExecuteUnitType::reduce;
+
+    p.input_bit_width = reg_unit_->readRegister(SpecialRegId::vector_input_1_bit_width, true);
+    p.output_bit_width = reg_unit_->readRegister(SpecialRegId::vector_output_bit_width, true);
+    p.input_address_byte = reg_unit_->readRegister(ins.rs, false);
+    p.output_address_byte = reg_unit_->readRegister(ins.rd, false);
+    p.length = reg_unit_->readRegister(ins.rt, false);
+
+    p.func_cfg = getReduceFunctor(static_cast<unsigned int>(ins.funct), p.input_bit_width, p.output_bit_width);
+    if (p.func_cfg == nullptr) {
+        std::cerr << fmt::format("No match functor, Invalid Reduce instruction: \n{}", p.toString());
+        return std::make_shared<ExecuteInsPayload>(InstructionPayload{.unit_type = ExecuteUnitType::none});
+    }
+
+    return std::make_shared<ReduceInsPayload>(p);
 }
 
 }  // namespace cimsim

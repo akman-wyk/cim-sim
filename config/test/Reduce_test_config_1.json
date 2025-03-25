@@ -1,0 +1,139 @@
+{
+  "chip_config": {
+    "core_cnt": 1,
+    "core_config": {
+      "control_unit_config": {
+        "controller_static_power_mW": 0.0,
+        "controller_dynamic_power_mW": 0.0,
+        "fetch_static_power_mW": 0.0,
+        "fetch_dynamic_power_mW": 0.0,
+        "decode_static_power_mW": 0.0,
+        "decode_dynamic_power_mW": 0.0
+      },
+      "register_unit_config": {
+        "static_power_mW": 0.0,
+        "dynamic_power_mW": 0.0,
+        "special_register_binding": [
+          {
+            "special": 29,
+            "general": 24
+          }
+        ]
+      },
+      "scalar_unit_config": {
+        "default_functor_static_power_mW": 0.0,
+        "default_functor_dynamic_power_mW": 0.0,
+        "functor_list": [
+          {
+            "inst_name": "scalar-RR-add",
+            "static_power_mW": 0.0,
+            "dynamic_power_mW": 0.0
+          }
+        ]
+      },
+      "simd_unit_config": {
+        "pipeline": true,
+        "functor_list": [],
+        "instruction_list": []
+      },
+      "reduce_unit_config": {
+        "pipeline": true,
+        "functor_list": [
+          {
+            "name": "test1",
+            "funct": 0,
+            "input_bit_width": 32,
+            "output_bit_width": 32,
+            "reduce_input_cnt": 32,
+            "latency_cycle": 3,
+            "pipeline_stage_cnt": 3,
+            "static_power_mW": 1.0,
+            "dynamic_power_mW": 1.0
+          },
+          {
+            "name": "test2",
+            "funct": 1,
+            "input_bit_width": 32,
+            "output_bit_width": 32,
+            "reduce_input_cnt": 64,
+            "latency_cycle": 6,
+            "pipeline_stage_cnt": 3,
+            "static_power_mW": 2.0,
+            "dynamic_power_mW": 2.0
+          }
+        ]
+      },
+      "cim_unit_config": {
+        "macro_total_cnt": 64,
+        "macro_group_size": 16,
+        "macro_size": {
+          "compartment_cnt_per_macro": 1,
+          "element_cnt_per_compartment": 1,
+          "row_cnt_per_element": 1,
+          "bit_width_per_row": 1
+        },
+        "ipu": {
+          "latency_cycle": 1,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0
+        },
+        "sram": {
+          "write_latency_cycle": 1,
+          "read_latency_cycle": 1,
+          "static_power_mW": 1.0,
+          "write_dynamic_power_per_bit_mW": 1.0,
+          "read_dynamic_power_per_bit_mW": 1.0
+        },
+        "adder_tree": {
+          "latency_cycle": 2,
+          "pipeline_stage_cnt": 2,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0
+        },
+        "shift_adder": {
+          "latency_cycle": 1,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0
+        },
+        "result_adder": {
+          "latency_cycle": 1,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0
+        },
+        "value_sparse": false,
+        "bit_sparse": false,
+        "input_bit_sparse": false
+      },
+      "local_memory_unit_config": {
+        "memory_list": [
+          {
+            "name": "local_reg_buffer",
+            "type": "reg_buffer",
+            "duplicate_cnt": 2,
+            "hardware_config": {
+              "size_byte": 16384,
+              "read_max_width_byte": 128,
+              "write_max_width_byte": 128,
+              "rw_min_unit_byte": 4,
+              "static_power_mW": 1.0,
+              "rw_dynamic_power_per_unit_mW": 0.1
+            }
+          }
+        ]
+      },
+      "transfer_unit_config": {
+        "pipeline": true
+      }
+    },
+    "address_space_config": [
+      {"name": "cim_unit", "size": 1024},
+      {"name": "local_reg_buffer", "size": 16384}
+    ]
+  },
+  "sim_config": {
+    "period_ns": 5.0,
+    "sim_mode": "run_one_round",
+    "data_mode": "not_real_data",
+    "sim_time_ms": 1.0
+  }
+}

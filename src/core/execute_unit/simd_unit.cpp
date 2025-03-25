@@ -16,10 +16,11 @@ SIMDFunctorPipelineStage::SIMDFunctorPipelineStage(const sc_module_name& name, c
     : BaseModule(name, base_info)
     , dynamic_power_per_functor_mW_(config.dynamic_power_per_functor_mW)
     , pipeline_stage_latency_cycle_(config.latency_cycle / config.pipeline_stage_cnt)
-    , functor_energy_counter_(functor_energy_counter){SC_THREAD(processExecute)}
+    , functor_energy_counter_(functor_energy_counter) {
+    SC_THREAD(processExecute);
+}
 
-          SIMDStageSocket
-          * SIMDFunctorPipelineStage::getExecuteSocket() {
+SIMDStageSocket* SIMDFunctorPipelineStage::getExecuteSocket() {
     return &exec_socket_;
 }
 
@@ -65,7 +66,7 @@ SIMDFunctor::SIMDFunctor(const sc_module_name& name, const BaseInfo& base_info, 
     functor_energy_counter_.setStaticPowerMW(functor_config_.static_power_per_functor_mW * functor_config_.functor_cnt);
 }
 
-SIMDStageSocket* SIMDFunctor::getExecuteSocket() {
+SIMDStageSocket* SIMDFunctor::getExecuteSocket() const {
     return stage_list_[0]->getExecuteSocket();
 }
 
@@ -134,7 +135,7 @@ void SIMDUnit::processReadStage() {
         read_stage_socket_.waitUntilStart();
 
         const auto& payload = read_stage_socket_.payload;
-        CORE_LOG(fmt::format("simd read start, pc: {}, ins id: {}, batch: {}", payload.ins_info->ins.pc,
+        CORE_LOG(fmt::format("SIMD read start, pc: {}, ins id: {}, batch: {}", payload.ins_info->ins.pc,
                              payload.ins_info->ins.ins_id, payload.batch_info->batch_num));
 
         for (const auto& vector_input : payload.ins_info->vector_inputs) {
@@ -160,7 +161,7 @@ void SIMDUnit::processWriteStage() {
         write_stage_socket_.waitUntilStart();
 
         const auto& payload = write_stage_socket_.payload;
-        CORE_LOG(fmt::format("simd write start, pc: {}, ins id: {}, batch: {}", payload.ins_info->ins.pc,
+        CORE_LOG(fmt::format("SIMD write start, pc: {}, ins id: {}, batch: {}", payload.ins_info->ins.pc,
                              payload.ins_info->ins.ins_id, payload.batch_info->batch_num));
 
         if (payload.batch_info->last_batch) {

@@ -12,8 +12,10 @@ static constexpr int SPECIAL_REG_NUM = 32;
 static constexpr int WORD_BYTE_SIZE = 4;
 
 static constexpr int SIMD_MAX_INPUT_NUM = 4;
-static constexpr int SIMD_MAX_OPCODE = 255;
+static constexpr int SIMD_MAX_OPCODE = 63;
 static constexpr int SIMD_INSTRUCTION_OPCODE_BIT_LENGTH = 8;
+
+static constexpr int REDUCE_MAX_FUNCT = 63;
 
 static constexpr int BYTE_TO_BIT = 8;
 static constexpr unsigned char BYTE_MAX_VALUE = 0xff;
