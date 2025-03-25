@@ -137,4 +137,16 @@ struct CimControlInsPayload : public ExecuteInsPayload {
                                          output_mask_addr_byte)
 };
 
+struct ReduceInsPayload : public ExecuteInsPayload {
+    const ReduceFunctorConfig* func_cfg{nullptr};
+
+    int input_bit_width{0}, output_bit_width{0};
+    int input_address_byte{0}, output_address_byte{0};
+
+    int length{0};
+
+    DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(ReduceInsPayload, ins, func_cfg, input_bit_width, output_bit_width,
+                                         input_address_byte, output_address_byte, length)
+};
+
 }  // namespace cimsim

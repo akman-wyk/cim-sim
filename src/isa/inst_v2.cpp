@@ -90,6 +90,7 @@ std::string InstV2::toString() const {
             ss << fmt::format("to ${}, i_cnt: {}, len: ${}, func: {}", rd, input_cnt, re, funct);
             break;
         }
+        case OPCODE::REDUCE: ss << fmt::format("${} to ${}, len: ${}, func: {}", rs, rd, rt, funct); break;
         case OPCODE::SC_RR: {
             ss.str(fmt::format("{} ${} ${} to ${}", SC_RR_FUNCT::_from_integral(funct)._to_string(), rs, rt, rd));
             break;
@@ -134,6 +135,7 @@ std::string InstV2::toJsonString() const {
 
     switch (getOpcodeEnum()) {
         case OPCODE::VEC_OP:
+        case OPCODE::REDUCE:
         case OPCODE::SC_RR: ss << fmt::format(", \"{}\": {}", "funct", funct); break;
         case OPCODE::SC_RI: {
             ss << fmt::format(", \"{}\": {}", "funct", funct);

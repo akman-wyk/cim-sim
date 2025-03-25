@@ -63,6 +63,7 @@ public:
     int ins_id{-1};
     ExecuteUnitType unit_type{ExecuteUnitType::none};
     const SIMDFunctorConfig* simd_functor_cfg{nullptr};
+    const ReduceFunctorConfig* reduce_functor_cfg{nullptr};
 
     MemoryBitmap read_memory_id;
     MemoryBitmap write_memory_id;

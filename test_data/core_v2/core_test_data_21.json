@@ -1,0 +1,20 @@
+{
+  "comments": "test fot Reduce instructions, 4096-to-1, functor: 32-inputs-3-cycles-3-pipeline-stages, pipeline",
+  "code": [
+    {"opcode": 45, "rd": 16, "imm": 32, "asm": "S_LI 8 to $16"},
+    {"opcode": 45, "rd": 20, "imm": 32, "asm": "S_LI 8 to $20"},
+    {"opcode": 44, "rd": 0, "imm": 1024, "asm": "G_LI 1024 to $0"},
+    {"opcode": 44, "rd": 2, "imm": 17408, "asm": "G_LI 17408 to $2"},
+    {"opcode": 44, "rd": 1, "imm": 4096, "asm": "G_LI 4096 to $1"},
+    {"opcode": 17, "rs": 0, "rt": 1, "rd": 2, "funct": 0, "asm": "REDUCE $0 to $2, len: $1, func: 0"},
+    {"opcode": 44, "rd": 1, "imm": 128, "asm": "G_LI 128 to $1"},
+    {"opcode": 17, "rs": 2, "rt": 1, "rd": 0, "funct": 0, "asm": "REDUCE $2 to $0, len: $1, func: 0"},
+    {"opcode": 44, "rd": 1, "imm": 4, "asm": "G_LI 4 to $1"},
+    {"opcode": 17, "rs": 0, "rt": 1, "rd": 2, "funct": 0, "asm": "REDUCE $0 to $2, len: $1, func: 0"},
+    {"opcode": 45, "rd": 0, "imm": 0, "asm": "S_LI 0 to $0"}
+  ],
+  "expected": {
+    "time_ns": 740,
+    "energy_pj": 2875.5
+  }
+}

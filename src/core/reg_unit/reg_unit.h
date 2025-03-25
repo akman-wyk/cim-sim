@@ -16,8 +16,9 @@ BETTER_ENUM(SpecialRegId, int,  // NOLINT(*-explicit-constructor, *-no-recursion
             activation_group_num = 4, activation_element_col_num = 5, group_input_step = 6, value_sparse_mask_addr = 7,
             bit_sparse_meta_addr = 8,
 
-            simd_input_1_bit_width = 16, simd_input_2_bit_width = 17, simd_input_3_bit_width = 18,
-            simd_input_4_bit_width = 19, simd_output_bit_width = 20, input_3_address = 21, input_4_address = 22)
+            vector_input_1_bit_width = 16, vector_input_2_bit_width = 17, vector_input_3_bit_width = 18,
+            vector_input_4_bit_width = 19, vector_output_bit_width = 20, simd_input_3_address = 21,
+            simd_input_4_address = 22)
 
 struct RegUnitWritePayload {
     int id{0}, value{0};

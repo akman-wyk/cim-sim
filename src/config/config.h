@@ -67,12 +67,13 @@ struct ScalarUnitConfig {
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(ScalarUnitConfig)
 };
 
+[[nodiscard]] static bool checkDataWidth(int width);
+
 struct SIMDDataWidthConfig {
     // data bit-width of input and output of SIMD functor
     SIMDInputsArray inputs{0, 0, 0, 0};
     int output{0};  // bit
 
-    [[nodiscard]] static bool checkDataWidth(int width);
     [[nodiscard]] bool inputBitWidthMatch(const SIMDDataWidthConfig& other) const;
     [[nodiscard]] bool checkValid(unsigned int input_cnt, bool check_output) const;
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(SIMDDataWidthConfig)
@@ -122,6 +123,31 @@ struct SIMDUnitConfig {
 
     [[nodiscard]] bool checkValid() const;
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(SIMDUnitConfig)
+};
+
+struct ReduceFunctorConfig {
+    std::string name{};
+    unsigned int funct{0};
+
+    int input_bit_width{0};
+    int output_bit_width{0};
+
+    int reduce_input_cnt{32};
+    int latency_cycle{1};
+    int pipeline_stage_cnt{1};
+    double static_power_mW{1.0};
+    double dynamic_power_mW{1.0};
+
+    [[nodiscard]] bool checkValid() const;
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(ReduceFunctorConfig)
+};
+
+struct ReduceUnitConfig {
+    bool pipeline{false};
+    std::vector<ReduceFunctorConfig> functor_list{};
+
+    [[nodiscard]] bool checkValid() const;
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(ReduceUnitConfig)
 };
 
 struct CimMacroSizeConfig {
@@ -311,6 +337,7 @@ struct CoreConfig {
     RegisterUnitConfig register_unit_config{};
     ScalarUnitConfig scalar_unit_config{};
     SIMDUnitConfig simd_unit_config{};
+    ReduceUnitConfig reduce_unit_config{};
     CimUnitConfig cim_unit_config{};
     MemoryUnitConfig local_memory_unit_config{};
     TransferUnitConfig transfer_unit_config{};

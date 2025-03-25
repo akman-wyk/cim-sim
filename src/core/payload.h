@@ -11,7 +11,7 @@
 namespace cimsim {
 
 BETTER_ENUM(ExecuteUnitType, int,  // NOLINT(*-explicit-constructor, *-no-recursion)
-            none = 0, scalar, simd, transfer, cim_compute, cim_control, control)
+            none = 0, scalar, simd, reduce, transfer, cim_compute, cim_control, control)
 
 struct InstructionPayload {
     int pc{-1};

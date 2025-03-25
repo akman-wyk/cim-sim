@@ -301,6 +301,36 @@
           "config_file": "config/test/SIMD_test_config_2.json",
           "instruction_file": "test_data/core_v2/core_test_data_20.json",
           "report_file": "report/Core_test_report.txt"
+        },
+        {
+          "comments": "test fot Reduce instructions, 4096-to-1, functor: 32-inputs-3-cycles-3-pipeline-stages, pipeline",
+          "config_file": "config/test/Reduce_test_config_1.json",
+          "instruction_file": "test_data/core_v2/core_test_data_21.json",
+          "report_file": "report/Core_test_report.txt"
+        },
+        {
+          "comments": "test fot Reduce instructions, 128-to-1, functor: 32-inputs-3-cycles-3-pipeline-stages, no pipeline",
+          "config_file": "config/test/Reduce_test_config_2.json",
+          "instruction_file": "test_data/core_v2/core_test_data_22.json",
+          "report_file": "report/Core_test_report.txt"
+        },
+        {
+          "comments": "test fot Reduce instructions, 8192-to-2, functor: 64-inputs-6-cycles-3-pipeline-stages, pipeline",
+          "config_file": "config/test/Reduce_test_config_2.json",
+          "instruction_file": "test_data/core_v2/core_test_data_23.json",
+          "report_file": "report/Core_test_report.txt"
+        },
+        {
+          "comments": "test fot Reduce instructions, with 2 functors",
+          "config_file": "config/test/Reduce_test_config_2.json",
+          "instruction_file": "test_data/core_v2/core_test_data_24.json",
+          "report_file": "report/Core_test_report.txt"
+        },
+        {
+          "comments": "test fot Reduce instructions, 32-to-8, functor: 4-inputs-2-cycles-2-pipeline-stages, 3 cycles write, pipeline",
+          "config_file": "config/test/Reduce_test_config_3.json",
+          "instruction_file": "test_data/core_v2/core_test_data_25.json",
+          "report_file": "report/Core_test_report.txt"
         }
       ]
     },

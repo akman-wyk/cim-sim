@@ -14,6 +14,7 @@
 #include "execute_unit/cim_compute_unit.h"
 #include "execute_unit/cim_control_unit.h"
 #include "execute_unit/execute_unit.h"
+#include "execute_unit/reduce_unit.h"
 #include "execute_unit/scalar_unit.h"
 #include "execute_unit/simd_unit.h"
 #include "execute_unit/transfer_unit.h"
@@ -85,6 +86,7 @@ private:
     // execute units
     ScalarUnit scalar_unit_;
     SIMDUnit simd_unit_;
+    ReduceUnit reduce_unit_;
     TransferUnit transfer_unit_;
     CimComputeUnit cim_compute_unit_;
     CimControlUnit cim_control_unit_;

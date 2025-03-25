@@ -33,63 +33,33 @@
       },
       "simd_unit_config": {
         "pipeline": true,
+        "functor_list": [],
+        "instruction_list": []
+      },
+      "reduce_unit_config": {
+        "pipeline": true,
         "functor_list": [
           {
-            "name": "quantify",
-            "input_cnt": 2,
-            "data_bit_width": {
-              "input1": 32,
-              "input2": 16,
-              "output": 4
-            },
-            "functor_cnt": 32,
-            "latency_cycle": 1,
-            "static_power_per_functor_mW": 1.0,
-            "dynamic_power_per_functor_mW": 1.0
+            "name": "test1",
+            "funct": 0,
+            "input_bit_width": 32,
+            "output_bit_width": 32,
+            "reduce_input_cnt": 32,
+            "latency_cycle": 3,
+            "pipeline_stage_cnt": 3,
+            "static_power_mW": 1.0,
+            "dynamic_power_mW": 1.0
           },
           {
-            "name": "test",
-            "input_cnt": 1,
-            "data_bit_width": {
-              "input1": 8,
-              "output": 8
-            },
-            "functor_cnt": 16,
-            "latency_cycle": 1,
-            "static_power_per_functor_mW": 1.0,
-            "dynamic_power_per_functor_mW": 1.0
-          }
-        ],
-        "instruction_list": [
-          {
-            "name": "vqv",
-            "input_cnt": 2,
-            "opcode": "0x3f",
-            "input1_type": "vector",
-            "input2_type": "vector",
-            "functor_binding_list": [
-              {
-                "input_bit_width": {
-                  "input1": 32,
-                  "input2": 16
-                },
-                "functor_name": "quantify"
-              }
-            ]
-          },
-          {
-            "name": "test",
-            "input_cnt": 1,
-            "opcode": "0x00",
-            "input1_type": "vector",
-            "functor_binding_list": [
-              {
-                "input_bit_width": {
-                  "input1": 8
-                },
-                "functor_name": "test"
-              }
-            ]
+            "name": "test2",
+            "funct": 1,
+            "input_bit_width": 32,
+            "output_bit_width": 32,
+            "reduce_input_cnt": 64,
+            "latency_cycle": 6,
+            "pipeline_stage_cnt": 3,
+            "static_power_mW": 0.5,
+            "dynamic_power_mW": 0.5
           }
         ]
       },
@@ -130,49 +100,31 @@
           "static_power_mW": 1.0,
           "dynamic_power_mW": 1.0
         },
-        "value_sparse": true,
-        "value_sparse_config": {
-          "mask_bit_width": 1,
-          "latency_cycle": 1,
-          "static_power_mW": 1.0,
-          "dynamic_power_mW": 1.0,
-          "output_macro_group_cnt": 1
-        },
-        "bit_sparse": true,
-        "bit_sparse_config": {
-          "mask_bit_width": 3,
-          "latency_cycle": 1,
-          "static_power_mW": 1.0,
-          "dynamic_power_mW": 1.0,
-          "unit_byte": 96,
-          "reg_buffer_static_power_mW": 1.0,
-          "reg_buffer_dynamic_power_mW_per_unit": 1.0
-        },
+        "value_sparse": false,
+        "bit_sparse": false,
         "input_bit_sparse": false
       },
       "local_memory_unit_config": {
         "memory_list": [
           {
-            "name": "l1",
+            "name": "local_ram_1",
             "type": "ram",
             "hardware_config": {
-              "size_byte": 1024,
-              "width_byte": 16,
+              "size_byte": 32768,
+              "width_byte": 128,
               "write_latency_cycle": 1,
               "read_latency_cycle": 1,
               "static_power_mW": 1.0,
               "write_dynamic_power_mW": 1.0,
-              "read_dynamic_power_mW": 1.0,
-              "has_image": true,
-              "image_file": "../test_data/core/transfer_memory_image.bin"
+              "read_dynamic_power_mW": 1.0
             }
           },
           {
-            "name": "l2",
+            "name": "local_ram_2",
             "type": "ram",
             "hardware_config": {
               "size_byte": 1024,
-              "width_byte": 16,
+              "width_byte": 64,
               "write_latency_cycle": 1,
               "read_latency_cycle": 1,
               "static_power_mW": 1.0,
@@ -188,14 +140,14 @@
     },
     "address_space_config": [
       {"name": "cim_unit", "size": 1024},
-      {"name": "l1", "size": 1024},
-      {"name": "l2", "size": 1024}
+      {"name": "local_ram_1", "size": 32768},
+      {"name": "local_ram_2", "size": 1024}
     ]
   },
   "sim_config": {
     "period_ns": 5.0,
     "sim_mode": "run_one_round",
-    "data_mode": "real_data",
+    "data_mode": "not_real_data",
     "sim_time_ms": 1.0
   }
 }
