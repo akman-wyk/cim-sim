@@ -118,8 +118,10 @@ private:
     }
 
     void processResourceRelease() {
-        if (auto ins_id = signals_.resource_release_.read().ins_id; ins_id != -1) {
-            CORE_LOG(fmt::format("cim set ins finish, pc: {}", ins_id));
+        for (int ins_id : signals_.resource_release_.read().ins_id_list_) {
+            if (ins_id != -1) {
+                CORE_LOG(fmt::format("cim set ins finish, pc: {}", ins_id));
+            }
         }
     }
 

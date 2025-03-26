@@ -56,7 +56,8 @@ void ExecuteUnit::checkInst() {
 }
 
 void ExecuteUnit::processReleaseResource() {
-    ports_.resource_release_.write(ResourceReleasePayload{.ins_id = release_resource_ins_id_});
+    ports_.resource_release_.write(ResourceReleasePayload{.ins_id_list_ = release_resource_ins_id_list_});
+    release_resource_ins_id_list_.clear();
 }
 
 void ExecuteUnit::processFinishRun() {
@@ -77,7 +78,7 @@ void ExecuteUnit::readyForNextExecute() {
 }
 
 void ExecuteUnit::releaseResource(int ins_id) {
-    release_resource_ins_id_ = ins_id;
+    release_resource_ins_id_list_.push_back(ins_id);
     release_resource_trigger_.notify(SC_ZERO_TIME);
 }
 

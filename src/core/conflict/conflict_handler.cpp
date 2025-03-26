@@ -34,9 +34,12 @@ void ConflictHandler::processUnitResourceAllocate() {
 }
 
 void ConflictHandler::processUnitResourceRelease() {
-    int ins_id = unit_ins_resource_release_.read().ins_id;
-    if (unit_ins_resource_allocate_map_.count(ins_id) != 0) {
-        unit_ins_resource_allocate_map_.erase(ins_id);
+    size_t erase_id_cnt{0};
+    for (int ins_id : unit_ins_resource_release_.read().ins_id_list_) {
+        erase_id_cnt += unit_ins_resource_allocate_map_.erase(ins_id);
+    }
+
+    if (erase_id_cnt > 0) {
         unit_resource_allocate_ = ResourceAllocatePayload{.unit_type = execute_unit_type_};
         for (const auto& [ins_pc, ins_data_conflict_payload] : unit_ins_resource_allocate_map_) {
             unit_resource_allocate_ += ins_data_conflict_payload;

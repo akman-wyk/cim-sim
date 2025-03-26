@@ -39,4 +39,30 @@ struct InstructionPayload {
     DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT_INTRUSIVE(InstructionPayload, pc, ins_id)
 };
 
+BETTER_ENUM(DataPathType, int,  // NOLINT(*-explicit-constructor, *-no-recursion)
+            in_core_bus, extra_core_bus, local_dedicated_data_path)
+
+struct DataPathPayload {
+    DataPathType type{DataPathType::in_core_bus};
+    int local_dedicated_data_path_id{-1};
+
+    friend std::ostream& operator<<(std::ostream& out, const DataPathPayload& data_path_payload) {
+        out << "type: " << data_path_payload.type
+            << ", local_dedicated_data_path_id: " << data_path_payload.local_dedicated_data_path_id << "\n";
+        return out;
+    }
+
+    bool operator==(const DataPathPayload& another) const {
+        return type == another.type && local_dedicated_data_path_id == another.local_dedicated_data_path_id;
+    }
+
+    [[nodiscard]] bool conflictWith(const DataPathPayload& another) const {
+        if (type == +DataPathType::local_dedicated_data_path &&
+            another.type == +DataPathType::local_dedicated_data_path) {
+            return local_dedicated_data_path_id == another.local_dedicated_data_path_id;
+        }
+        return type == another.type;
+    }
+};
+
 }  // namespace cimsim
