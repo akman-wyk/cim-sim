@@ -24,32 +24,4 @@ void from_json(const nlohmann::ordered_json& j, TransferType& m) {
     m = TransferType::_from_string(str.c_str());
 }
 
-std::stringstream& operator<<(std::stringstream& out, const std::array<int, 4>& arr) {
-    out << arr[0];
-    for (int i = 1; i < arr.size(); i++) {
-        out << ", " << arr[i];
-    }
-    return out;
-}
-
-std::stringstream& operator<<(std::stringstream& out, const std::vector<int>& list) {
-    for (auto it = list.begin(); it != list.end(); ++it) {
-        if (it != list.begin()) {
-            out << ", ";
-        }
-        out << *it;
-    }
-    return out;
-}
-
-std::stringstream& operator<<(std::stringstream& out, const std::unordered_map<int, int>& map) {
-    for (auto it = map.begin(); it != map.end(); ++it) {
-        if (it != map.begin()) {
-            out << ", ";
-        }
-        out << it->first << ": " << it->second;
-    }
-    return out;
-}
-
 }  // namespace cimsim

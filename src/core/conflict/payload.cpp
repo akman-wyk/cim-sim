@@ -81,7 +81,8 @@ bool ResourceAllocatePayload::conflictWithIns(const ResourceAllocatePayload& ins
         reduce_functor_cfg != ins_resource_allocate.reduce_functor_cfg) {
         return true;
     }
-    if (ins_resource_allocate.unit_type == this->unit_type) {
+    if (ins_resource_allocate.unit_type == this->unit_type &&
+        ins_resource_allocate.data_path_payload.conflictWith(this->data_path_payload)) {
         return this->write_memory_id.intersectionWith(ins_resource_allocate.read_memory_id);
     }
     return this->used_memory_id.intersectionWith(ins_resource_allocate.used_memory_id);
@@ -96,6 +97,6 @@ ResourceAllocatePayload& ResourceAllocatePayload::operator+=(const cimsim::Resou
     return *this;
 }
 
-DEFINE_CIM_PAYLOAD_FUNCTIONS(ResourceReleasePayload, ins_id)
+DEFINE_CIM_PAYLOAD_FUNCTIONS(ResourceReleasePayload, ins_id_list_)
 
 }  // namespace cimsim

@@ -168,6 +168,8 @@ std::shared_ptr<ExecuteInsPayload> DecoderV2::decodeTransferIns(const InstV2& in
         p.size_byte = reg_unit_->readRegister(ins.re, false);
         p.transfer_id_tag = reg_unit_->readRegister(ins.rf, false);
     }
+    p.data_path_payload.type =
+        p.type == +TransferType::local_trans ? DataPathType::in_core_bus : DataPathType::extra_core_bus;
     return std::make_shared<TransferInsPayload>(p);
 }
 

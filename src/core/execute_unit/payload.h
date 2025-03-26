@@ -8,6 +8,7 @@
 #include "core/payload.h"
 #include "systemc.h"
 #include "util/macro_scope.h"
+#include "util/util.h"
 
 namespace cimsim {
 
@@ -21,12 +22,6 @@ BETTER_ENUM(CimControlOperator, int,  // NOLINT(*-explicit-constructor, *-no-rec
 BETTER_ENUM(TransferType, int,  // NOLINT(*-explicit-constructor, *-no-recursion)
             local_trans = 0, global_load, global_store, send, receive)
 DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(TransferType)
-
-std::stringstream& operator<<(std::stringstream& out, const std::array<int, 4>& arr);
-
-std::stringstream& operator<<(std::stringstream& out, const std::vector<int>& list);
-
-std::stringstream& operator<<(std::stringstream& out, const std::unordered_map<int, int>& map);
 
 struct ExecuteInsPayload {
     ExecuteInsPayload() = default;
@@ -71,6 +66,7 @@ struct SIMDInsPayload : public ExecuteInsPayload {
 
 struct TransferInsPayload : public ExecuteInsPayload {
     TransferType type{TransferType::local_trans};
+    DataPathPayload data_path_payload;
 
     int src_address_byte{0};
     int dst_address_byte{0};
@@ -80,8 +76,8 @@ struct TransferInsPayload : public ExecuteInsPayload {
     int dst_id{0};
     int transfer_id_tag{0};
 
-    DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(TransferInsPayload, ins, type, src_address_byte, dst_address_byte, size_byte,
-                                         src_id, dst_id, transfer_id_tag)
+    DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(TransferInsPayload, ins, type, data_path_payload, src_address_byte,
+                                         dst_address_byte, size_byte, src_id, dst_id, transfer_id_tag)
 };
 
 struct ScalarInsPayload : public ExecuteInsPayload {

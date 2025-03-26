@@ -10,102 +10,78 @@
 
 namespace cimsim {
 
-TransferUnit::TransferUnit(const sc_module_name& name, const TransferUnitConfig& config, const BaseInfo& base_info,
-                           Clock* clk, int global_memory_switch_id)
-    : ExecuteUnit(name, base_info, clk, ExecuteUnitType::transfer)
-    , config_(config)
-    , global_memory_switch_id_(global_memory_switch_id) {
+LocalTransferDataPath::LocalTransferDataPath(const sc_module_name& name, const BaseInfo& base_info,
+                                             TransferUnit& transfer_unit, bool pipeline)
+    : BaseModule(name, base_info), transfer_unit_(transfer_unit), pipeline_(pipeline) {
     SC_THREAD(processIssue)
-    SC_THREAD(processReadSubmodule)
-    SC_THREAD(processWriteSubmodule)
+    SC_THREAD(processReadStage)
+    SC_THREAD(processWriteStage)
 }
 
-void TransferUnit::processIssue() {
-    ports_.ready_port_.write(true);
+void LocalTransferDataPath::processIssue() {
     while (true) {
-        auto payload = waitForExecuteAndGetPayload<TransferInsPayload>();
+        exec_socket_.waitUntilStart();
 
-        const auto& [ins_info, conflict_payload] = decodeAndGetInfo(*payload);
-        ports_.resource_allocate_.write(conflict_payload);
-
-        if (payload->type == +TransferType::send) {
-            transmit_socket_.sendHandshake(payload->dst_id, payload->transfer_id_tag);
-        } else if (payload->type == +TransferType::receive) {
-            transmit_socket_.receiveHandshake(payload->src_id, payload->transfer_id_tag);
-        }
-
-        int process_times = IntDivCeil(payload->size_byte, ins_info.batch_max_data_size_byte);
-        TransferSubmodulePayload submodule_payload{.ins_info = std::make_shared<TransferInstructionInfo>(ins_info)};
-        for (int batch = 0; batch < process_times; batch++) {
-            submodule_payload.batch_info = std::make_shared<TransferBatchInfo>(TransferBatchInfo{
+        auto& payload = exec_socket_.payload;
+        LocalTransferStagePayload stage_payload{.ins_info = payload.ins_info};
+        for (int batch = 0; batch < payload.process_times; batch++) {
+            stage_payload.batch_info = std::make_shared<LocalTransferBatchInfo>(LocalTransferBatchInfo{
                 .batch_num = batch,
-                .batch_data_size_byte = (batch == process_times - 1)
-                                            ? payload->size_byte - batch * ins_info.batch_max_data_size_byte
-                                            : ins_info.batch_max_data_size_byte,
-                .last_batch = (batch == process_times - 1)});
-            waitAndStartNextStage(submodule_payload, read_submodule_socket_);
+                .batch_data_size_byte =
+                    (batch == payload.process_times - 1)
+                        ? payload.data_size_byte - batch * payload.ins_info->batch_max_data_size_byte
+                        : payload.ins_info->batch_max_data_size_byte,
+                .last_batch = (batch == payload.process_times - 1)});
+            waitAndStartNextStage(stage_payload, read_stage_socket_);
 
-            if (!submodule_payload.batch_info->last_batch) {
+            if (!stage_payload.batch_info->last_batch) {
                 wait(cur_ins_next_batch_);
             }
         }
 
-        readyForNextExecute();
+        exec_socket_.finish();
     }
 }
 
-void TransferUnit::processReadSubmodule() {
+void LocalTransferDataPath::processReadStage() {
     while (true) {
-        read_submodule_socket_.waitUntilStart();
+        read_stage_socket_.waitUntilStart();
 
-        auto& payload = read_submodule_socket_.payload;
-        CORE_LOG(fmt::format("transfer read start, pc: {}, batch: {}", payload.ins_info->ins.pc,
+        auto& payload = read_stage_socket_.payload;
+        CORE_LOG(fmt::format("local transfer read start, pc: {}, batch: {}", payload.ins_info->ins.pc,
                              payload.batch_info->batch_num));
 
         int address_byte = payload.ins_info->src_start_address_byte +
                            payload.batch_info->batch_num * payload.ins_info->batch_max_data_size_byte;
         int size_byte = payload.batch_info->batch_data_size_byte;
-        if (auto type = payload.ins_info->type; type == +TransferType::receive) {
-            transmit_socket_.receiveData(payload.ins_info->src_id);
-        } else if (type == +TransferType::global_load) {
-            payload.batch_info->data = memory_socket_.loadGlobal(payload.ins_info->ins, address_byte, size_byte);
-        } else {
-            payload.batch_info->data = memory_socket_.readLocal(payload.ins_info->ins, address_byte, size_byte);
-        }
+        payload.batch_info->data = memory_socket_.readLocal(payload.ins_info->ins, address_byte, size_byte);
 
-        waitAndStartNextStage(payload, write_submodule_socket_);
+        waitAndStartNextStage(payload, write_stage_socket_);
 
         if (!payload.batch_info->last_batch && payload.ins_info->use_pipeline) {
             cur_ins_next_batch_.notify();
         }
 
-        read_submodule_socket_.finish();
+        read_stage_socket_.finish();
     }
 }
 
-void TransferUnit::processWriteSubmodule() {
+void LocalTransferDataPath::processWriteStage() {
     while (true) {
-        write_submodule_socket_.waitUntilStart();
+        write_stage_socket_.waitUntilStart();
 
-        const auto& payload = write_submodule_socket_.payload;
-        CORE_LOG(fmt::format("transfer write start, pc: {}, batch: {}", payload.ins_info->ins.pc,
+        const auto& payload = write_stage_socket_.payload;
+        CORE_LOG(fmt::format("local transfer write start, pc: {}, batch: {}", payload.ins_info->ins.pc,
                              payload.batch_info->batch_num));
 
         if (payload.batch_info->last_batch) {
-            releaseResource(payload.ins_info->ins.ins_id);
+            transfer_unit_.releaseResource(payload.ins_info->ins.ins_id);
         }
 
         int address_byte = payload.ins_info->dst_start_address_byte +
                            payload.batch_info->batch_num * payload.ins_info->batch_max_data_size_byte;
         int size_byte = payload.batch_info->batch_data_size_byte;
-        if (auto type = payload.ins_info->type; type == +TransferType::send) {
-            transmit_socket_.sendData(payload.ins_info->dst_id, payload.ins_info->transfer_id_tag, address_byte,
-                                      size_byte);
-        } else if (type == +TransferType::global_store) {
-            memory_socket_.storeGlobal(payload.ins_info->ins, address_byte, size_byte, payload.batch_info->data);
-        } else {
-            memory_socket_.writeLocal(payload.ins_info->ins, address_byte, size_byte, payload.batch_info->data);
-        }
+        memory_socket_.writeLocal(payload.ins_info->ins, address_byte, size_byte, payload.batch_info->data);
 
         CORE_LOG(fmt::format("transfer write end, pc: {}, batch: {}", payload.ins_info->ins.pc,
                              payload.batch_info->batch_num));
@@ -115,52 +91,179 @@ void TransferUnit::processWriteSubmodule() {
         }
 
         if (payload.batch_info->last_batch) {
-            finishInstruction();
+            transfer_unit_.finishInstruction();
         }
 
-        write_submodule_socket_.finish();
+        write_stage_socket_.finish();
+    }
+}
+
+void LocalTransferDataPath::bindLocalMemoryUnit(MemoryUnit* local_memory_unit) {
+    memory_socket_.bindLocalMemoryUnit(local_memory_unit);
+}
+
+GlobalTransferDataPath::GlobalTransferDataPath(const sc_module_name& name, const BaseInfo& base_info,
+                                               TransferUnit& transfer_unit)
+    : BaseModule(name, base_info), transfer_unit_(transfer_unit) {
+    SC_THREAD(processIssue)
+    SC_THREAD(processReadStage)
+    SC_THREAD(processWriteStage)
+}
+
+void GlobalTransferDataPath::processIssue() {
+    while (true) {
+        exec_socket_.waitUntilStart();
+
+        auto& payload = exec_socket_.payload;
+
+        if (payload.ins_info->type == +TransferType::send) {
+            transmit_socket_.sendHandshake(payload.ins_info->dst_id, payload.ins_info->transfer_id_tag);
+        } else if (payload.ins_info->type == +TransferType::receive) {
+            transmit_socket_.receiveHandshake(payload.ins_info->src_id, payload.ins_info->transfer_id_tag);
+        }
+
+        GlobalTransferStagePayload stage_payload{.ins_info = payload.ins_info};
+        waitAndStartNextStage(stage_payload, read_stage_socket_);
+
+        exec_socket_.finish();
+    }
+}
+
+void GlobalTransferDataPath::processReadStage() {
+    while (true) {
+        read_stage_socket_.waitUntilStart();
+
+        auto& payload = read_stage_socket_.payload;
+        CORE_LOG(fmt::format("global transfer read start, pc: {}", payload.ins_info->ins.pc));
+
+        int address_byte = payload.ins_info->src_start_address_byte;
+        int size_byte = payload.ins_info->data_size_byte;
+        if (auto type = payload.ins_info->type; type == +TransferType::receive) {
+            transmit_socket_.receiveData(payload.ins_info->src_id);
+        } else if (type == +TransferType::global_load) {
+            transmit_socket_.loadGlobal(payload.ins_info->ins, address_byte, size_byte);
+        } else {
+            memory_socket_.readLocal(payload.ins_info->ins, address_byte, size_byte);
+        }
+
+        waitAndStartNextStage(payload, write_stage_socket_);
+
+        read_stage_socket_.finish();
+    }
+}
+
+void GlobalTransferDataPath::processWriteStage() {
+    while (true) {
+        write_stage_socket_.waitUntilStart();
+
+        const auto& payload = write_stage_socket_.payload;
+        CORE_LOG(fmt::format("global transfer write start, pc: {}", payload.ins_info->ins.pc));
+
+        transfer_unit_.releaseResource(payload.ins_info->ins.ins_id);
+
+        int address_byte = payload.ins_info->dst_start_address_byte;
+        int size_byte = payload.ins_info->data_size_byte;
+        if (auto type = payload.ins_info->type; type == +TransferType::send) {
+            transmit_socket_.sendData(payload.ins_info->dst_id, payload.ins_info->transfer_id_tag, address_byte,
+                                      size_byte);
+        } else if (type == +TransferType::global_store) {
+            transmit_socket_.storeGlobal(payload.ins_info->ins, address_byte, size_byte, {});
+        } else {
+            memory_socket_.writeLocal(payload.ins_info->ins, address_byte, size_byte, {});
+        }
+
+        CORE_LOG(fmt::format("global transfer write end, pc: {}", payload.ins_info->ins.pc));
+
+        transfer_unit_.finishInstruction();
+
+        write_stage_socket_.finish();
+    }
+}
+
+void GlobalTransferDataPath::bindLocalMemoryUnit(MemoryUnit* local_memory_unit) {
+    memory_socket_.bindLocalMemoryUnit(local_memory_unit);
+}
+
+void GlobalTransferDataPath::bindSwitchAndGlobalMemory(Switch* switch_, int global_memory_switch_id) {
+    transmit_socket_.bindSwitchAndGlobalMemory(switch_, core_id_, global_memory_switch_id);
+}
+
+TransferUnit::TransferUnit(const sc_module_name& name, const TransferUnitConfig& config, const BaseInfo& base_info,
+                           Clock* clk, int global_memory_switch_id)
+    : ExecuteUnit(name, base_info, clk, ExecuteUnitType::transfer)
+    , config_(config)
+    , in_core_bus_("InCoreBus", base_info, *this, config_.pipeline)
+    , extra_core_bus_("ExtraCoreBus", base_info, *this)
+    , global_memory_switch_id_(global_memory_switch_id) {
+    SC_THREAD(processIssue)
+}
+
+void TransferUnit::processIssue() {
+    ports_.ready_port_.write(true);
+    while (true) {
+        auto payload = waitForExecuteAndGetPayload<TransferInsPayload>();
+
+        ports_.resource_allocate_.write(getDataConflictInfo(*payload));
+        if (payload->data_path_payload.type == +DataPathType::in_core_bus) {
+            auto local_trans_payload = decodeLocalTransferInfo(*payload);
+            waitAndStartNextStage(local_trans_payload, in_core_bus_.exec_socket_);
+        } else if (payload->data_path_payload.type == +DataPathType::extra_core_bus) {
+            auto global_trans_payload = decodeGlobalTransferInfo(*payload);
+            waitAndStartNextStage(global_trans_payload, extra_core_bus_.exec_socket_);
+        }
+
+        readyForNextExecute();
     }
 }
 
 void TransferUnit::bindSwitch(Switch* switch_) {
-    memory_socket_.bindSwitchAndGlobalMemory(switch_, core_id_, global_memory_switch_id_);
-    transmit_socket_.bindSwitch(switch_, core_id_);
+    extra_core_bus_.bindSwitchAndGlobalMemory(switch_, global_memory_switch_id_);
 }
 
-std::pair<TransferInstructionInfo, ResourceAllocatePayload> TransferUnit::decodeAndGetInfo(
-    const TransferInsPayload& payload) const {
-    TransferInstructionInfo ins_info;
-    if (payload.type == +TransferType::local_trans) {
-        int src_memory_id = as_.getLocalMemoryId(payload.src_address_byte);
-        int dst_memory_id = as_.getLocalMemoryId(payload.dst_address_byte);
+void TransferUnit::bindLocalMemoryUnit(MemoryUnit* local_memory_unit) {
+    in_core_bus_.bindLocalMemoryUnit(local_memory_unit);
+    extra_core_bus_.bindLocalMemoryUnit(local_memory_unit);
+    this->memory_socket_.bindLocalMemoryUnit(local_memory_unit);
+}
 
-        int data_width_byte =
-            std::max(memory_socket_.getLocalMemoryDataWidthById(src_memory_id, MemoryAccessType::read),
-                     memory_socket_.getLocalMemoryDataWidthById(dst_memory_id, MemoryAccessType::write));
-        bool use_pipeline = config_.pipeline && (src_memory_id != dst_memory_id);
+LocalTransferDataPathPayload TransferUnit::decodeLocalTransferInfo(const TransferInsPayload& payload) const {
+    LocalTransferDataPathPayload local_transfer_payload;
+    int src_memory_id = as_.getLocalMemoryId(payload.src_address_byte);
+    int dst_memory_id = as_.getLocalMemoryId(payload.dst_address_byte);
 
-        ins_info = {.ins = payload.ins,
-                    .type = TransferType::local_trans,
-                    .src_start_address_byte = payload.src_address_byte,
-                    .dst_start_address_byte = payload.dst_address_byte,
-                    .batch_max_data_size_byte = data_width_byte,
-                    .use_pipeline = use_pipeline};
-    } else {
-        ins_info = {.ins = payload.ins,
-                    .type = payload.type,
-                    .src_start_address_byte = payload.src_address_byte,
-                    .dst_start_address_byte = payload.dst_address_byte,
-                    .batch_max_data_size_byte = payload.size_byte,
-                    .src_id = payload.src_id,
-                    .dst_id = payload.dst_id,
-                    .transfer_id_tag = payload.transfer_id_tag,
-                    .use_pipeline = false};
-    }
-    return {ins_info, getDataConflictInfo(payload)};
+    int data_width_byte = std::max(memory_socket_.getLocalMemoryDataWidthById(src_memory_id, MemoryAccessType::read),
+                                   memory_socket_.getLocalMemoryDataWidthById(dst_memory_id, MemoryAccessType::write));
+    bool use_pipeline = config_.pipeline && (src_memory_id != dst_memory_id);
+
+    local_transfer_payload.ins_info =
+        std::make_shared<LocalTransferInsInfo>(LocalTransferInsInfo{.ins = payload.ins,
+                                                                    .src_start_address_byte = payload.src_address_byte,
+                                                                    .dst_start_address_byte = payload.dst_address_byte,
+                                                                    .batch_max_data_size_byte = data_width_byte,
+                                                                    .use_pipeline = use_pipeline});
+    local_transfer_payload.data_size_byte = payload.size_byte;
+    local_transfer_payload.process_times =
+        IntDivCeil(payload.size_byte, local_transfer_payload.ins_info->batch_max_data_size_byte);
+
+    return std::move(local_transfer_payload);
+}
+
+GlobalTransferDataPathPayload TransferUnit::decodeGlobalTransferInfo(const TransferInsPayload& payload) {
+    return {.ins_info = std::make_shared<GlobalTransferInsInfo>(
+                GlobalTransferInsInfo{.ins = payload.ins,
+                                      .type = payload.type,
+                                      .src_start_address_byte = payload.src_address_byte,
+                                      .dst_start_address_byte = payload.dst_address_byte,
+                                      .data_size_byte = payload.size_byte,
+                                      .src_id = payload.src_id,
+                                      .dst_id = payload.dst_id,
+                                      .transfer_id_tag = payload.transfer_id_tag})};
 }
 
 ResourceAllocatePayload TransferUnit::getDataConflictInfo(const TransferInsPayload& payload) const {
-    ResourceAllocatePayload conflict_payload{.ins_id = payload.ins.ins_id, .unit_type = ExecuteUnitType::transfer};
+    ResourceAllocatePayload conflict_payload{.ins_id = payload.ins.ins_id,
+                                             .unit_type = ExecuteUnitType::transfer,
+                                             .data_path_payload = payload.data_path_payload};
     if (payload.type == +TransferType::local_trans || payload.type == +TransferType::send ||
         payload.type == +TransferType::global_store) {
         conflict_payload.addReadMemoryId(as_.getLocalMemoryId(payload.src_address_byte));

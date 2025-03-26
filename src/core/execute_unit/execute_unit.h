@@ -66,7 +66,7 @@ public:
     void processFinishRun();
     void processIdFinish();
 
-    void bindLocalMemoryUnit(MemoryUnit* local_memory_unit);
+    virtual void bindLocalMemoryUnit(MemoryUnit* local_memory_unit);
 
     virtual ResourceAllocatePayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload);
 
@@ -100,7 +100,7 @@ private:
     sc_signal<FSMPayload<ExecuteUnitPayload>> fsm_in_{"fsm_in"};
 
     sc_event release_resource_trigger_;
-    int release_resource_ins_id_{-1};
+    std::vector<int> release_resource_ins_id_list_{};
 
     int running_ins_cnt_{0};
     bool finish_decode_{false};

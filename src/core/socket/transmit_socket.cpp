@@ -5,26 +5,63 @@
 #include "transmit_socket.h"
 
 #include "fmt/format.h"
+#include "memory/payload.h"
 #include "network/switch.h"
 #include "util/log.h"
 
 namespace cimsim {
 
-TransmitSocket::~TransmitSocket() {
-    delete sender_wait_receiver_ready_;
-    delete receiver_wait_sender_ready_;
-    delete receiver_wait_data_ready_;
-}
-
-void TransmitSocket::bindSwitch(Switch* _switch, int core_id) {
+void TransmitSocket::bindSwitchAndGlobalMemory(Switch* _switch, int core_id, int global_memory_switch_id) {
     switch_ = _switch;
     switch_->registerReceiveHandler(
         [this](const std::shared_ptr<NetworkPayload>& payload) { this->switchReceiveHandler(payload); });
 
     core_id_ = core_id;
-    sender_wait_receiver_ready_ = new sc_event{};
-    receiver_wait_sender_ready_ = new sc_event{};
-    receiver_wait_data_ready_ = new sc_event{};
+    global_memory_switch_id_ = global_memory_switch_id;
+}
+
+std::vector<uint8_t> TransmitSocket::loadGlobal(const InstructionPayload& ins, int address_byte, int size_byte) {
+    LOG(fmt::format("core id: {}, load global data start, pc: {}", core_id_, ins.pc));
+    auto global_payload =
+        std::make_shared<MemoryAccessPayload>(MemoryAccessPayload{.ins = ins,
+                                                                  .access_type = MemoryAccessType::read,
+                                                                  .address_byte = address_byte,
+                                                                  .size_byte = size_byte,
+                                                                  .finish_access = finish_load_});
+    auto network_payload = std::make_shared<NetworkPayload>(NetworkPayload{.src_id = core_id_,
+                                                                           .dst_id = global_memory_switch_id_,
+                                                                           .finish_network_trans = &finish_load_trans_,
+                                                                           .request_data_size_byte = 1,
+                                                                           .request_payload = global_payload,
+                                                                           .response_data_size_byte = size_byte,
+                                                                           .response_payload = nullptr});
+    switch_->transportHandler(network_payload);
+    wait(*network_payload->finish_network_trans);
+
+    LOG(fmt::format("core id: {}, load global data end, pc: {}", core_id_, ins.pc));
+    return std::move(global_payload->data);
+}
+
+void TransmitSocket::storeGlobal(const InstructionPayload& ins, int address_byte, int size_byte,
+                                 std::vector<uint8_t> data) {
+    LOG(fmt::format("core id: {}, store global data start, pc: {}", core_id_, ins.pc));
+    auto global_payload =
+        std::make_shared<MemoryAccessPayload>(MemoryAccessPayload{.ins = ins,
+                                                                  .access_type = MemoryAccessType::write,
+                                                                  .address_byte = address_byte,
+                                                                  .size_byte = size_byte,
+                                                                  .data = std::move(data),
+                                                                  .finish_access = finish_store_});
+    auto network_payload = std::make_shared<NetworkPayload>(NetworkPayload{.src_id = core_id_,
+                                                                           .dst_id = global_memory_switch_id_,
+                                                                           .finish_network_trans = &finish_store_trans_,
+                                                                           .request_data_size_byte = size_byte,
+                                                                           .request_payload = global_payload,
+                                                                           .response_data_size_byte = 1,
+                                                                           .response_payload = nullptr});
+    switch_->transportHandler(network_payload);
+    wait(*network_payload->finish_network_trans);
+    LOG(fmt::format("core id: {}, store global data end, pc: {}", core_id_, ins.pc));
 }
 
 void TransmitSocket::sendHandshake(int dst_id, int transfer_id_tag) {
@@ -46,7 +83,7 @@ void TransmitSocket::sendHandshake(int dst_id, int transfer_id_tag) {
                                                                            .response_data_size_byte = 1,
                                                                            .response_payload = nullptr});
     switch_->sendHandler(network_payload);
-    wait(*sender_wait_receiver_ready_);
+    wait(sender_wait_receiver_ready_);
 
     LOG(fmt::format("core id: {}, send handshake end, dst_id: {}, transfer_id_tag: {}", core_id_, dst_id,
                     transfer_id_tag));
@@ -80,7 +117,7 @@ void TransmitSocket::receiveHandshake(int src_id, int transfer_id_tag) {
 
     if (auto found = receiver_waiting_sender_map.find(src_id);
         found == receiver_waiting_sender_map.end() || found->second != transfer_id_tag) {
-        wait(*receiver_wait_sender_ready_);
+        wait(receiver_wait_sender_ready_);
     }
 
     expected_sender_core_id_ = -1;
@@ -108,7 +145,7 @@ void TransmitSocket::receiveData(int src_id) {
 
     LOG(fmt::format("core id: {}, receive data start, src_id: {}, transfer_id_tag: {}", core_id_, src_id,
                     receiver_waiting_sender_map[src_id]));
-    wait(*receiver_wait_data_ready_);
+    wait(receiver_wait_data_ready_);
     LOG(fmt::format("core id: {}, receive data end, src_id: {}, transfer_id_tag: {}", core_id_, src_id,
                     transfer_id_tag));
 }
@@ -132,10 +169,10 @@ void TransmitSocket::switchReceiveHandler(const std::shared_ptr<NetworkPayload>&
             receiver_waiting_sender_map[sender_core_id] = data_transfer_payload->id_tag;
             if (sender_core_id == expected_sender_core_id_) {
                 // this core already execute recv and is waiting for remote core
-                receiver_wait_sender_ready_->notify(SC_ZERO_TIME);
+                receiver_wait_sender_ready_.notify(SC_ZERO_TIME);
             }
         } else if (status == +DataTransferStatus::send_data) {
-            receiver_wait_data_ready_->notify(SC_ZERO_TIME);
+            receiver_wait_data_ready_.notify(SC_ZERO_TIME);
         }
     } else {
         // remote core recv this core
@@ -143,7 +180,7 @@ void TransmitSocket::switchReceiveHandler(const std::shared_ptr<NetworkPayload>&
         if (receiver_core_id == expected_receiver_core_id_ &&
             data_transfer_payload->id_tag == expected_transfer_id_tag_ &&
             data_transfer_payload->status == +DataTransferStatus::receiver_ready) {
-            sender_wait_receiver_ready_->notify(SC_ZERO_TIME);
+            sender_wait_receiver_ready_.notify(SC_ZERO_TIME);
         } else {
             std::cerr << fmt::format("TransferUnit: send-recv not match") << std::endl;
         }

@@ -72,4 +72,34 @@ std::string getDuplicateMemoryName(const std::string& original_name, int index, 
     return original_name + DUPLICATE_MEMORY_NAME_DELIMITER + std::to_string(index);
 }
 
+std::stringstream& operator<<(std::stringstream& out, const std::array<int, 4>& arr) {
+    out << arr[0];
+    for (int i = 1; i < arr.size(); i++) {
+        out << ", " << arr[i];
+    }
+    return out;
+}
+
+std::stringstream& operator<<(std::stringstream& out, const std::unordered_map<int, int>& map) {
+    for (auto it = map.begin(); it != map.end(); ++it) {
+        if (it != map.begin()) {
+            out << ", ";
+        }
+        out << it->first << ": " << it->second;
+    }
+    return out;
+}
+
+std::stringstream& operator<<(std::stringstream& out, const std::vector<int>& ins_id_list) {
+    out << "[";
+    for (int i = 0; i < ins_id_list.size(); i++) {
+        if (i > 0) {
+            out << ", ";
+        }
+        out << ins_id_list[i];
+    }
+    out << "]";
+    return out;
+}
+
 }  // namespace cimsim

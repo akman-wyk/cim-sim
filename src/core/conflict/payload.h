@@ -64,6 +64,7 @@ public:
     ExecuteUnitType unit_type{ExecuteUnitType::none};
     const SIMDFunctorConfig* simd_functor_cfg{nullptr};
     const ReduceFunctorConfig* reduce_functor_cfg{nullptr};
+    DataPathPayload data_path_payload{};
 
     MemoryBitmap read_memory_id;
     MemoryBitmap write_memory_id;
@@ -73,7 +74,7 @@ public:
 struct ResourceReleasePayload {
     MAKE_SIGNAL_TYPE_TRACE_STREAM(ResourceReleasePayload)
 
-    int ins_id{-1};
+    std::vector<int> ins_id_list_;
 
     DECLARE_CIM_PAYLOAD_FUNCTIONS(ResourceReleasePayload)
 };

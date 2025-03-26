@@ -58,4 +58,10 @@ Type readTypeFromJsonFile(const std::string& file) {
 
 std::string getDuplicateMemoryName(const std::string& original_name, int index, int duplicate_cnt);
 
+std::stringstream& operator<<(std::stringstream& out, const std::array<int, 4>& arr);
+
+std::stringstream& operator<<(std::stringstream& out, const std::unordered_map<int, int>& map);
+
+std::stringstream& operator<<(std::stringstream& out, const std::vector<int>& ins_id_list);
+
 }  // namespace cimsim
