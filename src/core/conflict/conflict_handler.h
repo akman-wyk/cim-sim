@@ -45,7 +45,7 @@ private:
     ResourceAllocatePayload* next_ins_resource_allocate_{nullptr};
 
     std::unordered_map<int, ResourceAllocatePayload> unit_ins_resource_allocate_map_{};
-    ResourceAllocatePayload unit_resource_allocate_;
+    std::unordered_map<unsigned int, ResourceAllocatePayload> data_path_resource_allocate_map_;
     sc_event conflict_trigger_;
 };
 

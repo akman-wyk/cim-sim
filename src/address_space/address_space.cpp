@@ -27,14 +27,14 @@ const AddressSapce& AddressSapce::getInstance() {
 std::unique_ptr<AddressSapce> AddressSapce::as_ptr_{nullptr};
 
 AddressSapce::AddressSapce(const ChipConfig& chip_config) {
-    auto mem_map = chip_config.getMemoryNameMap();
+    auto mem_map = chip_config.getMemoryInfoMap();
     int offset = 0;
     for (auto& as_element : chip_config.address_space_config) {
         auto& mem_info = mem_map[as_element.name];
         int size = as_element.size < 0 ? mem_info.size : as_element.size;
 
-        for (int i = 0; i < mem_info.duplicate_cnt; i++) {
-            std::string mem_name = getDuplicateMemoryName(as_element.name, i, mem_info.duplicate_cnt);
+        for (int duplicate_id = 0; duplicate_id < mem_info.duplicate_cnt; duplicate_id++) {
+            std::string mem_name = getDuplicateMemoryName(as_element.name, duplicate_id);
             AddressSpaceInfo as_info;
             if (mem_info.is_global) {
                 as_info = {.as_offset = offset, .memory_id = global_mem_cnt_, .is_global = true};
@@ -114,6 +114,17 @@ bool AddressSapce::isAddressGlobal(int address_byte) const {
 
     --it;
     return it->second.is_global;
+}
+
+std::pair<int, bool> AddressSapce::getMemoryInfoByAddress(int address_byte) const {
+    auto it = as_address_map_.upper_bound(address_byte);
+    if (it == as_address_map_.begin()) {
+        std::cerr << fmt::format("Address \'{}\' does not match any memory's address space", address_byte) << std::endl;
+        return {};
+    }
+
+    --it;
+    return {it->second.memory_id, it->second.is_global};
 }
 
 }  // namespace cimsim

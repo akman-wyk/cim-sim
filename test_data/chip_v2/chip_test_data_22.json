@@ -1,0 +1,21 @@
+{
+  "comments": "Test intra-core-bus and inter-core-bus working simultaneously",
+  "code": [
+    [
+      {"opcode": 44, "rd": 0, "imm": 1024, "asm": "G_LI 1024 to $0"},
+      {"opcode": 44, "rd": 1, "imm": 64, "asm": "G_LI 64 to $1"},
+      {"opcode": 44, "rd": 2, "imm": 2048, "asm": "G_LI 2048 to $2"},
+      {"opcode": 44, "rd": 3, "imm": 4096, "asm": "G_LI 4096 to $3"},
+      {"opcode": 44, "rd": 4, "imm": 32, "asm": "G_LI 64 to $4"},
+      {"opcode": 44, "rd": 5, "imm": 3072, "asm": "G_LI 3072 to $5"},
+      {"opcode": 44, "rd": 6, "imm": 160, "asm": "G_LI 1 to $6"},
+      {"opcode": 48, "rs": 0, "rt": 1, "rd": 2, "imm": 0, "asm": "MEM_CPY $0 to $2, size: $1, off: 0, mask: 00"},
+      {"opcode": 48, "rs": 3, "rt": 4, "rd": 5, "imm": 0, "asm": "MEM_CPY $3 to $5, size: $4, off: 0, mask: 00"},
+      {"opcode": 48, "rs": 0, "rt": 6, "rd": 2, "imm": 0, "asm": "MEM_CPY $0 to $2, size: $6, off: 0, mask: 00"}
+    ]
+  ],
+  "expected": {
+    "time_ns": 115,
+    "energy_pj": 160
+  }
+}

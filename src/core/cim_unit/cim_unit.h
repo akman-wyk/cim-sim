@@ -52,7 +52,7 @@ private:
 
     int config_group_cnt_;
     bool macro_simulation_;  // whether to user one actual macro to simulate all logic macros in one core
-    std::vector<MacroGroup*> macro_group_list_;
+    std::vector<std::shared_ptr<MacroGroup>> macro_group_list_;
 
     int local_memory_id_{-1};
 

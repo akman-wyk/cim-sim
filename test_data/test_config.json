@@ -331,6 +331,18 @@
           "config_file": "config/test/Reduce_test_config_3.json",
           "instruction_file": "test_data/core_v2/core_test_data_25.json",
           "report_file": "report/Core_test_report.txt"
+        },
+        {
+          "comments": "test fot Transfer instructions with local dedicated data path 1",
+          "config_file": "config/test/Local_dedicated_data_path_test_config.json",
+          "instruction_file": "test_data/core_v2/core_test_data_26.json",
+          "report_file": "report/Core_test_report.txt"
+        },
+        {
+          "comments": "test fot Transfer instructions with local dedicated data path 2",
+          "config_file": "config/test/Local_dedicated_data_path_test_config.json",
+          "instruction_file": "test_data/core_v2/core_test_data_27.json",
+          "report_file": "report/Core_test_report.txt"
         }
       ]
     },
@@ -455,6 +467,18 @@
           "comments": "Test 2-cores when core 0 load and core 1 load",
           "config_file": "config/test/chip/chip_test_config_2.json",
           "instruction_file": "test_data/chip_v2/chip_test_data_20.json",
+          "report_file": "report/Chip_test_report.txt"
+        },
+        {
+          "comments": "Test intra-core-bus and inter-core-bus working simultaneously 1",
+          "config_file": "config/test/chip/Transfer_test_config_mult_data_path.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_21.json",
+          "report_file": "report/Chip_test_report.txt"
+        },
+        {
+          "comments": "Test intra-core-bus and inter-core-bus working simultaneously 2",
+          "config_file": "config/test/chip/Transfer_test_config_mult_data_path.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_22.json",
           "report_file": "report/Chip_test_report.txt"
         }
       ]

@@ -48,7 +48,7 @@ void LocalTransferDataPath::processReadStage() {
         read_stage_socket_.waitUntilStart();
 
         auto& payload = read_stage_socket_.payload;
-        CORE_LOG(fmt::format("local transfer read start, pc: {}, batch: {}", payload.ins_info->ins.pc,
+        CORE_LOG(fmt::format("{} read start, pc: {}, batch: {}", getName(), payload.ins_info->ins.pc,
                              payload.batch_info->batch_num));
 
         int address_byte = payload.ins_info->src_start_address_byte +
@@ -71,7 +71,7 @@ void LocalTransferDataPath::processWriteStage() {
         write_stage_socket_.waitUntilStart();
 
         const auto& payload = write_stage_socket_.payload;
-        CORE_LOG(fmt::format("local transfer write start, pc: {}, batch: {}", payload.ins_info->ins.pc,
+        CORE_LOG(fmt::format("{} write start, pc: {}, batch: {}", getName(), payload.ins_info->ins.pc,
                              payload.batch_info->batch_num));
 
         if (payload.batch_info->last_batch) {
@@ -83,7 +83,7 @@ void LocalTransferDataPath::processWriteStage() {
         int size_byte = payload.batch_info->batch_data_size_byte;
         memory_socket_.writeLocal(payload.ins_info->ins, address_byte, size_byte, payload.batch_info->data);
 
-        CORE_LOG(fmt::format("transfer write end, pc: {}, batch: {}", payload.ins_info->ins.pc,
+        CORE_LOG(fmt::format("{} write end, pc: {}, batch: {}", getName(), payload.ins_info->ins.pc,
                              payload.batch_info->batch_num));
 
         if (!payload.batch_info->last_batch && !payload.ins_info->use_pipeline) {
@@ -134,7 +134,7 @@ void GlobalTransferDataPath::processReadStage() {
         read_stage_socket_.waitUntilStart();
 
         auto& payload = read_stage_socket_.payload;
-        CORE_LOG(fmt::format("global transfer read start, pc: {}", payload.ins_info->ins.pc));
+        CORE_LOG(fmt::format("{} read start, pc: {}", getName(), payload.ins_info->ins.pc));
 
         int address_byte = payload.ins_info->src_start_address_byte;
         int size_byte = payload.ins_info->data_size_byte;
@@ -157,7 +157,7 @@ void GlobalTransferDataPath::processWriteStage() {
         write_stage_socket_.waitUntilStart();
 
         const auto& payload = write_stage_socket_.payload;
-        CORE_LOG(fmt::format("global transfer write start, pc: {}", payload.ins_info->ins.pc));
+        CORE_LOG(fmt::format("{} write start, pc: {}", getName(), payload.ins_info->ins.pc));
 
         transfer_unit_.releaseResource(payload.ins_info->ins.ins_id);
 
@@ -172,7 +172,7 @@ void GlobalTransferDataPath::processWriteStage() {
             memory_socket_.writeLocal(payload.ins_info->ins, address_byte, size_byte, {});
         }
 
-        CORE_LOG(fmt::format("global transfer write end, pc: {}", payload.ins_info->ins.pc));
+        CORE_LOG(fmt::format("{} write end, pc: {}", getName(), payload.ins_info->ins.pc));
 
         transfer_unit_.finishInstruction();
 
@@ -192,24 +192,36 @@ TransferUnit::TransferUnit(const sc_module_name& name, const TransferUnitConfig&
                            Clock* clk, int global_memory_switch_id)
     : ExecuteUnit(name, base_info, clk, ExecuteUnitType::transfer)
     , config_(config)
-    , in_core_bus_("InCoreBus", base_info, *this, config_.pipeline)
-    , extra_core_bus_("ExtraCoreBus", base_info, *this)
+    , intra_core_bus_("IntraCoreBus", base_info, *this, config_.pipeline)
+    , inter_core_bus_("InterCoreBus", base_info, *this)
     , global_memory_switch_id_(global_memory_switch_id) {
     SC_THREAD(processIssue)
+
+    for (auto& local_dedicated_data_path_cfg : config_.local_dedicated_data_path_list) {
+        auto data_path_name = fmt::format("LocalDedicatedDataPath_{}", local_dedicated_data_path_cfg.id);
+        auto data_path_ptr =
+            std::make_shared<LocalTransferDataPath>(data_path_name.c_str(), base_info, *this, config_.pipeline);
+        local_dedicated_data_path_map_.emplace(local_dedicated_data_path_cfg.id, data_path_ptr);
+    }
 }
 
 void TransferUnit::processIssue() {
     ports_.ready_port_.write(true);
     while (true) {
         auto payload = waitForExecuteAndGetPayload<TransferInsPayload>();
+        auto& data_path_payload = payload->data_path_payload;
 
         ports_.resource_allocate_.write(getDataConflictInfo(*payload));
-        if (payload->data_path_payload.type == +DataPathType::in_core_bus) {
+        if (data_path_payload.type == +DataPathType::intra_core_bus) {
             auto local_trans_payload = decodeLocalTransferInfo(*payload);
-            waitAndStartNextStage(local_trans_payload, in_core_bus_.exec_socket_);
-        } else if (payload->data_path_payload.type == +DataPathType::extra_core_bus) {
+            waitAndStartNextStage(local_trans_payload, intra_core_bus_.exec_socket_);
+        } else if (data_path_payload.type == +DataPathType::inter_core_bus) {
             auto global_trans_payload = decodeGlobalTransferInfo(*payload);
-            waitAndStartNextStage(global_trans_payload, extra_core_bus_.exec_socket_);
+            waitAndStartNextStage(global_trans_payload, inter_core_bus_.exec_socket_);
+        } else if (data_path_payload.type == +DataPathType::local_dedicated_data_path) {
+            auto local_trans_payload = decodeLocalTransferInfo(*payload);
+            auto data_path_ptr = local_dedicated_data_path_map_[data_path_payload.local_dedicated_data_path_id];
+            waitAndStartNextStage(local_trans_payload, data_path_ptr->exec_socket_);
         }
 
         readyForNextExecute();
@@ -217,12 +229,15 @@ void TransferUnit::processIssue() {
 }
 
 void TransferUnit::bindSwitch(Switch* switch_) {
-    extra_core_bus_.bindSwitchAndGlobalMemory(switch_, global_memory_switch_id_);
+    inter_core_bus_.bindSwitchAndGlobalMemory(switch_, global_memory_switch_id_);
 }
 
 void TransferUnit::bindLocalMemoryUnit(MemoryUnit* local_memory_unit) {
-    in_core_bus_.bindLocalMemoryUnit(local_memory_unit);
-    extra_core_bus_.bindLocalMemoryUnit(local_memory_unit);
+    intra_core_bus_.bindLocalMemoryUnit(local_memory_unit);
+    inter_core_bus_.bindLocalMemoryUnit(local_memory_unit);
+    for (auto& [id, data_path_ptr] : local_dedicated_data_path_map_) {
+        data_path_ptr->bindLocalMemoryUnit(local_memory_unit);
+    }
     this->memory_socket_.bindLocalMemoryUnit(local_memory_unit);
 }
 

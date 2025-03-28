@@ -32,7 +32,7 @@ MacroGroup::MacroGroup(const sc_module_name &name, const CimUnitConfig &config, 
     for (int i = 0; i < (macro_simulation ? 1 : config_.macro_group_size); i++) {
         auto macro_name = fmt::format("Macro_{}", i);
         bool independent_ipu = config_.value_sparse || i == 0;
-        macro_list_.push_back(new Macro(macro_name.c_str(), config_, base_info, independent_ipu));
+        macro_list_.push_back(std::make_shared<Macro>(macro_name.c_str(), config_, base_info, independent_ipu));
     }
 }
 
@@ -47,7 +47,7 @@ void MacroGroup::waitUntilFinishIfBusy() {
 
 EnergyReporter MacroGroup::getEnergyReporter() {
     EnergyReporter macro_group_reporter;
-    for (auto *macro : macro_list_) {
+    for (auto &macro : macro_list_) {
         macro_group_reporter.accumulate(macro->getEnergyReporter(), true);
     }
     return std::move(macro_group_reporter);
@@ -70,7 +70,7 @@ void MacroGroup::setMacrosActivationElementColumn(
 
     activation_macro_cnt_ = std::transform_reduce(
         macro_list_.begin(), macro_list_.end(), 0, [](int a, int b) { return a + b; },
-        [](const Macro *macro) { return (macro->getActivationElementColumnCount() > 0) ? 1 : 0; });
+        [](const std::shared_ptr<Macro>& macro) { return (macro->getActivationElementColumnCount() > 0) ? 1 : 0; });
 }
 
 int MacroGroup::getActivationMacroCount() const {
@@ -80,7 +80,7 @@ int MacroGroup::getActivationMacroCount() const {
 int MacroGroup::getActivationElementColumnCount() const {
     return std::transform_reduce(
         macro_list_.begin(), macro_list_.end(), 0, [](int a, int b) { return a + b; },
-        [](const Macro *macro) { return macro->getActivationElementColumnCount(); });
+        [](const std::shared_ptr<Macro>& macro) { return macro->getActivationElementColumnCount(); });
 }
 
 void MacroGroup::processIPUAndIssue() {
@@ -103,7 +103,7 @@ void MacroGroup::processIPUAndIssue() {
                 macro_payload.inputs.swap(payload.macro_inputs[macro_id]);
             }
 
-            auto *macro = macro_list_[macro_id];
+            auto &macro = macro_list_[macro_id];
             macro->waitUntilFinishIfBusy();
             macro->startExecute(std::move(macro_payload));
         }
