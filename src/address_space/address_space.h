@@ -35,6 +35,7 @@ public:
     [[nodiscard]] int getLocalMemoryId(int address_byte) const;
     [[nodiscard]] int getGlobalMemoryId(int address_byte) const;
     [[nodiscard]] bool isAddressGlobal(int address_byte) const;
+    [[nodiscard]] std::pair<int, bool> getMemoryInfoByAddress(int address_byte) const;
 
 private:
     explicit AddressSapce(const ChipConfig& chip_config);

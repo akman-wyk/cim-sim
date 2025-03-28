@@ -12,34 +12,6 @@
 
 namespace cimsim {
 
-struct TransferInstructionInfo {
-    InstructionPayload ins{};
-
-    TransferType type{TransferType::local_trans};
-
-    int src_start_address_byte{0};
-    int dst_start_address_byte{0};
-    int batch_max_data_size_byte{0};
-
-    int src_id{0};
-    int dst_id{0};
-    int transfer_id_tag{0};
-
-    bool use_pipeline{false};
-};
-
-struct TransferBatchInfo {
-    int batch_num{0};
-    int batch_data_size_byte{0};
-    bool last_batch{false};
-    std::vector<unsigned char> data{};
-};
-
-struct TransferSubmodulePayload {
-    std::shared_ptr<TransferInstructionInfo> ins_info;
-    std::shared_ptr<TransferBatchInfo> batch_info;
-};
-
 struct LocalTransferInsInfo {
     InstructionPayload ins{};
 
@@ -173,8 +145,9 @@ private:
 private:
     const TransferUnitConfig& config_;
 
-    LocalTransferDataPath in_core_bus_;
-    GlobalTransferDataPath extra_core_bus_;
+    LocalTransferDataPath intra_core_bus_;
+    GlobalTransferDataPath inter_core_bus_;
+    std::unordered_map<unsigned int, std::shared_ptr<LocalTransferDataPath>> local_dedicated_data_path_map_{};
 
     const int global_memory_switch_id_;
 };

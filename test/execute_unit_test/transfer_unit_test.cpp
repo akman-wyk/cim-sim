@@ -17,8 +17,19 @@ struct TransferTestInfo {
     TestExpectedInfo expected{};
 };
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(TransferInsPayload, ins, type, src_address_byte, dst_address_byte,
-                                               size_byte, src_id, dst_id, transfer_id_tag)
+void to_json(nlohmann::ordered_json& j, const DataPathType& m) {
+    j = m._to_string();
+}
+
+void from_json(const nlohmann::ordered_json& j, DataPathType& m) {
+    const auto str = j.get<std::string>();
+    m = DataPathType::_from_string(str.c_str());
+}
+
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(DataPathPayload, type, local_dedicated_data_path_id)
+
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(TransferInsPayload, ins, type, data_path_payload, src_address_byte,
+                                               dst_address_byte, size_byte, src_id, dst_id, transfer_id_tag)
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(TransferTestInstruction, payload)
 

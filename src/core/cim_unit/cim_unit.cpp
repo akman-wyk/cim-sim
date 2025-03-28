@@ -21,7 +21,7 @@ CimUnit::CimUnit(const sc_module_name& name, const CimUnitConfig& config, const 
                         !config_.input_bit_sparse && !config_.value_sparse) {
     for (int group_id = 0; group_id < (macro_simulation_ ? 1 : config_group_cnt_); group_id++) {
         auto macro_name = fmt::format("MacroGroup_{}", group_id);
-        auto macro_group = new MacroGroup{macro_name.c_str(), config_, base_info, macro_simulation_};
+        auto macro_group = std::make_shared<MacroGroup>(macro_name.c_str(), config_, base_info, macro_simulation_);
         macro_group_list_.emplace_back(macro_group);
     }
 }
@@ -30,7 +30,7 @@ EnergyReporter CimUnit::getEnergyReporter() {
     EnergyReporter cim_unit_energy_reporter{};
     cim_unit_energy_reporter.addSubModule("sram read", EnergyReporter{sram_read_energy_counter_});
     cim_unit_energy_reporter.addSubModule("sram write", EnergyReporter{sram_write_energy_counter_});
-    for (auto* macro_group : macro_group_list_) {
+    for (auto& macro_group : macro_group_list_) {
         cim_unit_energy_reporter.accumulate(macro_group->getEnergyReporter(), true);
     }
     return std::move(cim_unit_energy_reporter);
@@ -88,7 +88,7 @@ bool CimUnit::isMacroSimulation() const {
 void CimUnit::setMacroGroupActivationElementColumn(const std::vector<unsigned char>& mask, bool group_broadcast,
                                                    int group_id) {
     if (group_broadcast) {
-        for (auto* macro_group : macro_group_list_) {
+        for (auto& macro_group : macro_group_list_) {
             macro_group->setMacrosActivationElementColumn(mask);
         }
     } else if (0 <= group_id && group_id < macro_group_list_.size()) {
@@ -113,18 +113,18 @@ int CimUnit::getMacroGroupActivationElementColumnCount(int group_id) const {
 int CimUnit::getMacroGroupMaxActivationMacroCount() const {
     return std::transform_reduce(
         macro_group_list_.begin(), macro_group_list_.end(), 0, [](int a, int b) { return std::max(a, b); },
-        [](const MacroGroup* macro_group) { return macro_group->getActivationMacroCount(); });
+        [](const std::shared_ptr<MacroGroup>& macro_group) { return macro_group->getActivationMacroCount(); });
 }
 
 void CimUnit::runMacroGroup(int group_id, MacroGroupPayload group_payload) {
-    auto* macro_group = macro_group_list_[group_id];
+    auto& macro_group = macro_group_list_[group_id];
     macro_group->waitUntilFinishIfBusy();
     macro_group->startExecute(std::move(group_payload));
 }
 
 void CimUnit::bindCimComputeUnit(const std::function<void(int)>& release_resource_func,
                                  const std::function<void()>& finish_ins_func) {
-    for (auto* macro_group : macro_group_list_) {
+    for (auto& macro_group : macro_group_list_) {
         macro_group->setReleaseResourceFunc(release_resource_func);
         macro_group->setFinishInsFunc(finish_ins_func);
     }

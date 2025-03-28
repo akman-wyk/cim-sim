@@ -94,6 +94,7 @@ ResourceAllocatePayload& ResourceAllocatePayload::operator+=(const cimsim::Resou
     this->used_memory_id |= other.used_memory_id;
     this->simd_functor_cfg = other.simd_functor_cfg;
     this->reduce_functor_cfg = other.reduce_functor_cfg;
+    this->data_path_payload = other.data_path_payload;
     return *this;
 }
 

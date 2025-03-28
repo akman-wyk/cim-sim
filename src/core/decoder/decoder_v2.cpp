@@ -141,15 +141,18 @@ std::shared_ptr<ExecuteInsPayload> DecoderV2::decodeTransferIns(const InstV2& in
     p.ins.unit_type = ExecuteUnitType::transfer;
 
     if (auto op = ins.getOpcodeEnum(); op == +OPCODE::MEM_CPY) {
-        p.type = TransferType::local_trans;
         p.src_address_byte = reg_unit_->readRegister(ins.rs, false) + ((ins.opcode & 0b000010) != 0 ? ins.imm : 0);
         p.dst_address_byte = reg_unit_->readRegister(ins.rd, false) + ((ins.opcode & 0b000001) != 0 ? ins.imm : 0);
         p.size_byte = reg_unit_->readRegister(ins.rt, false);
 
-        if (as_.isAddressGlobal(p.src_address_byte)) {
-            p.type = TransferType::global_load;
-        } else if (as_.isAddressGlobal(p.dst_address_byte)) {
-            p.type = TransferType::global_store;
+        const auto& [src_mem_id, src_is_global] = as_.getMemoryInfoByAddress(p.src_address_byte);
+        const auto& [dst_mem_id, dst_is_global] = as_.getMemoryInfoByAddress(p.dst_address_byte);
+        if (!src_is_global && !dst_is_global) {
+            p.type = TransferType::local_trans;
+            p.data_path_payload = data_path_manager_.decodeTransferInsDataPath(src_mem_id, dst_mem_id);
+        } else {
+            p.type = src_is_global ? TransferType::global_load : TransferType::global_store;
+            p.data_path_payload = {.type = DataPathType::inter_core_bus, .local_dedicated_data_path_id = 0};
         }
     } else if (op == +OPCODE::SEND) {
         p.type = TransferType::send;
@@ -159,6 +162,7 @@ std::shared_ptr<ExecuteInsPayload> DecoderV2::decodeTransferIns(const InstV2& in
         p.dst_address_byte = reg_unit_->readRegister(ins.rd, false);
         p.size_byte = reg_unit_->readRegister(ins.re, false);
         p.transfer_id_tag = reg_unit_->readRegister(ins.rf, false);
+        p.data_path_payload = {.type = DataPathType::inter_core_bus, .local_dedicated_data_path_id = 0};
     } else if (op == +OPCODE::RECV) {
         p.type = TransferType::receive;
         p.src_id = reg_unit_->readRegister(ins.rs, false);
@@ -167,9 +171,8 @@ std::shared_ptr<ExecuteInsPayload> DecoderV2::decodeTransferIns(const InstV2& in
         p.dst_address_byte = reg_unit_->readRegister(ins.rd, false);
         p.size_byte = reg_unit_->readRegister(ins.re, false);
         p.transfer_id_tag = reg_unit_->readRegister(ins.rf, false);
+        p.data_path_payload = {.type = DataPathType::inter_core_bus, .local_dedicated_data_path_id = 0};
     }
-    p.data_path_payload.type =
-        p.type == +TransferType::local_trans ? DataPathType::in_core_bus : DataPathType::extra_core_bus;
     return std::make_shared<TransferInsPayload>(p);
 }
 

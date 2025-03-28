@@ -51,6 +51,8 @@ add_library(cim-simulator STATIC ""
         src/core/conflict/payload.cpp
         src/core/conflict/payload.h
 
+        src/core/decoder/data_path_manager.cpp
+        src/core/decoder/data_path_manager.h
         src/core/decoder/decoder.h
         src/core/decoder/decoder_v1.cpp
         src/core/decoder/decoder_v2.cpp

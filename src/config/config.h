@@ -325,8 +325,40 @@ struct MemoryUnitConfig {
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(MemoryUnitConfig)
 };
 
+struct DataPathMemoryConfig {
+    std::string name{};
+    int duplicate_id{0};
+
+    [[nodiscard]] bool isSameWith(const DataPathMemoryConfig& another) const;
+    [[nodiscard]] std::string toString() const;
+
+    [[nodiscard]] bool checkValid() const;
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(DataPathMemoryConfig)
+};
+
+struct DataPathMemoryPairConfig {
+    DataPathMemoryConfig memory_1;
+    DataPathMemoryConfig memory_2;
+
+    [[nodiscard]] bool isSameWith(const DataPathMemoryPairConfig& another) const;
+
+    [[nodiscard]] bool checkValid() const;
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(DataPathMemoryPairConfig)
+};
+
+struct LocalDedicatedDataPathConfig {
+    unsigned int id{0};
+    std::vector<DataPathMemoryPairConfig> memory_pair_list;
+
+    [[nodiscard]] bool conflictWith(const LocalDedicatedDataPathConfig& another) const;
+
+    [[nodiscard]] bool checkValid() const;
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(LocalDedicatedDataPathConfig)
+};
+
 struct TransferUnitConfig {
     bool pipeline{false};
+    std::vector<LocalDedicatedDataPathConfig> local_dedicated_data_path_list{};
 
     [[nodiscard]] bool checkValid() const;
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(TransferUnitConfig)
@@ -378,6 +410,8 @@ struct ChipConfig {
         int duplicate_cnt{1};
     };
 
+    using MemoryInfoMap = std::unordered_map<std::string, MemoryInfo>;
+
     int core_cnt{1};
     CoreConfig core_config{};
     GlobalMemoryConfig global_memory_config{};
@@ -387,8 +421,10 @@ struct ChipConfig {
     [[nodiscard]] static bool checkAddressSpaceWithMemory(
         const std::string& mem_name, int mem_size,
         const std::unordered_map<std::string, AddressSpaceElementConfig>& as_map);
-    [[nodiscard]] std::unordered_map<std::string, MemoryInfo> getMemoryNameMap(bool check = false) const;
-    [[nodiscard]] bool checkMemoryAndAddressSpace() const;
+    [[nodiscard]] MemoryInfoMap getMemoryInfoMap(bool check = false) const;
+
+    [[nodiscard]] bool checkAddressSpace(const MemoryInfoMap& mem_map) const;
+    [[nodiscard]] bool checkLocalDedicatedDataPath(const MemoryInfoMap& mem_map) const;
 
     [[nodiscard]] bool checkValid() const;
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(ChipConfig)

@@ -308,10 +308,24 @@ bool SIMDUnitConfig::checkValid() const {
     }
 
     // check instruction functor binding
-    std::unordered_map<std::string, SIMDFunctorConfig> functor_map;
-    std::transform(functor_list.begin(), functor_list.end(), std::inserter(functor_map, functor_map.end()),
-                   [](const SIMDFunctorConfig& functor) { return std::make_pair(functor.name, functor); });
+    std::unordered_map<std::string, const SIMDFunctorConfig*> functor_map;
+    for (auto& functor_cfg : functor_list) {
+        if (functor_map.count(functor_cfg.name) == 1) {
+            std::cerr << fmt::format("SIMDUnitConfig not valid, duplicate functor '{}'", functor_cfg.name) << std::endl;
+            return false;
+        }
+        functor_map.emplace(functor_cfg.name, &functor_cfg);
+    }
+
+    std::unordered_set<unsigned int> instruction_opcode_set;
     for (const auto& instruction : instruction_list) {
+        if (instruction_opcode_set.count(instruction.opcode) == 1) {
+            std::cerr << fmt::format("SIMDUnitConfig not valid, duplicate instruction opcode '{}'", instruction.opcode)
+                      << std::endl;
+            return false;
+        }
+        instruction_opcode_set.emplace(instruction.opcode);
+
         for (const auto& functor_binding : instruction.functor_binding_list) {
             auto functor_found = functor_map.find(functor_binding.functor_name);
             // check functor exist
@@ -324,19 +338,19 @@ bool SIMDUnitConfig::checkValid() const {
             const auto& functor = functor_found->second;
 
             // check input cnt match
-            if (instruction.input_cnt != functor.input_cnt) {
+            if (instruction.input_cnt != functor->input_cnt) {
                 std::cerr << "SIMDUnitConfig not valid, instruction functor binding error" << std::endl;
                 std::cerr << fmt::format("\tInput count not match between instruction '{}' and functor '{}'",
-                                         instruction.name, functor.name)
+                                         instruction.name, functor->name)
                           << std::endl;
                 return false;
             }
 
             // check input bit width match
-            if (!functor_binding.input_bit_width.inputBitWidthMatch(functor.data_bit_width)) {
+            if (!functor_binding.input_bit_width.inputBitWidthMatch(functor->data_bit_width)) {
                 std::cerr << "SIMDUnitConfig not valid, instruction functor binding error" << std::endl;
                 std::cerr << fmt::format("\tInput bit-width not match between instruction '{}' and functor '{}'",
-                                         instruction.name, functor.name)
+                                         instruction.name, functor->name)
                           << std::endl;
                 return false;
             }
@@ -397,6 +411,16 @@ bool ReduceUnitConfig::checkValid() const {
     if (!check_vector_valid(functor_list)) {
         std::cerr << "ReduceUnitConfig not valid" << std::endl;
         return false;
+    }
+
+    std::unordered_set<unsigned int> functor_funct_set;
+    for (auto& functor_cfg : functor_list) {
+        if (functor_funct_set.count(functor_cfg.funct) == 1) {
+            std::cerr << fmt::format("ReduceUnitConfig not valid, duplicate functor funct code '{}'", functor_cfg.funct)
+                      << std::endl;
+            return false;
+        }
+        functor_funct_set.emplace(functor_cfg.funct);
     }
 
     return true;
@@ -736,11 +760,116 @@ bool MemoryUnitConfig::checkValid() const {
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(MemoryUnitConfig, memory_list)
 
-bool TransferUnitConfig::checkValid() const {
+bool DataPathMemoryConfig::isSameWith(const DataPathMemoryConfig& another) const {
+    return name == another.name && duplicate_id == another.duplicate_id;
+}
+
+std::string DataPathMemoryConfig::toString() const {
+    return fmt::format("name: {}, id: {}", name, duplicate_id);
+}
+
+bool DataPathMemoryConfig::checkValid() const {
+    if (name.empty()) {
+        std::cerr << "DataPathMemoryConfig not valid, name is empty" << std::endl;
+        return false;
+    }
+    if (duplicate_id < 0) {
+        std::cerr << fmt::format("DataPathMemoryConfig of '{}' not valid, 'duplicate_id' mush be not negative", name)
+                  << std::endl;
+        return false;
+    }
     return true;
 }
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(TransferUnitConfig, pipeline)
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(DataPathMemoryConfig, name, duplicate_id)
+
+bool DataPathMemoryPairConfig::isSameWith(const DataPathMemoryPairConfig& another) const {
+    if (memory_1.isSameWith(another.memory_1) && memory_2.isSameWith(another.memory_2)) {
+        return true;
+    }
+    if (memory_1.isSameWith(another.memory_2) && memory_2.isSameWith(another.memory_1)) {
+        return true;
+    }
+    return false;
+}
+
+bool DataPathMemoryPairConfig::checkValid() const {
+    if (const bool valid = memory_1.checkValid() && memory_2.checkValid(); !valid) {
+        std::cerr << "DataPathMemoryPairConfig not valid" << std::endl;
+        return false;
+    }
+    return true;
+}
+
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(DataPathMemoryPairConfig, memory_1, memory_2)
+
+bool LocalDedicatedDataPathConfig::conflictWith(const LocalDedicatedDataPathConfig& another) const {
+    if (id == another.id) {
+        std::cerr << fmt::format("LocalDedicatedDataPathConfig not valid, id '{}' is duplicate", id) << std::endl;
+        return true;
+    }
+    for (auto& mem_pair : memory_pair_list) {
+        for (auto& ano_mem_pair : another.memory_pair_list) {
+            if (mem_pair.isSameWith(ano_mem_pair)) {
+                std::cerr << fmt::format(
+                                 "LocalDedicatedDataPathConfigs with id '{}' and '{}' are not valid, id '{}', they "
+                                 "have same memory pair: ['{}', '{}']",
+                                 id, another.id, mem_pair.memory_1.toString(), mem_pair.memory_2.toString())
+                          << std::endl;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool LocalDedicatedDataPathConfig::checkValid() const {
+    if (!check_vector_valid(memory_pair_list)) {
+        std::cerr << fmt::format("LocalDedicatedDataPathConfig of '{}' not valid", id) << std::endl;
+        return false;
+    }
+
+    for (int i = 0; i < memory_pair_list.size(); i++) {
+        for (int j = i + 1; j < memory_pair_list.size(); j++) {
+            if (memory_pair_list[i].isSameWith(memory_pair_list[j])) {
+                std::cerr
+                    << fmt::format(
+                           "LocalDedicatedDataPathConfig of '{}' not valid, memory pair ['{}', '{}'] is duplicate", id,
+                           memory_pair_list[i].memory_1.toString(), memory_pair_list[i].memory_2.toString())
+                    << std::endl;
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(LocalDedicatedDataPathConfig, id, memory_pair_list)
+
+bool TransferUnitConfig::checkValid() const {
+    // check LocalDedicatedDataPathConfig
+    for (auto& data_path_cfg : local_dedicated_data_path_list) {
+        if (!data_path_cfg.checkValid()) {
+            std::cerr << "TransferUnitConfig not valid" << std::endl;
+            return false;
+        }
+    }
+
+    // check LocalDedicatedDataPathConfig confilct
+    for (int i = 0; i < local_dedicated_data_path_list.size(); i++) {
+        for (int j = i + 1; j < local_dedicated_data_path_list.size(); j++) {
+            if (local_dedicated_data_path_list[i].conflictWith(local_dedicated_data_path_list[j])) {
+                std::cerr << "TransferUnitConfig not valid" << std::endl;
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(TransferUnitConfig, pipeline, local_dedicated_data_path_list)
 
 // CoreConfig
 bool CoreConfig::checkValid() const {
@@ -822,7 +951,7 @@ bool ChipConfig::checkAddressSpaceWithMemory(const std::string& mem_name, int me
     return true;
 }
 
-std::unordered_map<std::string, ChipConfig::MemoryInfo> ChipConfig::getMemoryNameMap(bool check) const {
+ChipConfig::MemoryInfoMap ChipConfig::getMemoryInfoMap(bool check) const {
     std::unordered_map<std::string, MemoryInfo> mem_map;
     auto trans_mem = [&](const auto& mem_config, bool is_global, int duplicate_cnt) {
         mem_map.insert(std::make_pair<std::string, MemoryInfo>(mem_config.getMemoryName(),
@@ -849,17 +978,9 @@ std::unordered_map<std::string, ChipConfig::MemoryInfo> ChipConfig::getMemoryNam
     return std::move(mem_map);
 }
 
-bool ChipConfig::checkMemoryAndAddressSpace() const {
-    // Check Memory and AddressSpace, and check if they correspond one to one
-
-    // check if the memory name is repeated
-    auto mem_map = getMemoryNameMap(true);
-    if (mem_map.empty()) {
-        std::cerr << "Local and global memory not valid, there are repeated names" << std::endl;
-        return false;
-    }
-
-    // transfer address to map, and check address space config
+bool ChipConfig::checkAddressSpace(const MemoryInfoMap& mem_map) const {
+    // Check AddressSpace, and check if AddressSpace and Memory correspond one to one
+    // transfer address space to map, and check address space config
     std::unordered_map<std::string, AddressSpaceElementConfig> as_map;
     std::transform(address_space_config.begin(), address_space_config.end(), std::inserter(as_map, as_map.end()),
                    [](const AddressSpaceElementConfig& as) { return std::make_pair(as.name, as); });
@@ -882,6 +1003,47 @@ bool ChipConfig::checkMemoryAndAddressSpace() const {
     return true;
 }
 
+bool ChipConfig::checkLocalDedicatedDataPath(const MemoryInfoMap& mem_map) const {
+    auto check_data_path_mem_cfg = [&mem_map](const DataPathMemoryConfig& mem_cfg) -> bool {
+        auto found = mem_map.find(mem_cfg.name);
+        if (found == mem_map.end()) {
+            std::cerr << fmt::format("DataPathMemoryConfig not valid, memory with name '{}' does not exist",
+                                     mem_cfg.name)
+                      << std::endl;
+            return false;
+        }
+        auto& mem_info = found->second;
+        if (mem_info.is_global) {
+            std::cerr << fmt::format("DataPathMemoryConfig not valid, memory with name '{}' is global memory",
+                                     mem_cfg.name)
+                      << std::endl;
+            return false;
+        }
+        if (mem_cfg.duplicate_id >= mem_info.duplicate_cnt) {
+            std::cerr << fmt::format("DataPathMemoryConfig not valid, memory with name '{}' and duplicate id '{}' does "
+                                     "not exist, the max duplicate id is {}",
+                                     mem_cfg.name, mem_cfg.duplicate_id, mem_info.duplicate_cnt - 1)
+                      << std::endl;
+            return false;
+        }
+        return true;
+    };
+
+    // check local decicated data path could correspond to real memory
+    for (auto& data_path_cfg : core_config.transfer_unit_config.local_dedicated_data_path_list) {
+        for (auto& memory_pair_cfg : data_path_cfg.memory_pair_list) {
+            if (const bool valid = check_data_path_mem_cfg(memory_pair_cfg.memory_1) &&
+                                   check_data_path_mem_cfg(memory_pair_cfg.memory_2);
+                !valid) {
+                std::cerr << fmt::format("LocalDedicatedDataPathConfig with id '{}' not valid", data_path_cfg.id)
+                          << std::endl;
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 bool ChipConfig::checkValid() const {
     if (!check_positive(core_cnt)) {
         std::cerr << "ChipConfig not valid, 'core_cnt' must be positive" << std::endl;
@@ -893,7 +1055,13 @@ bool ChipConfig::checkValid() const {
         std::cerr << "ChipConfig not valid" << std::endl;
         return false;
     }
-    if (!checkMemoryAndAddressSpace()) {
+    // check if the memory name is repeated
+    auto mem_map = getMemoryInfoMap(true);
+    if (mem_map.empty()) {
+        std::cerr << "Local and global memory not valid, there are repeated names" << std::endl;
+        return false;
+    }
+    if (!checkAddressSpace(mem_map) || !checkLocalDedicatedDataPath(mem_map)) {
         std::cerr << "ChipConfig not valid" << std::endl;
         return false;
     }

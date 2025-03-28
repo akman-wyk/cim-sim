@@ -56,7 +56,7 @@ Type readTypeFromJsonFile(const std::string& file) {
     return readTypeFromJsonFile<Type>(file.c_str());
 }
 
-std::string getDuplicateMemoryName(const std::string& original_name, int index, int duplicate_cnt);
+std::string getDuplicateMemoryName(const std::string& original_name, int duplicate_id);
 
 std::stringstream& operator<<(std::stringstream& out, const std::array<int, 4>& arr);
 

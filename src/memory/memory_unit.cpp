@@ -18,8 +18,8 @@ MemoryUnit::MemoryUnit(const sc_module_name &name, const MemoryUnitConfig &confi
     , is_global_(is_global) {
     memory_list_.resize(as_.getMemoryCount(is_global_));
     for (const auto &mem_cfg : config_.memory_list) {
-        for (int i = 0; i < mem_cfg.duplicate_cnt; i++) {
-            std::string mem_name = getDuplicateMemoryName(mem_cfg.getMemoryName(), i, mem_cfg.duplicate_cnt);
+        for (int duplicate_id = 0; duplicate_id < mem_cfg.duplicate_cnt; duplicate_id++) {
+            std::string mem_name = getDuplicateMemoryName(mem_cfg.getMemoryName(), duplicate_id);
             int mem_id = as_.getMemoryId(mem_name);
             auto mem_ptr = mem_cfg.type == +MemoryType::ram
                                ? std::make_shared<Memory>(mem_name.c_str(), mem_cfg.ram_config, base_info)

@@ -7,6 +7,7 @@
 #include "base_component/base_module.h"
 #include "core/execute_unit/execute_unit.h"
 #include "core/reg_unit/reg_unit.h"
+#include "data_path_manager.h"
 #include "isa/inst_v1.h"
 #include "isa/inst_v2.h"
 #include "isa/inst_v3.h"
@@ -23,7 +24,8 @@ public:
         : BaseModule(name, base_info)
         , as_(AddressSapce::getInstance())
         , simd_unit_config_(core_config.simd_unit_config)
-        , reduce_unit_config_(core_config.reduce_unit_config) {
+        , reduce_unit_config_(core_config.reduce_unit_config)
+        , data_path_manager_(core_config.transfer_unit_config.local_dedicated_data_path_list) {
         for (const auto& ins_config : simd_unit_config_.instruction_list) {
             simd_ins_config_map_.emplace(getSIMDInstructionIdentityCode(ins_config.input_cnt, ins_config.opcode),
                                          &ins_config);
@@ -101,6 +103,7 @@ protected:
     const AddressSapce& as_;
     const SIMDUnitConfig& simd_unit_config_;
     const ReduceUnitConfig& reduce_unit_config_;
+    const DataPathManager data_path_manager_;
 
     int ins_id_{0};
     // InsStat ins_stat_{};

@@ -65,11 +65,11 @@ bool check_text_file_same(const std::string& file1, const std::string& file2) {
     }
 }
 
-std::string getDuplicateMemoryName(const std::string& original_name, int index, int duplicate_cnt) {
-    if (duplicate_cnt == 1) {
+std::string getDuplicateMemoryName(const std::string& original_name, int duplicate_id) {
+    if (duplicate_id == 0) {
         return original_name;
     }
-    return original_name + DUPLICATE_MEMORY_NAME_DELIMITER + std::to_string(index);
+    return original_name + DUPLICATE_MEMORY_NAME_DELIMITER + std::to_string(duplicate_id);
 }
 
 std::stringstream& operator<<(std::stringstream& out, const std::array<int, 4>& arr) {

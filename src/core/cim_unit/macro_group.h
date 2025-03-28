@@ -38,7 +38,7 @@ private:
     const CimUnitConfig& config_;
     const CimMacroSizeConfig& macro_size_;
 
-    std::vector<Macro*> macro_list_;
+    std::vector<std::shared_ptr<Macro>> macro_list_;
     int activation_macro_cnt_{0};
 
     SubmoduleSocket<MacroGroupPayload> macro_group_socket_{};

@@ -39,12 +39,16 @@ struct InstructionPayload {
     DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT_INTRUSIVE(InstructionPayload, pc, ins_id)
 };
 
-BETTER_ENUM(DataPathType, int,  // NOLINT(*-explicit-constructor, *-no-recursion)
-            in_core_bus, extra_core_bus, local_dedicated_data_path)
+BETTER_ENUM(DataPathType, unsigned int,  // NOLINT(*-explicit-constructor, *-no-recursion)
+            none = 0, intra_core_bus = 1, inter_core_bus = 2, local_dedicated_data_path = 3)
 
 struct DataPathPayload {
-    DataPathType type{DataPathType::in_core_bus};
-    int local_dedicated_data_path_id{-1};
+    DataPathType type{DataPathType::none};
+    unsigned int local_dedicated_data_path_id{0};
+
+    [[nodiscard]] unsigned int getUniqueId() const {
+        return (local_dedicated_data_path_id << 2) | type._to_integral();
+    }
 
     friend std::ostream& operator<<(std::ostream& out, const DataPathPayload& data_path_payload) {
         out << "type: " << data_path_payload.type
