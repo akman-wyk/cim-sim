@@ -1,5 +1,5 @@
 {
-  "root_dir": "/mnt/d/Dropbox/Dropbox/Workspace/code/cim-sim",
+  "root_dir": "..",
   "unit_test_list": [
     {
       "name": "SIMDUnitTest",

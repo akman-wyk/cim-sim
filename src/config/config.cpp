@@ -296,7 +296,7 @@ void from_json(const nlohmann::ordered_json& j, SIMDInstructionConfig& t) {
     t.opcode = std::stoul(opcode_str, nullptr, 16);
 
     for (unsigned int i = 0; i < SIMD_MAX_INPUT_NUM; i++) {
-        t.inputs_type[i] = j.value(fmt::format("input{}_type", i + 1), default_obj.inputs_type[i]);
+        JSON_VALUE_ENUM(t, inputs_type[i], fmt::format("input{}_type", i + 1))
     }
     t.functor_binding_list = j.value("functor_binding_list", default_obj.functor_binding_list);
 }
@@ -741,7 +741,7 @@ void to_json(nlohmann::ordered_json& j, const MemoryConfig& config) {
 void from_json(const nlohmann::ordered_json& j, MemoryConfig& config) {
     const MemoryConfig default_obj{};
     config.name = j.value("name", default_obj.name);
-    config.type = j.value("type", default_obj.type);
+    JSON_VALUE_ENUM(config, type, "type")
     config.duplicate_cnt = j.value("duplicate_cnt", default_obj.duplicate_cnt);
     if (config.type == +MemoryType::ram) {
         config.ram_config = j.value("hardware_config", default_obj.ram_config);

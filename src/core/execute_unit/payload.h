@@ -81,7 +81,7 @@ struct TransferInsPayload : public ExecuteInsPayload {
 };
 
 struct ScalarInsPayload : public ExecuteInsPayload {
-    ScalarOperator op{};
+    ScalarOperator op{ScalarOperator::add};
 
     int src1_value{0}, src2_value{0}, offset{0};
     int dst_reg{0};

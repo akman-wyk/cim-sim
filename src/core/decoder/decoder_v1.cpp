@@ -229,7 +229,7 @@ int DecoderV1::decodeControlInsAndGetPCIncrement(const InstV1& ins) const {
 }
 
 ScalarOperator DecoderV1::decodeScalarRROpcode(int opcode) {
-    ScalarOperator op{};
+    ScalarOperator op{ScalarOperator::add};
     switch (opcode) {
         case ScalarRRInstOpcode::add: op = ScalarOperator::add; break;
         case ScalarRRInstOpcode::sub: op = ScalarOperator::sub; break;
@@ -253,7 +253,7 @@ ScalarOperator DecoderV1::decodeScalarRROpcode(int opcode) {
 }
 
 ScalarOperator DecoderV1::decodeScalarRIOpcode(int opcode) {
-    ScalarOperator op{};
+    ScalarOperator op{ScalarOperator::add};
     switch (opcode) {
         case ScalarRIInstOpcode::addi: op = ScalarOperator::add; break;
         case ScalarRIInstOpcode::subi: op = ScalarOperator::sub; break;

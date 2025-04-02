@@ -39,8 +39,15 @@ namespace cimsim {
         TYPE_TO_JSON_FIELD_ASSIGN(__VA_ARGS__)                                                    \
     }
 
+#define CIMSIM_JSON_FROM_WITH_DEFAULT(v1)                              \
+    if (!nlohmann_json_j.is_null() && nlohmann_json_j.contains(#v1)) { \
+        from_json(nlohmann_json_j[#v1], nlohmann_json_t.v1);      \
+    } else {                                                           \
+        nlohmann_json_t.v1 = nlohmann_json_default_obj.v1;             \
+    }
+
 #define TYPE_FROM_JSON_FIELD_ASSIGN(...) \
-    NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_FROM_WITH_DEFAULT, __VA_ARGS__))
+    NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(CIMSIM_JSON_FROM_WITH_DEFAULT, __VA_ARGS__))
 
 #define TYPE_TO_JSON_FIELD_ASSIGN(...) NLOHMANN_JSON_EXPAND(NLOHMANN_JSON_PASTE(NLOHMANN_JSON_TO, __VA_ARGS__))
 
@@ -57,6 +64,13 @@ namespace cimsim {
         } else {                                                              \
             m = EnumType::type_other;                                         \
         }                                                                     \
+    }
+
+#define JSON_VALUE_ENUM(t, field, key)                    \
+    if (j.contains(key)) {                             \
+        from_json(j[key].get<std::string>(), t.field); \
+    } else {                                           \
+        t.field = default_obj.field;                   \
     }
 
 #define CIM_GET_MACRO(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, \
