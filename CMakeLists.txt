@@ -8,9 +8,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 # dependency
-add_subdirectory(packages/fmt)
-add_subdirectory(packages/systemc)
-add_subdirectory(packages/json)
+add_subdirectory(thirdparty/fmt)
+add_subdirectory(thirdparty/systemc)
+add_subdirectory(thirdparty/json)
 
 add_library(cim-simulator STATIC ""
         src/address_space/address_space.cpp
@@ -131,8 +131,7 @@ target_include_directories(cim-simulator PRIVATE
 )
 
 # header-only dependency
-target_include_directories(cim-simulator PUBLIC packages/header-only)
-target_include_directories(cim-simulator PUBLIC packages/header-only/zstr/src)
+target_include_directories(cim-simulator PUBLIC thirdparty thirdparty/argparse/include)
 
 add_dependencies(cim-simulator systemc nlohmann_json fmt)
 
@@ -151,7 +150,7 @@ add_executable(ConfigTest test/other_test/config_test.cpp
 add_dependencies(ConfigTest nlohmann_json fmt)
 target_link_libraries(ConfigTest PUBLIC nlohmann_json fmt)
 target_include_directories(ConfigTest PRIVATE src)
-target_include_directories(ConfigTest PUBLIC packages/header-only)
+target_include_directories(ConfigTest PUBLIC thirdparty thirdparty/argparse/include)
 
 add_executable(MemoryUnitTest "" test/other_test/memory_unit_test.cpp)
 add_dependencies(MemoryUnitTest cim-simulator)
@@ -220,19 +219,21 @@ add_executable(LayerSimulator "" src/simulator/layer_simulator.cpp src/simulator
 add_dependencies(LayerSimulator cim-simulator)
 target_link_libraries(LayerSimulator PRIVATE cim-simulator)
 target_include_directories(LayerSimulator PRIVATE src)
+target_include_directories(LayerSimulator PUBLIC thirdparty thirdparty/argparse/include)
 
 add_executable(NetworkSimulator "" src/simulator/network_simulator.cpp src/simulator/network_simulator.h
         src/simulator/constant.h)
 add_dependencies(NetworkSimulator cim-simulator)
 target_link_libraries(NetworkSimulator PRIVATE cim-simulator)
 target_include_directories(NetworkSimulator PRIVATE src)
+target_include_directories(NetworkSimulator PUBLIC thirdparty thirdparty/argparse/include)
 
 add_executable(UnitTest "" test/unit_test.cpp)
 add_dependencies(UnitTest nlohmann_json fmt
         SIMDUnitTest TransferUnitTest MacroTest MacroGroupTest CimComputeUnitTest CimControlUnitTest CoreTest ChipTest)
 target_link_libraries(UnitTest PUBLIC nlohmann_json fmt)
 target_include_directories(UnitTest PRIVATE src)
-target_include_directories(UnitTest PUBLIC packages/header-only)
+target_include_directories(UnitTest PUBLIC thirdparty thirdparty/argparse/include)
 
 add_executable(InstConvert "" test/inst_convert.cpp
         src/isa/inst_v1.cpp
@@ -249,6 +250,6 @@ add_executable(InstConvert "" test/inst_convert.cpp
 add_dependencies(InstConvert nlohmann_json fmt)
 target_link_libraries(InstConvert PUBLIC nlohmann_json fmt)
 target_include_directories(InstConvert PRIVATE src)
-target_include_directories(InstConvert PUBLIC packages/header-only)
+target_include_directories(InstConvert PUBLIC thirdparty thirdparty/argparse/include)
 
 add_executable(Test "" test/test.cpp)
