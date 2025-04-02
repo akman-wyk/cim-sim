@@ -1,0 +1,15 @@
+[submodule "thirdparty/fmt"]
+	path = thirdparty/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "thirdparty/argparse"]
+	path = thirdparty/argparse
+	url = https://github.com/p-ranav/argparse.git
+[submodule "thirdparty/better-enums"]
+	path = thirdparty/better-enums
+	url = https://github.com/aantron/better-enums.git
+[submodule "thirdparty/json"]
+	path = thirdparty/json
+	url = https://github.com/nlohmann/json.git
+[submodule "thirdparty/systemc"]
+	path = thirdparty/systemc
+	url = https://github.com/accellera-official/systemc.git
