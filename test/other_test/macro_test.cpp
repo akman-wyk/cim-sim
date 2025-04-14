@@ -41,7 +41,7 @@ public:
                     const MacroTestConfig& test_config)
         : BaseModule(name, BaseInfo{config.sim_config})
         , macro_("macro", config.chip_config.core_config.cim_unit_config, BaseInfo{config.sim_config},
-                 test_config.independent_ipu) {
+                 test_config.independent_ipu, energy_counter_) {
         macro_ins_list_ = std::move(codes);
 
         SC_THREAD(issue)
@@ -50,9 +50,9 @@ public:
         macro_.bindNextModuleSocket(&finish_ins);
     }
 
-    EnergyReporter getEnergyReporter() override {
-        EnergyReporter reporter;
-        reporter.addSubModule(macro_.getName(), macro_.getEnergyReporter());
+    EnergyReporter getEnergyReporter() const {
+        EnergyReporter reporter{0, 0, 0, EnergyCounter::getRunningTimeNS()};
+        reporter.addSubModule(macro_.getName(), energy_counter_.getEnergyReporter());
         return std::move(reporter);
     }
 

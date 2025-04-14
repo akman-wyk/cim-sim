@@ -26,6 +26,7 @@ MemoryUnit::MemoryUnit(const sc_module_name &name, const MemoryUnitConfig &confi
                                : std::make_shared<Memory>(mem_name.c_str(), mem_cfg.reg_buffer_config, base_info);
             mem_ptr->setMemoryID(mem_id);
             memory_list_[mem_id] = mem_ptr;
+            energy_counter_.addSubEnergyCounter(mem_name, mem_ptr->getEnergyCounterPtr());
         }
     }
 }
@@ -51,16 +52,6 @@ void MemoryUnit::access(const std::shared_ptr<MemoryAccessPayload> &payload) {
     payload->address_byte -= memory->getAddressSpaceOffset();
     memory->access(payload);
     wait(payload->finish_access);
-}
-
-EnergyReporter MemoryUnit::getEnergyReporter() {
-    EnergyReporter memory_unit_reporter;
-    for (auto &memory : memory_list_) {
-        if (memory && !memory->isMount()) {
-            memory_unit_reporter.addSubModule(memory->getName(), memory->getEnergyReporter());
-        }
-    }
-    return std::move(memory_unit_reporter);
 }
 
 int MemoryUnit::getMemoryDataWidthById(int memory_id, MemoryAccessType access_type) const {

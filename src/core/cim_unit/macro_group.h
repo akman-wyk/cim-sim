@@ -17,12 +17,10 @@ public:
     SC_HAS_PROCESS(MacroGroup);
 
     MacroGroup(const sc_module_name& name, const CimUnitConfig& config, const BaseInfo& base_info,
-               bool macro_simulation = false);
+               EnergyCounter& cim_unit_energy_counter, bool macro_simulation = false);
 
     void startExecute(MacroGroupPayload payload);
     void waitUntilFinishIfBusy();
-
-    EnergyReporter getEnergyReporter() override;
 
     void setReleaseResourceFunc(std::function<void(int ins_pc)> release_resource_func);
     void setFinishInsFunc(std::function<void()> finish_ins_func);

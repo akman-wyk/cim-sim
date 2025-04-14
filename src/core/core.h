@@ -32,10 +32,11 @@ public:
     SC_HAS_PROCESS(Core);
 
     Core(const sc_module_name& name, const CoreConfig& config, const BaseInfo& base_info, Clock* clk, int global_id,
-         std::vector<Instruction> ins_list, std::function<void()> finish_run_call);
+         std::vector<Instruction> ins_list, std::function<void()> finish_run_call,
+         EnergyCounter* core_overview_energy_counter = nullptr);
     void bindNetwork(Network* network);
 
-    EnergyReporter getEnergyReporter() override;
+    EnergyReporter getEnergyReporter() const;
 
     bool checkRegValues(const std::array<int, GENERAL_REG_NUM>& general_reg_expected_values,
                         const std::array<int, SPECIAL_REG_NUM>& special_reg_expected_values);

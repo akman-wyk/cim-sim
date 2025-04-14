@@ -18,7 +18,8 @@ Core::ExecuteUnitInfo::ExecuteUnitInfo(ExecuteUnitType type, ExecuteUnit *execut
     , conflict_signal(fmt::format("{}_conflict_signal", type._to_string()).c_str()) {}
 
 Core::Core(const sc_module_name &name, const CoreConfig &config, const BaseInfo &base_info, Clock *clk, int global_id,
-           std::vector<Instruction> ins_list, std::function<void()> finish_run_call)
+           std::vector<Instruction> ins_list, std::function<void()> finish_run_call,
+           EnergyCounter *core_overview_energy_counter)
     : BaseModule(name, base_info)
     , core_config_(config)
     , ins_list_(std::move(ins_list))
@@ -39,21 +40,32 @@ Core::Core(const sc_module_name &name, const CoreConfig &config, const BaseInfo 
     , finish_run_call_(std::move(finish_run_call)) {
     setThreadAndMethod();
     bindModules();
+
+    energy_counter_.addSubEnergyCounter("ScalarUnit", scalar_unit_.getEnergyCounterPtr());
+    energy_counter_.addSubEnergyCounter("SIMDUnit", simd_unit_.getEnergyCounterPtr());
+    energy_counter_.addSubEnergyCounter("ReduceUnit", reduce_unit_.getEnergyCounterPtr());
+    energy_counter_.addSubEnergyCounter("CimUnit", cim_unit_.getEnergyCounterPtr());
+    energy_counter_.addSubEnergyCounter("CimUnit", cim_compute_unit_.getEnergyCounterPtr());
+    energy_counter_.addSubEnergyCounter("CimUnit", cim_control_unit_.getEnergyCounterPtr());
+    energy_counter_.addSubEnergyCounter("LocalMemoryUnit", local_memory_unit_.getEnergyCounterPtr());
+
+    if (core_overview_energy_counter != nullptr) {
+        core_overview_energy_counter->addSubEnergyCounter("ScalarUnit", scalar_unit_.getEnergyCounterPtr());
+        core_overview_energy_counter->addSubEnergyCounter("SIMDUnit", simd_unit_.getEnergyCounterPtr());
+        core_overview_energy_counter->addSubEnergyCounter("ReduceUnit", reduce_unit_.getEnergyCounterPtr());
+        core_overview_energy_counter->addSubEnergyCounter("CimUnit", cim_unit_.getEnergyCounterPtr());
+        core_overview_energy_counter->addSubEnergyCounter("CimUnit", cim_compute_unit_.getEnergyCounterPtr());
+        core_overview_energy_counter->addSubEnergyCounter("CimUnit", cim_control_unit_.getEnergyCounterPtr());
+        core_overview_energy_counter->addSubEnergyCounter("LocalMemoryUnit", local_memory_unit_.getEnergyCounterPtr());
+    }
 }
 
 void Core::bindNetwork(Network *network) {
     core_switch_.bindNetwork(network);
 }
 
-EnergyReporter Core::getEnergyReporter() {
-    EnergyReporter reporter;
-    reporter.addSubModule("ScalarUnit", scalar_unit_.getEnergyReporter());
-    reporter.addSubModule("SIMDUnit", simd_unit_.getEnergyReporter());
-    reporter.addSubModule("ReduceUnit", reduce_unit_.getEnergyReporter());
-    reporter.addSubModule("CimUnit", cim_compute_unit_.getEnergyReporter());
-    reporter.addSubModule("CimUnit", cim_control_unit_.getEnergyReporter());
-    reporter.addSubModule("LocalMemoryUnit", local_memory_unit_.getEnergyReporter());
-    return std::move(reporter);
+EnergyReporter Core::getEnergyReporter() const {
+    return energy_counter_.getEnergyReporter();
 }
 
 bool Core::checkRegValues(const std::array<int, GENERAL_REG_NUM> &general_reg_expected_values,

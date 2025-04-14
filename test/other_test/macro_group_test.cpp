@@ -37,7 +37,8 @@ public:
     MacroGroupTestModule(const sc_core::sc_module_name& name, const Config& config,
                          std::vector<MacroGroupTestInstruction> codes)
         : BaseModule(name, BaseInfo{config.sim_config})
-        , macro_group_("MacroGroup_0", config.chip_config.core_config.cim_unit_config, BaseInfo{config.sim_config}) {
+        , macro_group_("MacroGroup_0", config.chip_config.core_config.cim_unit_config, BaseInfo{config.sim_config},
+                       energy_counter_) {
         macro_group_ins_list_ = std::move(codes);
 
         SC_THREAD(issue)
@@ -52,9 +53,9 @@ public:
         });
     }
 
-    EnergyReporter getEnergyReporter() override {
-        EnergyReporter reporter;
-        reporter.addSubModule(macro_group_.getName(), macro_group_.getEnergyReporter());
+    EnergyReporter getEnergyReporter() const {
+        EnergyReporter reporter{0, 0, 0, EnergyCounter::getRunningTimeNS()};
+        reporter.addSubModule(macro_group_.getName(), energy_counter_.getEnergyReporter());
         return std::move(reporter);
     }
 

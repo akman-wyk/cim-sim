@@ -15,7 +15,7 @@ public:
 
     Reporter report(std::ostream& os, bool report_every_core_energy);
 
-    EnergyReporter getEnergyReporter() override;
+    EnergyReporter getEnergyReporter();
 
     EnergyReporter getCoresEnergyReporter();
 
@@ -28,7 +28,7 @@ private:
     GlobalMemory global_memory_;
     Network network_;
 
-    EnergyCounter energy_counter_;
+    EnergyCounter core_overview_energy_counter_;
 
     int finish_run_core_cnt_{0};
     sc_time running_time_{};

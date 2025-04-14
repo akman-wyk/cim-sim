@@ -14,8 +14,8 @@ BaseModule::BaseModule(const sc_module_name& name, const BaseInfo& base_info)
     , core_id_(base_info.core_id)
     , name_(name) {}
 
-EnergyReporter BaseModule::getEnergyReporter() {
-    return EnergyReporter{energy_counter_};
+EnergyCounter* BaseModule::getEnergyCounterPtr() {
+    return &energy_counter_;
 }
 
 const std::string& BaseModule::getName() const {

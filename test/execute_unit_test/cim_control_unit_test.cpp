@@ -60,9 +60,10 @@ public:
     }
 
     EnergyReporter getEnergyReporter() override {
-        EnergyReporter reporter;
-        reporter.addSubModule(local_memory_unit_.getName(), local_memory_unit_.getEnergyReporter());
-        reporter.addSubModule(test_unit_.getName(), test_unit_.getEnergyReporter());
+        EnergyReporter reporter{0, 0, 0, EnergyCounter::getRunningTimeNS()};
+        reporter.addSubModule(local_memory_unit_.getName(),
+                              local_memory_unit_.getEnergyCounterPtr()->getEnergyReporter());
+        reporter.addSubModule(test_unit_.getName(), test_unit_.getEnergyCounterPtr()->getEnergyReporter());
         return std::move(reporter);
     }
 

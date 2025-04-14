@@ -34,8 +34,6 @@ public:
 
     void bindCimUnit(CimUnit* cim_unit);
 
-    EnergyReporter getEnergyReporter() override;
-
     ResourceAllocatePayload getDataConflictInfo(const CimComputeInsPayload& payload) const;
     ResourceAllocatePayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
 

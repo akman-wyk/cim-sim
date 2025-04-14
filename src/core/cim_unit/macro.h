@@ -17,19 +17,17 @@ class Macro : public BaseModule {
 public:
     SC_HAS_PROCESS(Macro);
 
-    Macro(const sc_module_name& name, const CimUnitConfig& config, const BaseInfo& base_info, bool independent_ipu);
+    Macro(const sc_module_name& name, const CimUnitConfig& config, const BaseInfo& base_info, bool independent_ipu,
+          EnergyCounter& cim_unit_energy_counter);
 
     void startExecute(MacroPayload payload);
     void waitUntilFinishIfBusy();
-
-    EnergyReporter getEnergyReporter() override;
 
     void setActivationElementColumn(const std::vector<unsigned char>& macros_activation_element_col_mask,
                                     int start_index = 0);
     int getActivationElementColumnCount() const;
 
     void bindNextModuleSocket(MacroStageSocket* next_module_socket);
-
 private:
     [[noreturn]] void processIPUAndIssue();
 

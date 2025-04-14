@@ -63,7 +63,8 @@ public:
 
     [[nodiscard]] ReduceStageSocket* getExecuteSocket() const;
     [[nodiscard]] const ReduceFunctorConfig* getFunctorConfig() const;
-    [[nodiscard]] EnergyReporter getEnergyReporter() const;
+
+    EnergyCounter* getEnergyCounterPtr() override;
 
 private:
     const ReduceFunctorConfig& functor_config_;
@@ -84,8 +85,6 @@ public:
     [[noreturn]] void processWriteStage();
 
     ResourceAllocatePayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
-
-    EnergyReporter getEnergyReporter() override;
 
 private:
     ResourceAllocatePayload getDataConflictInfo(const ReduceInsPayload& payload) const;

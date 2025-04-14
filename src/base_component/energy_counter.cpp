@@ -4,6 +4,8 @@
 
 #include "energy_counter.h"
 
+#include "util/reporter.h"
+
 namespace cimsim {
 
 double EnergyCounter::running_time_ = 0.0;
@@ -49,6 +51,10 @@ void EnergyCounter::addActivityTime(double latency) {
         activity_time_ += new_activity_latency;
         activity_time_tag_ = end_time_tag;
     }
+
+    for (auto* parent_energy_counter_ : parent_energy_counter_list_) {
+        parent_energy_counter_->addActivityTime(latency);
+    }
 }
 
 void EnergyCounter::setRunningTimeNS(double time) {
@@ -87,11 +93,17 @@ double EnergyCounter::getAveragePowerMW() const {
     return getTotalEnergyPJ() / getRunningTimeNS();  // pJ / ns = mW
 }
 
-EnergyCounter& EnergyCounter::operator+=(const EnergyCounter& another) {
-    activity_time_ = std::max(activity_time_, another.activity_time_);
-    dynamic_energy_ += another.dynamic_energy_;
-    static_power_ += another.static_power_;
-    return *this;
+void EnergyCounter::addSubEnergyCounter(const std::string& name, EnergyCounter* sub_energy_counter) {
+    sub_energy_counter_list_.emplace_back(name, sub_energy_counter);
+    sub_energy_counter->parent_energy_counter_list_.emplace_back(this);
+}
+
+EnergyReporter EnergyCounter::getEnergyReporter() const {
+    EnergyReporter reporter{*this};
+    for (const auto& [name, sub] : sub_energy_counter_list_) {
+        reporter.addSubModule(name, sub->getEnergyReporter());
+    }
+    return std::move(reporter);
 }
 
 void EnergyCounter::addPipelineStageDynamicEnergyPJ(double latency, double power) {

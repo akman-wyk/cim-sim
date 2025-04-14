@@ -76,8 +76,9 @@ void MacroModule::setStaticPower(double power) {
     module_energy_counter_.setStaticPowerMW(power);
 }
 
-EnergyReporter MacroModule::getEnergyReporter() {
-    return EnergyReporter{module_energy_counter_};
+EnergyCounter* MacroModule::getEnergyCounterPtr() {
+    return &module_energy_counter_;
 }
+
 
 }  // namespace cimsim

@@ -72,8 +72,8 @@ const ReduceFunctorConfig* ReduceFunctor::getFunctorConfig() const {
     return &functor_config_;
 }
 
-EnergyReporter ReduceFunctor::getEnergyReporter() const {
-    return EnergyReporter{functor_energy_counter_};
+EnergyCounter* ReduceFunctor::getEnergyCounterPtr() {
+    return &functor_energy_counter_;
 }
 
 ReduceUnit::ReduceUnit(const sc_module_name& name, const ReduceUnitConfig& config, const BaseInfo& base_info,
@@ -87,6 +87,7 @@ ReduceUnit::ReduceUnit(const sc_module_name& name, const ReduceUnitConfig& confi
         auto functor = std::make_shared<ReduceFunctor>(fmt::format("Functor_{}", functor_config.name).c_str(),
                                                        base_info, functor_config, &write_stage_socket_);
         functor_map_.emplace(&functor_config, functor);
+        energy_counter_.addSubEnergyCounter(functor_config.name, functor->getEnergyCounterPtr());
     }
 }
 
@@ -192,14 +193,6 @@ void ReduceUnit::processWriteStage() {
 
 ResourceAllocatePayload ReduceUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) {
     return getDataConflictInfo(*std::dynamic_pointer_cast<ReduceInsPayload>(payload));
-}
-
-EnergyReporter ReduceUnit::getEnergyReporter() {
-    EnergyReporter reporter;
-    for (const auto& [functor_cfg, functor] : functor_map_) {
-        reporter.addSubModule(functor_cfg->name, EnergyReporter{functor->getEnergyReporter()});
-    }
-    return std::move(reporter);
 }
 
 ResourceAllocatePayload ReduceUnit::getDataConflictInfo(const ReduceInsPayload& payload) const {

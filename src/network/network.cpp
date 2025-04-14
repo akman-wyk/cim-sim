@@ -4,6 +4,7 @@
 
 #include "network.h"
 
+#include "fmt/format.h"
 #include "util/util.h"
 
 namespace cimsim {
@@ -21,6 +22,9 @@ sc_time Network::transferAndGetDelay(int src_id, int dst_id, int data_size_byte)
 
     energy_counter_.addDynamicEnergyPJ(times * per_flit_energy_pj);
     energy_counter_.addActivityTime(latency);
+
+    auto cur = sc_time_stamp().to_seconds()*1e9;
+    std::cout << fmt::format("[{}, {}]\n", cur, cur + latency);
 
     return sc_time{latency, SC_NS};
 }
@@ -66,6 +70,7 @@ void Network::readLatencyEnergyFile(const std::string& file_path) {
 }
 
 EnergyReporter Network::getEnergyReporter() const {
+    std::cout << energy_counter_.getActivityTime() << std::endl;
     return EnergyReporter{energy_counter_};
 }
 

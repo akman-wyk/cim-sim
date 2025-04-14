@@ -21,8 +21,6 @@ public:
 
     void access(const std::shared_ptr<MemoryAccessPayload>& payload);
 
-    EnergyReporter getEnergyReporter() override;
-
     int getMemoryDataWidthById(int memory_id, MemoryAccessType access_type) const;
     int getMemorySizeById(int memory_id) const;
 

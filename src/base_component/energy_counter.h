@@ -10,6 +10,8 @@
 
 namespace cimsim {
 
+class EnergyReporter;
+
 class EnergyCounter {
     // energy unit -- pJ
     // power unit  -- mW
@@ -44,7 +46,8 @@ public:
     [[nodiscard]] double getTotalEnergyPJ() const;
     [[nodiscard]] double getAveragePowerMW() const;
 
-    EnergyCounter& operator+=(const EnergyCounter& another);
+    void addSubEnergyCounter(const std::string& name, EnergyCounter* sub_energy_counter);
+    [[nodiscard]] EnergyReporter getEnergyReporter() const;
 
 private:
     void addPipelineStageDynamicEnergyPJ(double latency, double power);
@@ -57,6 +60,9 @@ private:
 
     std::stack<DynamicEnergyTag>* dynamic_tag_stack_{};
     sc_time activity_time_tag_{0.0, SC_NS};
+
+    std::vector<EnergyCounter*> parent_energy_counter_list_{};
+    std::vector<std::pair<std::string, EnergyCounter*>> sub_energy_counter_list_{};
 };
 
 }  // namespace cimsim

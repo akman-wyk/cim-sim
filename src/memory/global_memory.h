@@ -15,7 +15,7 @@ class GlobalMemory : public BaseModule {
 public:
     GlobalMemory(const sc_module_name& name, const GlobalMemoryConfig& config, const SimConfig& sim_config);
 
-    EnergyReporter getEnergyReporter() override;
+    EnergyReporter getEnergyReporter();
 
     void bindNetwork(Network* network);
 

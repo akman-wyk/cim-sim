@@ -90,7 +90,6 @@ void EnergyReporter::addSubModule(std::string name, EnergyReporter sub_module) {
     total_energy_ += sub_module.total_energy_;
     static_energy_ += sub_module.static_energy_;
     dynamic_energy_ += sub_module.dynamic_energy_;
-    activity_time_ += sub_module.activity_time_;
     if (auto sub_module_found = sub_modules_.find(name); sub_module_found != sub_modules_.end()) {
         sub_module_found->second.accumulate(sub_module, true);
     } else {
@@ -140,9 +139,7 @@ void EnergyReporter::accumulate(const EnergyReporter& another, bool same_simulat
     total_energy_ += another.total_energy_;
     static_energy_ += another.static_energy_;
     dynamic_energy_ += another.dynamic_energy_;
-    if (same_simulation) {
-        activity_time_ = std::max(activity_time_, another.activity_time_);
-    } else {
+    if (!same_simulation) {
         activity_time_ += another.activity_time_;
     }
 
