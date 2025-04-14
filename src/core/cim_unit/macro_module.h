@@ -48,7 +48,7 @@ public:
     void bindNextStageSocket(MacroStageSocket* next_stage_socket, bool last_batch_trigger);
 
     void setStaticPower(double power);
-    EnergyReporter getEnergyReporter() override;
+    EnergyCounter* getEnergyCounterPtr() override;
 
 private:
     std::vector<std::shared_ptr<MacroPipelineStage>> stage_list_{};

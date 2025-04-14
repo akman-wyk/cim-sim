@@ -74,8 +74,8 @@ const SIMDFunctorConfig* SIMDFunctor::getFunctorConfig() const {
     return &functor_config_;
 }
 
-EnergyReporter SIMDFunctor::getEnergyReporter() const {
-    return EnergyReporter{functor_energy_counter_};
+EnergyCounter* SIMDFunctor::getEnergyCounterPtr() {
+    return &functor_energy_counter_;
 }
 
 SIMDUnit::SIMDUnit(const sc_module_name& name, const SIMDUnitConfig& config, const BaseInfo& base_info, Clock* clk)
@@ -88,6 +88,7 @@ SIMDUnit::SIMDUnit(const sc_module_name& name, const SIMDUnitConfig& config, con
         auto functor = std::make_shared<SIMDFunctor>(fmt::format("Functor_{}", functor_config.name).c_str(), base_info,
                                                      functor_config, &write_stage_socket_);
         functor_map_.emplace(&functor_config, functor);
+        energy_counter_.addSubEnergyCounter(functor_config.name, functor->getEnergyCounterPtr());
     }
 }
 
@@ -187,14 +188,6 @@ void SIMDUnit::processWriteStage() {
 
         write_stage_socket_.finish();
     }
-}
-
-EnergyReporter SIMDUnit::getEnergyReporter() {
-    EnergyReporter reporter;
-    for (const auto& [functor_cfg, functor] : functor_map_) {
-        reporter.addSubModule(functor_cfg->name, EnergyReporter{functor->getEnergyReporter()});
-    }
-    return std::move(reporter);
 }
 
 std::pair<SIMDInstructionInfo, ResourceAllocatePayload> SIMDUnit::decodeAndGetInfo(

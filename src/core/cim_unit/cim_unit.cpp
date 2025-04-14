@@ -21,19 +21,13 @@ CimUnit::CimUnit(const sc_module_name& name, const CimUnitConfig& config, const 
                         !config_.input_bit_sparse && !config_.value_sparse) {
     for (int group_id = 0; group_id < (macro_simulation_ ? 1 : config_group_cnt_); group_id++) {
         auto macro_name = fmt::format("MacroGroup_{}", group_id);
-        auto macro_group = std::make_shared<MacroGroup>(macro_name.c_str(), config_, base_info, macro_simulation_);
+        auto macro_group =
+            std::make_shared<MacroGroup>(macro_name.c_str(), config_, base_info, energy_counter_, macro_simulation_);
         macro_group_list_.emplace_back(macro_group);
     }
-}
 
-EnergyReporter CimUnit::getEnergyReporter() {
-    EnergyReporter cim_unit_energy_reporter{};
-    cim_unit_energy_reporter.addSubModule("sram read", EnergyReporter{sram_read_energy_counter_});
-    cim_unit_energy_reporter.addSubModule("sram write", EnergyReporter{sram_write_energy_counter_});
-    for (auto& macro_group : macro_group_list_) {
-        cim_unit_energy_reporter.accumulate(macro_group->getEnergyReporter(), true);
-    }
-    return std::move(cim_unit_energy_reporter);
+    energy_counter_.addSubEnergyCounter("sram read", &sram_read_energy_counter_);
+    energy_counter_.addSubEnergyCounter("sram write", &sram_write_energy_counter_);
 }
 
 int CimUnit::getMemorySizeByte() const {

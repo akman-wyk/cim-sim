@@ -73,7 +73,8 @@ public:
 
     [[nodiscard]] SIMDStageSocket* getExecuteSocket() const;
     [[nodiscard]] const SIMDFunctorConfig* getFunctorConfig() const;
-    [[nodiscard]] EnergyReporter getEnergyReporter() const;
+
+    EnergyCounter* getEnergyCounterPtr() override;
 
 private:
     const SIMDFunctorConfig& functor_config_;
@@ -95,8 +96,6 @@ public:
 
     ResourceAllocatePayload getDataConflictInfo(const SIMDInsPayload& payload) const;
     ResourceAllocatePayload getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload>& payload) override;
-
-    EnergyReporter getEnergyReporter() override;
 
 private:
     std::pair<SIMDInstructionInfo, ResourceAllocatePayload> decodeAndGetInfo(const SIMDInsPayload& payload) const;

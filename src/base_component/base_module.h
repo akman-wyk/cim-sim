@@ -21,7 +21,7 @@ class BaseModule : public sc_module {
 public:
     BaseModule(const sc_module_name& name, const BaseInfo& base_info);
 
-    virtual EnergyReporter getEnergyReporter();
+    virtual EnergyCounter* getEnergyCounterPtr();
 
     const std::string& getName() const;
     const char* getFullName() const;

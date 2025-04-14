@@ -15,8 +15,6 @@ public:
 
     virtual sc_time accessAndGetDelay(MemoryAccessPayload& payload) = 0;
 
-    EnergyReporter getEnergyReporter() override = 0;
-
     [[nodiscard]] virtual int getMemoryDataWidthByte(MemoryAccessType access_type) const = 0;
     [[nodiscard]] virtual int getMemorySizeByte() const = 0;
 

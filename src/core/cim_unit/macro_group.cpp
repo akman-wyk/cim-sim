@@ -11,7 +11,7 @@
 namespace cimsim {
 
 MacroGroup::MacroGroup(const sc_module_name &name, const CimUnitConfig &config, const BaseInfo &base_info,
-                       bool macro_simulation)
+                       EnergyCounter &cim_unit_energy_counter, bool macro_simulation)
     : BaseModule(name, base_info)
     , config_(config)
     , macro_size_(config.macro_size)
@@ -32,7 +32,8 @@ MacroGroup::MacroGroup(const sc_module_name &name, const CimUnitConfig &config, 
     for (int i = 0; i < (macro_simulation ? 1 : config_.macro_group_size); i++) {
         auto macro_name = fmt::format("Macro_{}", i);
         bool independent_ipu = config_.value_sparse || i == 0;
-        macro_list_.push_back(std::make_shared<Macro>(macro_name.c_str(), config_, base_info, independent_ipu));
+        macro_list_.push_back(
+            std::make_shared<Macro>(macro_name.c_str(), config_, base_info, independent_ipu, cim_unit_energy_counter));
     }
 }
 
@@ -43,14 +44,6 @@ void MacroGroup::startExecute(cimsim::MacroGroupPayload payload) {
 
 void MacroGroup::waitUntilFinishIfBusy() {
     macro_group_socket_.waitUntilFinishIfBusy();
-}
-
-EnergyReporter MacroGroup::getEnergyReporter() {
-    EnergyReporter macro_group_reporter;
-    for (auto &macro : macro_list_) {
-        macro_group_reporter.accumulate(macro->getEnergyReporter(), true);
-    }
-    return std::move(macro_group_reporter);
 }
 
 void MacroGroup::setReleaseResourceFunc(std::function<void(int)> release_resource_func) {
@@ -70,7 +63,7 @@ void MacroGroup::setMacrosActivationElementColumn(
 
     activation_macro_cnt_ = std::transform_reduce(
         macro_list_.begin(), macro_list_.end(), 0, [](int a, int b) { return a + b; },
-        [](const std::shared_ptr<Macro>& macro) { return (macro->getActivationElementColumnCount() > 0) ? 1 : 0; });
+        [](const std::shared_ptr<Macro> &macro) { return (macro->getActivationElementColumnCount() > 0) ? 1 : 0; });
 }
 
 int MacroGroup::getActivationMacroCount() const {
@@ -80,7 +73,7 @@ int MacroGroup::getActivationMacroCount() const {
 int MacroGroup::getActivationElementColumnCount() const {
     return std::transform_reduce(
         macro_list_.begin(), macro_list_.end(), 0, [](int a, int b) { return a + b; },
-        [](const std::shared_ptr<Macro>& macro) { return macro->getActivationElementColumnCount(); });
+        [](const std::shared_ptr<Macro> &macro) { return macro->getActivationElementColumnCount(); });
 }
 
 void MacroGroup::processIPUAndIssue() {

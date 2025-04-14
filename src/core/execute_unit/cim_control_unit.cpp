@@ -15,16 +15,12 @@ CimControlUnit::CimControlUnit(const sc_module_name &name, const CimUnitConfig &
     : ExecuteUnit(name, base_info, clk, ExecuteUnitType::cim_control), config_(config), macro_size_(config.macro_size) {
     SC_THREAD(processIssue)
     SC_THREAD(processExecute)
+
+    energy_counter_.addSubEnergyCounter("result adder", &result_adder_energy_counter_);
 }
 
 void CimControlUnit::bindCimUnit(CimUnit *cim_unit) {
     cim_unit_ = cim_unit;
-}
-
-EnergyReporter CimControlUnit::getEnergyReporter() {
-    EnergyReporter reporter;
-    reporter.addSubModule("result adder", EnergyReporter{result_adder_energy_counter_});
-    return std::move(reporter);
 }
 
 void CimControlUnit::processIssue() {

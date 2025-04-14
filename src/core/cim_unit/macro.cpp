@@ -11,7 +11,7 @@
 namespace cimsim {
 
 Macro::Macro(const sc_module_name &name, const cimsim::CimUnitConfig &config, const BaseInfo &base_info,
-             bool independent_ipu)
+             bool independent_ipu, EnergyCounter &cim_unit_energy_counter)
     : BaseModule(name, base_info)
     , config_(config)
     , macro_size_(config.macro_size)
@@ -43,6 +43,18 @@ Macro::Macro(const sc_module_name &name, const cimsim::CimUnitConfig &config, co
     shift_adder_.setStaticPower(config_.shift_adder.static_power_mW * shift_adder_cnt);
     result_adder_.setStaticPower(config_.result_adder.static_power_mW * result_adder_cnt);
 
+    if (independent_ipu_) {
+        cim_unit_energy_counter.addSubEnergyCounter("ipu", &ipu_energy_counter_);
+    }
+    if (config_.bit_sparse) {
+        cim_unit_energy_counter.addSubEnergyCounter("meta buffer", &meta_buffer_energy_counter_);
+    }
+    cim_unit_energy_counter.addSubEnergyCounter("sram read", sram_read_.getEnergyCounterPtr());
+    cim_unit_energy_counter.addSubEnergyCounter("post process", post_process_.getEnergyCounterPtr());
+    cim_unit_energy_counter.addSubEnergyCounter("adder tree", adder_tree_.getEnergyCounterPtr());
+    cim_unit_energy_counter.addSubEnergyCounter("shift adder", shift_adder_.getEnergyCounterPtr());
+    cim_unit_energy_counter.addSubEnergyCounter("result adder", result_adder_.getEnergyCounterPtr());
+
     // bind next stage socket
     sram_read_.bindNextStageSocket(post_process_.getExecuteSocket(), false);
     post_process_.bindNextStageSocket(adder_tree_.getExecuteSocket(), false);
@@ -57,22 +69,6 @@ void Macro::startExecute(cimsim::MacroPayload payload) {
 
 void Macro::waitUntilFinishIfBusy() {
     macro_socket_.waitUntilFinishIfBusy();
-}
-
-EnergyReporter Macro::getEnergyReporter() {
-    EnergyReporter macro_reporter;
-    if (independent_ipu_) {
-        macro_reporter.addSubModule("ipu", EnergyReporter{ipu_energy_counter_});
-    }
-    if (config_.bit_sparse) {
-        macro_reporter.addSubModule("meta buffer", EnergyReporter{meta_buffer_energy_counter_});
-    }
-    macro_reporter.addSubModule("sram read", sram_read_.getEnergyReporter());
-    macro_reporter.addSubModule("post process", post_process_.getEnergyReporter());
-    macro_reporter.addSubModule("adder tree", adder_tree_.getEnergyReporter());
-    macro_reporter.addSubModule("shift adder", shift_adder_.getEnergyReporter());
-    macro_reporter.addSubModule("result adder", result_adder_.getEnergyReporter());
-    return std::move(macro_reporter);
 }
 
 void Macro::setActivationElementColumn(const std::vector<unsigned char> &macros_activation_element_col_mask,

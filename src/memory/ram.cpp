@@ -15,7 +15,9 @@ RAM::RAM(const sc_module_name &name, const RAMConfig &config, const BaseInfo &ba
         initialData();
     }
 
-    static_energy_counter_.setStaticPowerMW(config_.static_power_mW);
+    energy_counter_.setStaticPowerMW(config_.static_power_mW);
+    energy_counter_.addSubEnergyCounter("read", &read_energy_counter_);
+    energy_counter_.addSubEnergyCounter("write", &write_energy_counter_);
 }
 
 sc_time RAM::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
@@ -57,13 +59,6 @@ void RAM::initialData() {
         ifs.read(reinterpret_cast<char *>(data_.data()), config_.size_byte);
         ifs.close();
     }
-}
-
-EnergyReporter RAM::getEnergyReporter() {
-    EnergyReporter mem_energy_reporter{static_energy_counter_};
-    mem_energy_reporter.addSubModule("read", EnergyReporter{read_energy_counter_});
-    mem_energy_reporter.addSubModule("write", EnergyReporter{write_energy_counter_});
-    return std::move(mem_energy_reporter);
 }
 
 int RAM::getMemoryDataWidthByte(MemoryAccessType access_type) const {

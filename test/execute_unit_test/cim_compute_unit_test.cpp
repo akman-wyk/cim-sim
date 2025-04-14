@@ -39,6 +39,11 @@ public:
         , cim_unit_("CimUnit", config.chip_config.core_config.cim_unit_config, {config.sim_config}) {
         test_unit_.bindCimUnit(&cim_unit_);
         local_memory_unit_.mountMemory(&cim_unit_);
+
+        energy_counter_.addSubEnergyCounter(local_memory_unit_.getName(),
+                              local_memory_unit_.getEnergyCounterPtr());
+        energy_counter_.addSubEnergyCounter(test_unit_.getName(), test_unit_.getEnergyCounterPtr());
+        energy_counter_.addSubEnergyCounter(test_unit_.getName(), cim_unit_.getEnergyCounterPtr());
     }
 
     void setGroupActivationElementColumnMask(const std::vector<unsigned char>& groups_activation_element_col_mask) {
@@ -46,10 +51,7 @@ public:
     }
 
     EnergyReporter getEnergyReporter() override {
-        EnergyReporter reporter;
-        reporter.addSubModule(local_memory_unit_.getName(), local_memory_unit_.getEnergyReporter());
-        reporter.addSubModule(test_unit_.getName(), test_unit_.getEnergyReporter());
-        return std::move(reporter);
+        return energy_counter_.getEnergyReporter();
     }
 
 private:

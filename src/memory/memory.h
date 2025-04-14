@@ -29,7 +29,7 @@ public:
     [[nodiscard]] int getMemorySizeByte() const;
     [[nodiscard]] bool isMount() const;
 
-    EnergyReporter getEnergyReporter() override;
+    EnergyCounter* getEnergyCounterPtr() override;
 
     void setMemoryID(int mem_id);
 

@@ -15,7 +15,9 @@ RegBuffer::RegBuffer(const sc_module_name &name, const cimsim::RegBufferConfig &
         initialData();
     }
 
-    static_energy_counter_.setStaticPowerMW(config_.static_power_mW);
+    energy_counter_.setStaticPowerMW(config_.static_power_mW);
+    energy_counter_.addSubEnergyCounter("read", &read_energy_counter_);
+    energy_counter_.addSubEnergyCounter("write", &write_energy_counter_);
 }
 
 sc_time RegBuffer::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
@@ -53,13 +55,6 @@ sc_time RegBuffer::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
 
         return {period_ns_, SC_NS};
     }
-}
-
-EnergyReporter RegBuffer::getEnergyReporter() {
-    EnergyReporter mem_energy_reporter{static_energy_counter_};
-    mem_energy_reporter.addSubModule("read", EnergyReporter{read_energy_counter_});
-    mem_energy_reporter.addSubModule("write", EnergyReporter{write_energy_counter_});
-    return std::move(mem_energy_reporter);
 }
 
 void RegBuffer::initialData() {

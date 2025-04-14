@@ -58,9 +58,10 @@ bool Memory::isMount() const {
     return is_mount;
 }
 
-EnergyReporter Memory::getEnergyReporter() {
-    return hardware_->getEnergyReporter();
+EnergyCounter* Memory::getEnergyCounterPtr() {
+    return hardware_->getEnergyCounterPtr();
 }
+
 
 void Memory::setMemoryID(int mem_id) {
     hardware_->setMemoryID(mem_id);

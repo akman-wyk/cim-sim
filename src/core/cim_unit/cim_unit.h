@@ -18,8 +18,6 @@ public:
 
     CimUnit(const sc_module_name& name, const CimUnitConfig& config, const BaseInfo& base_info);
 
-    EnergyReporter getEnergyReporter() override;
-
     // As a local memory
     sc_time accessAndGetDelay(MemoryAccessPayload& payload) override;
     int getMemoryDataWidthByte(MemoryAccessType access_type) const override;

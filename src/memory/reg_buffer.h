@@ -19,8 +19,6 @@ public:
 
     sc_time accessAndGetDelay(MemoryAccessPayload& payload) override;
 
-    EnergyReporter getEnergyReporter() override;
-
     int getMemoryDataWidthByte(MemoryAccessType access_type) const override;
     int getMemorySizeByte() const override;
 
@@ -32,7 +30,6 @@ private:
 
     std::vector<uint8_t> data_;
 
-    EnergyCounter static_energy_counter_;
     EnergyCounter read_energy_counter_;
     EnergyCounter write_energy_counter_;
 };

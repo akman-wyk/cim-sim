@@ -21,7 +21,7 @@ void GlobalMemory::bindNetwork(Network* network) {
 }
 
 EnergyReporter GlobalMemory::getEnergyReporter() {
-    return memory_unit_.getEnergyReporter();
+    return memory_unit_.getEnergyCounterPtr()->getEnergyReporter();
 }
 
 }  // namespace cimsim

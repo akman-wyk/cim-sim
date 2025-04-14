@@ -20,28 +20,17 @@ CimComputeUnit::CimComputeUnit(const sc_module_name &name, const CimUnitConfig &
 
     if (config_.value_sparse) {
         value_sparse_network_energy_counter_.setStaticPowerMW(config_.value_sparse_config.static_power_mW);
+        energy_counter_.addSubEnergyCounter("value sparsity network", &value_sparse_network_energy_counter_);
     }
     if (config_.bit_sparse) {
         meta_buffer_energy_counter_.setStaticPowerMW(config_.bit_sparse_config.reg_buffer_static_power_mW);
+        energy_counter_.addSubEnergyCounter("meta buffer", &meta_buffer_energy_counter_);
     }
 }
 
 void CimComputeUnit::bindCimUnit(CimUnit *cim_unit) {
     cim_unit_ = cim_unit;
     cim_unit_->bindCimComputeUnit([this](int ins_id) { releaseResource(ins_id); }, [this]() { finishInstruction(); });
-}
-
-EnergyReporter CimComputeUnit::getEnergyReporter() {
-    EnergyReporter cim_compute_reporter;
-    if (config_.value_sparse) {
-        cim_compute_reporter.addSubModule("value sparsity network",
-                                          EnergyReporter{value_sparse_network_energy_counter_});
-    }
-    if (config_.bit_sparse) {
-        cim_compute_reporter.addSubModule("meta buffer", EnergyReporter{meta_buffer_energy_counter_});
-    }
-    cim_compute_reporter.accumulate(cim_unit_->getEnergyReporter(), true);
-    return std::move(cim_compute_reporter);
 }
 
 void CimComputeUnit::processIssue() {

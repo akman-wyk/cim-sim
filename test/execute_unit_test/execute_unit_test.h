@@ -65,6 +65,8 @@ public:
         ins_list_ = std::move(codes);
     }
 
+    virtual EnergyReporter getEnergyReporter() = 0;
+
     Reporter getReporter() {
         EnergyCounter::setRunningTimeNS(running_time_);
         return Reporter{running_time_.to_seconds() * 1000, getName(), getEnergyReporter(), 0};
