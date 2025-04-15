@@ -12,7 +12,7 @@ namespace cimsim {
 
 class LayerSimulator {
 public:
-    LayerSimulator(std::string config_file, std::string instruction_file, bool check);
+    LayerSimulator(std::string config_file, std::string profiler_config_file, std::string instruction_file, bool check);
 
     void run();
 
@@ -28,7 +28,10 @@ private:
     std::shared_ptr<Chip> chip_;
 
     Config config_;
+    ProfilerConfig profiler_config_;
+
     std::string config_file_;
+    std::string profiler_config_file_;
     std::string instruction_file_;
     // std::string global_image_file_;
     // std::string expected_ins_stat_file_;

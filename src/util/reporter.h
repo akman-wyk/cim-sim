@@ -20,14 +20,12 @@ class EnergyCounter;
 struct EnergyReportItem {
     std::string name;
     std::string total_energy, static_energy, dynamic_energy;  // pJ(%all)
-    std::string activity_time;                                // ns(%all)
 };
 
 struct EnergyReporterCompare {
     double total_energy_diff{0.0}, total_energy_radio{1.0};
     double static_energy_diff{0.0}, static_energy_radio{1.0};
     double dynamic_energy_diff{0.0}, dynamic_energy_radio{1.0};
-    double activity_time_diff{0.0}, activity_time_radio{1.0};
 
     std::map<std::string, EnergyReporterCompare> sub_modules;
 
@@ -50,7 +48,7 @@ struct ReporterCompare {
 class EnergyReporter {
 public:
     EnergyReporter() = default;
-    EnergyReporter(double total_energy, double static_energy, double dynamic_energy, double activity_time);
+    EnergyReporter(double total_energy, double static_energy, double dynamic_energy);
     explicit EnergyReporter(const EnergyCounter& energy_counter);
 
     void addSubModule(std::string name, EnergyReporter sub_module);
@@ -61,7 +59,7 @@ public:
     [[nodiscard]] double getTotalEnergyPJ() const;
     [[nodiscard]] double getDynamicEnergyPJ() const;
 
-    void accumulate(const EnergyReporter& another, bool same_simulation);
+    void accumulate(const EnergyReporter& another);
 
     [[nodiscard]] EnergyReporterCompare compare(const EnergyReporter& r2) const;
 
@@ -69,12 +67,11 @@ private:
     double total_energy_{0.0};    // pJ
     double static_energy_{0.0};   // pJ
     double dynamic_energy_{0.0};  // pJ
-    double activity_time_{0.0};   // ns
 
     std::map<std::string, EnergyReporter> sub_modules_;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(EnergyReporter, total_energy_, static_energy_, dynamic_energy_,
-                                                activity_time_, sub_modules_)
+                                                sub_modules_)
 };
 
 class Reporter {

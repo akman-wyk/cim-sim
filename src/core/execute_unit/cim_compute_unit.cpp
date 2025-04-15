@@ -63,8 +63,6 @@ void CimComputeUnit::processSubIns() {
     while (true) {
         process_sub_ins_socket_.waitUntilStart();
 
-        this->energy_counter_.addActivityTime(8 * period_ns_);
-
         const auto &sub_ins_payload = process_sub_ins_socket_.payload;
         const auto &cim_ins_info = sub_ins_payload.cim_ins_info;
         CORE_LOG(fmt::format("Cim compute sub ins start, pc: {}, sub ins: {}", cim_ins_info.ins_pc,

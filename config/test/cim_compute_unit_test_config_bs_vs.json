@@ -122,6 +122,10 @@
         "pipeline": true
       }
     },
+    "network_config": {
+      "bus_width_byte": 16,
+      "network_config_file_path": "../test_data/chip_v2/network_config_3.json"
+    },
     "address_space_config": [
       {"name": "cim_unit", "size": 1024},
       {"name": "cim input reg buffer", "size": 1024},

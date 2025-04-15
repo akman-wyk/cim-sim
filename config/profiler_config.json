@@ -1,0 +1,12 @@
+{
+  "profiling": true,
+  "report_to_json": true,
+  "json_flat": true,
+  "json_file": "../report/profiling.json",
+  "hardware_profiler_config": {
+    "profiling": true,
+    "record_timing_segments": true,
+    "each_core_profiling": true,
+    "report_level_cnt_": 2
+  }
+}

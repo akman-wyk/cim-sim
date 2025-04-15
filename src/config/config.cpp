@@ -1106,4 +1106,10 @@ bool Config::checkValid() const {
 
 DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(Config, chip_config, sim_config)
 
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(HardwareProfilerConfig, profiling, record_timing_segments,
+                                               each_core_profiling, report_level_cnt_)
+
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(ProfilerConfig, profiling, report_to_json, json_flat, json_file,
+                                               hardware_profiler_config)
+
 }  // namespace cimsim

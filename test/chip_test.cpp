@@ -29,17 +29,20 @@ int sc_main(int argc, char* argv[]) {
     sc_core::sc_report_handler::set_actions(sc_core::SC_WARNING, sc_core::SC_DO_NOTHING);
 
     std::string exec_file_name{argv[0]};
-    if (argc != 4) {
-        std::cout << fmt::format("Usage: {} [config_file] [instruction_file] [report_file]", exec_file_name)
+    if (argc != 5) {
+        std::cout << fmt::format("Usage: {} [config_file] [profiler_config_file] [instruction_file] [report_file]",
+                                 exec_file_name)
                   << std::endl;
         return INVALID_USAGE;
     }
 
     auto* config_file = argv[1];
-    auto* instruction_file = argv[2];
-    auto* report_file = argv[3];
+    auto* profiler_config_file = argv[2];
+    auto* instruction_file = argv[3];
+    auto* report_file = argv[4];
 
     auto config = readTypeFromJsonFile<Config>(config_file);
+    auto profiler_config = readTypeFromJsonFile<ProfilerConfig>(profiler_config_file);
     if (!config.checkValid()) {
         std::cout << "Config not valid" << std::endl;
         return INVALID_CONFIG;
@@ -47,7 +50,7 @@ int sc_main(int argc, char* argv[]) {
     AddressSapce::initialize(config.chip_config);
 
     auto test_info = readTypeFromJsonFile<ChipTestInfo>(instruction_file);
-    Chip chip{"Chip", config, test_info.code};
+    Chip chip{"Chip", config, profiler_config, test_info.code};
     sc_start();
 
     std::ofstream ofs;

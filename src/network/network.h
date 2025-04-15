@@ -28,7 +28,7 @@ public:
     void readLatencyEnergyFile(const std::string& file_path);
     void setLatencyEnergy(const nlohmann::json& j);
 
-    EnergyReporter getEnergyReporter() const;
+    EnergyCounter* getEnergyCounterPtr();
 
 private:
     const NetworkConfig& config_;

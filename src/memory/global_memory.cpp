@@ -20,8 +20,8 @@ void GlobalMemory::bindNetwork(Network* network) {
     switch_.bindNetwork(network);
 }
 
-EnergyReporter GlobalMemory::getEnergyReporter() {
-    return memory_unit_.getEnergyCounterPtr()->getEnergyReporter();
+EnergyCounter* GlobalMemory::getEnergyCounterPtr() {
+    return memory_unit_.getEnergyCounterPtr();
 }
 
 }  // namespace cimsim

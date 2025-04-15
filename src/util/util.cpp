@@ -102,4 +102,20 @@ std::stringstream& operator<<(std::stringstream& out, const std::vector<int>& in
     return out;
 }
 
+std::string splitAndGetLastPart(const std::string& original_str, const std::string& delimiter) {
+    size_t pos = 0;
+    std::vector<std::string> parts;
+    std::string str = original_str;
+
+    // 使用 stringstream 分割字符串
+    while ((pos = str.find(delimiter)) != std::string::npos) {
+        parts.push_back(str.substr(0, pos));
+        str.erase(0, pos + delimiter.length());
+    }
+    parts.push_back(str);  // 添加最后一部分
+
+    // 返回最后一部分
+    return parts.back();
+}
+
 }  // namespace cimsim
