@@ -4,18 +4,23 @@
 
 #pragma once
 
+#include <set>
 #include <stack>
 
+#include "profiler/timing_statistic.h"
 #include "systemc.h"
 
 namespace cimsim {
 
 class EnergyReporter;
+class HardwareProfiler;
 
 class EnergyCounter {
     // energy unit -- pJ
     // power unit  -- mW
     // time unit   -- ns
+    friend HardwareProfiler;
+
 public:
     struct DynamicEnergyTag {
         sc_time end_time{0.0, SC_NS};
@@ -42,11 +47,10 @@ public:
 
     [[nodiscard]] double getStaticEnergyPJ() const;
     [[nodiscard]] double getDynamicEnergyPJ() const;
-    [[nodiscard]] double getActivityTime() const;
     [[nodiscard]] double getTotalEnergyPJ() const;
     [[nodiscard]] double getAveragePowerMW() const;
 
-    void addSubEnergyCounter(const std::string& name, EnergyCounter* sub_energy_counter);
+    void addSubEnergyCounter(const std::string_view& name, EnergyCounter* sub_energy_counter);
     [[nodiscard]] EnergyReporter getEnergyReporter() const;
 
 private:
@@ -56,13 +60,14 @@ private:
     const bool mult_pipeline_stage_;
     double static_power_ = 0.0;    // mW
     double dynamic_energy_ = 0.0;  // pJ
-    double activity_time_ = 0.0;   // ns
 
     std::stack<DynamicEnergyTag>* dynamic_tag_stack_{};
     sc_time activity_time_tag_{0.0, SC_NS};
 
-    std::vector<EnergyCounter*> parent_energy_counter_list_{};
-    std::vector<std::pair<std::string, EnergyCounter*>> sub_energy_counter_list_{};
+    EnergyCounter* parent_energy_counter_{nullptr};
+    std::vector<std::pair<std::string_view, EnergyCounter*>> sub_energy_counter_list_{};
+
+    std::set<std::shared_ptr<HardwareTimingStatistic>> hardware_timing_statistic_list{};
 };
 
 }  // namespace cimsim

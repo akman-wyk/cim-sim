@@ -32,8 +32,7 @@ public:
     SC_HAS_PROCESS(Core);
 
     Core(const sc_module_name& name, const CoreConfig& config, const BaseInfo& base_info, Clock* clk, int global_id,
-         std::vector<Instruction> ins_list, std::function<void()> finish_run_call,
-         EnergyCounter* core_overview_energy_counter = nullptr);
+         std::vector<Instruction> ins_list, std::function<void()> finish_run_call);
     void bindNetwork(Network* network);
 
     EnergyReporter getEnergyReporter() const;

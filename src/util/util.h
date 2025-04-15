@@ -64,4 +64,6 @@ std::stringstream& operator<<(std::stringstream& out, const std::unordered_map<i
 
 std::stringstream& operator<<(std::stringstream& out, const std::vector<int>& ins_id_list);
 
+std::string splitAndGetLastPart(const std::string& original_str, const std::string& delimiter);
+
 }  // namespace cimsim

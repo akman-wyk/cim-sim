@@ -39,21 +39,8 @@ void EnergyCounter::addDynamicEnergyPJ(double latency, double power) {
 }
 
 void EnergyCounter::addActivityTime(double latency) {
-    auto& now_time = sc_time_stamp();
-    auto end_time_tag = now_time + sc_time{latency, SC_NS};
-
-    if (activity_time_tag_ < end_time_tag) {
-        auto new_activity_latency = latency;
-        if (now_time < activity_time_tag_) {
-            auto overlap_time = activity_time_tag_ - now_time;
-            new_activity_latency -= (overlap_time.to_seconds() * 1e9);
-        }
-        activity_time_ += new_activity_latency;
-        activity_time_tag_ = end_time_tag;
-    }
-
-    for (auto* parent_energy_counter_ : parent_energy_counter_list_) {
-        parent_energy_counter_->addActivityTime(latency);
+    for (auto& timing_statistic : hardware_timing_statistic_list) {
+        timing_statistic->addActivityTime(latency);
     }
 }
 
@@ -81,10 +68,6 @@ double EnergyCounter::getDynamicEnergyPJ() const {
     return dynamic_energy_;
 }
 
-double EnergyCounter::getActivityTime() const {
-    return activity_time_;
-}
-
 double EnergyCounter::getTotalEnergyPJ() const {
     return getStaticEnergyPJ() + getDynamicEnergyPJ();
 }
@@ -93,15 +76,18 @@ double EnergyCounter::getAveragePowerMW() const {
     return getTotalEnergyPJ() / getRunningTimeNS();  // pJ / ns = mW
 }
 
-void EnergyCounter::addSubEnergyCounter(const std::string& name, EnergyCounter* sub_energy_counter) {
+void EnergyCounter::addSubEnergyCounter(const std::string_view& name, EnergyCounter* sub_energy_counter) {
     sub_energy_counter_list_.emplace_back(name, sub_energy_counter);
-    sub_energy_counter->parent_energy_counter_list_.emplace_back(this);
+    if (sub_energy_counter->parent_energy_counter_ != nullptr) {
+        throw std::runtime_error{"addSubEnergyCounter duplicate"};
+    }
+    sub_energy_counter->parent_energy_counter_ = this;
 }
 
 EnergyReporter EnergyCounter::getEnergyReporter() const {
     EnergyReporter reporter{*this};
     for (const auto& [name, sub] : sub_energy_counter_list_) {
-        reporter.addSubModule(name, sub->getEnergyReporter());
+        reporter.addSubModule(std::string{name}, sub->getEnergyReporter());
     }
     return std::move(reporter);
 }

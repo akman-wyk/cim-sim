@@ -11,8 +11,10 @@
 
 namespace cimsim {
 
-LayerSimulator::LayerSimulator(std::string config_file, std::string instruction_file, bool check)
+LayerSimulator::LayerSimulator(std::string config_file, std::string profiler_config_file, std::string instruction_file,
+                               bool check)
     : config_file_(std::move(config_file))
+    , profiler_config_file_(std::move(profiler_config_file))
     , instruction_file_(std::move(instruction_file))
     // , global_image_file_(std::move(global_image_file))
     // , expected_ins_stat_file_(std::move(expected_ins_stat_file))
@@ -23,6 +25,8 @@ LayerSimulator::LayerSimulator(std::string config_file, std::string instruction_
 void LayerSimulator::run() {
     std::cout << "Loading Config" << std::endl;
     config_ = readTypeFromJsonFile<Config>(config_file_);
+    profiler_config_ = readTypeFromJsonFile<ProfilerConfig>(profiler_config_file_);
+
     if (!config_.checkValid()) {
         std::cout << "Invalid config" << std::endl;
         return;
@@ -35,7 +39,7 @@ void LayerSimulator::run() {
     std::cout << "Read finish" << std::endl;
 
     std::cout << "Build Chip" << std::endl;
-    chip_ = std::make_shared<Chip>("Chip", config_, core_ins_list);
+    chip_ = std::make_shared<Chip>("Chip", config_, profiler_config_, core_ins_list);
     std::cout << "Build finish" << std::endl;
 
     std::cout << "Start Simulation" << std::endl;
@@ -105,6 +109,7 @@ std::vector<std::vector<Instruction>> LayerSimulator::getCoreInstructionList() c
 
 struct CimArguments {
     std::string config_file;
+    std::string profiler_config_file;
     std::string instruction_file;
     // std::string global_image_file;
     // std::string expected_ins_stat_file;
@@ -122,6 +127,7 @@ struct CimArguments {
 CimArguments parseCimArguments(int argc, char* argv[]) {
     argparse::ArgumentParser parser("ChipTest");
     parser.add_argument("config").help("config file");
+    parser.add_argument("profiler_config").help("profiler config file");
     parser.add_argument("inst").help("instruction file");
     // parser.add_argument("global").help("global image file");
     // parser.add_argument("stat").help("expected ins stat file");
@@ -153,6 +159,7 @@ CimArguments parseCimArguments(int argc, char* argv[]) {
     std::string simulation_report_file = parser.is_used("--sim_report") ? parser.get("--sim_report") : "";
     std::string report_json_file = parser.is_used("--report_json") ? parser.get("--report_json") : "";
     return CimArguments{.config_file = parser.get("config"),
+                        .profiler_config_file = parser.get("profiler_config"),
                         .instruction_file = parser.get("inst"),
                         // .global_image_file = parser.get("global"),
                         // .expected_ins_stat_file = parser.get("stat"),
@@ -170,7 +177,7 @@ int sc_main(int argc, char* argv[]) {
 
     auto args = parseCimArguments(argc, argv);
 
-    cimsim::LayerSimulator layer_simulator{args.config_file, args.instruction_file,
+    cimsim::LayerSimulator layer_simulator{args.config_file, args.profiler_config_file, args.instruction_file,
                                            // args.global_image_file,
                                            // args.expected_ins_stat_file,
                                            // args.expected_reg_file,

@@ -124,6 +124,11 @@ add_library(cim-simulator STATIC ""
         src/util/reporter.h
         src/util/util.cpp
         src/util/util.h
+
+        src/profiler/timing_statistic.cpp
+        src/profiler/timing_statistic.h
+        src/profiler/profiler.cpp
+        src/profiler/profiler.h
 )
 set_target_properties(cim-simulator PROPERTIES OUTPUT_NAME "cim-simulator")
 target_include_directories(cim-simulator PRIVATE

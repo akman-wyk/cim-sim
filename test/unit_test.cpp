@@ -20,6 +20,8 @@
 
 namespace cimsim {
 
+const std::string profiler_config_file = "../config/profiler_config.json";
+
 struct TestArguments {
     std::string config_file;
     std::string test_unit_name;
@@ -87,8 +89,15 @@ bool test_unit(const std::string& root_dir, const UnitTestConfig& unit_test_conf
         auto instruction_file = fmt::format("{}/{}", root_dir, test_case_config.instruction_file);
         auto report_file = fmt::format("{}/{}", root_dir, test_case_config.report_file);
 
-        auto cmd = fmt::format("./{} {} {} {} >> ./log.txt 2>&1", unit_test_config.name, config_file, instruction_file,
-                               report_file);
+        std::string cmd;
+        if (unit_test_config.name == "CoreTest" || unit_test_config.name == "ChipTest") {
+            cmd = fmt::format("./{} {} {} {} {} >> ./log.txt 2>&1", unit_test_config.name, config_file,
+                              profiler_config_file, instruction_file, report_file);
+        } else {
+            cmd = fmt::format("./{} {} {} {} >> ./log.txt 2>&1", unit_test_config.name, config_file, instruction_file,
+                              report_file);
+        }
+
         if (args.print_cmd) {
             std::cout << fmt::format("command: {}\n\t\t\t", cmd);
         }

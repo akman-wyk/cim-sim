@@ -30,7 +30,7 @@ public:
     using TestBaseModule::TestBaseModule;
 
     EnergyReporter getEnergyReporter() override {
-        EnergyReporter reporter{0, 0, 0, EnergyCounter::getRunningTimeNS()};
+        EnergyReporter reporter;
         reporter.addSubModule(local_memory_unit_.getName(),
                               local_memory_unit_.getEnergyCounterPtr()->getEnergyReporter());
         reporter.addSubModule(test_unit_.getName(), test_unit_.getEnergyCounterPtr()->getEnergyReporter());

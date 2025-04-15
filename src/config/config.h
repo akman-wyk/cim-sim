@@ -448,4 +448,24 @@ struct Config {
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(Config)
 };
 
+struct HardwareProfilerConfig {
+    bool profiling{false};
+    bool record_timing_segments{false};
+    bool each_core_profiling{false};
+    int report_level_cnt_{0};
+
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(HardwareProfilerConfig)
+};
+
+struct ProfilerConfig {
+    bool profiling{false};
+    bool report_to_json{false};
+    bool json_flat{false};
+    std::string json_file{};
+
+    HardwareProfilerConfig hardware_profiler_config{};
+
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(ProfilerConfig)
+};
+
 }  // namespace cimsim

@@ -54,7 +54,7 @@ public:
     }
 
     EnergyReporter getEnergyReporter() const {
-        EnergyReporter reporter{0, 0, 0, EnergyCounter::getRunningTimeNS()};
+        EnergyReporter reporter;
         reporter.addSubModule(macro_group_.getName(), energy_counter_.getEnergyReporter());
         return std::move(reporter);
     }

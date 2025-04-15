@@ -26,7 +26,7 @@ MemoryUnit::MemoryUnit(const sc_module_name &name, const MemoryUnitConfig &confi
                                : std::make_shared<Memory>(mem_name.c_str(), mem_cfg.reg_buffer_config, base_info);
             mem_ptr->setMemoryID(mem_id);
             memory_list_[mem_id] = mem_ptr;
-            energy_counter_.addSubEnergyCounter(mem_name, mem_ptr->getEnergyCounterPtr());
+            energy_counter_.addSubEnergyCounter(mem_ptr->getName(), mem_ptr->getEnergyCounterPtr());
         }
     }
 }
