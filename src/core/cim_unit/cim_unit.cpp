@@ -54,14 +54,19 @@ sc_time CimUnit::accessAndGetDelay(MemoryAccessPayload& payload) {
     int payload_bit_size = payload.size_byte * BYTE_TO_BIT;
     int process_times = IntDivCeil(payload_bit_size, cim_bit_width_);
     double latency;
+    ProfilerTag profiler_tag{.core_id = core_id_,
+                             .ins_id = payload.ins.ins_id,
+                             .inst_opcode = payload.ins.inst_opcode,
+                             .inst_group_tag = payload.ins.inst_group_tag,
+                             .inst_profiler_operator = InstProfilerOperator::memory};
     if (payload.access_type == +MemoryAccessType::read) {
         double dynamic_power_mW = config_.sram.read_dynamic_power_per_bit_mW * cim_bit_width_;
         latency = config_.sram.read_latency_cycle * period_ns_ * process_times;
-        sram_read_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW);
+        sram_read_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW, profiler_tag);
     } else {
         double dynamic_power_mW = config_.sram.write_dynamic_power_per_bit_mW * cim_bit_width_;
         latency = config_.sram.write_latency_cycle * period_ns_ * process_times;
-        sram_write_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW);
+        sram_write_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW, profiler_tag);
     }
 
     return {latency, SC_NS};

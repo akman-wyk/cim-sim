@@ -25,7 +25,7 @@ DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(TransferType)
 
 struct ExecuteInsPayload {
     ExecuteInsPayload() = default;
-    explicit ExecuteInsPayload(InstructionPayload ins) : ins(ins) {}
+    explicit ExecuteInsPayload(InstructionPayload ins) : ins(std::move(ins)) {}
     virtual ~ExecuteInsPayload() = default;
     InstructionPayload ins{};
 };

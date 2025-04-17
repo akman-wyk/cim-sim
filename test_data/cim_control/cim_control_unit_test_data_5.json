@@ -24,7 +24,7 @@
   ],
   "expected": {
     "time_ns": 20,
-    "energy_pj": 10,
+    "energy_pj": 30,
     "groups_activation_macro_cnt": [9, 9, 9, 9],
     "groups_activation_element_col_cnt": [135, 135, 135, 135]
   }

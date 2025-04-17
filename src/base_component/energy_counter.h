@@ -7,6 +7,7 @@
 #include <set>
 #include <stack>
 
+#include "core/payload.h"
 #include "profiler/timing_statistic.h"
 #include "systemc.h"
 
@@ -14,12 +15,22 @@ namespace cimsim {
 
 class EnergyReporter;
 class HardwareProfiler;
+class InstProfiler;
+
+struct ProfilerTag {
+    int core_id{-1};
+    int ins_id{0};
+    OPCODE inst_opcode{OPCODE::CIM_MVM};
+    const std::string_view& inst_group_tag;
+    InstProfilerOperator inst_profiler_operator{InstProfilerOperator::computation};
+};
 
 class EnergyCounter {
     // energy unit -- pJ
     // power unit  -- mW
     // time unit   -- ns
     friend HardwareProfiler;
+    friend InstProfiler;
 
 public:
     struct DynamicEnergyTag {
@@ -42,8 +53,8 @@ public:
 
     void setStaticPowerMW(double power);
     void addDynamicEnergyPJ(double energy);
-    void addDynamicEnergyPJ(double latency, double power);
-    void addActivityTime(double latency);
+    void addDynamicEnergyPJ(double latency, double power, const ProfilerTag& profiler_tag);
+    void addActivityTime(double latency, const ProfilerTag& profiler_tag);
 
     [[nodiscard]] double getStaticEnergyPJ() const;
     [[nodiscard]] double getDynamicEnergyPJ() const;
@@ -68,6 +79,7 @@ private:
     std::vector<std::pair<std::string_view, EnergyCounter*>> sub_energy_counter_list_{};
 
     std::set<std::shared_ptr<HardwareTimingStatistic>> hardware_timing_statistic_list{};
+    InstProfiler* inst_profiler_{nullptr};
 };
 
 }  // namespace cimsim

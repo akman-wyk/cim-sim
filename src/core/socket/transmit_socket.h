@@ -24,10 +24,11 @@ public:
     std::vector<uint8_t> loadGlobal(const InstructionPayload& ins, int address_byte, int size_byte);
     void storeGlobal(const InstructionPayload& ins, int address_byte, int size_byte, std::vector<uint8_t> data);
 
-    void sendHandshake(int dst_id, int transfer_id_tag);
-    void sendData(int dst_id, int transfer_id_tag, int dst_address_byte, int data_size_byte);
+    void sendHandshake(const InstructionPayload& ins, int dst_id, int transfer_id_tag);
+    void sendData(const InstructionPayload& ins, int dst_id, int transfer_id_tag, int dst_address_byte,
+                  int data_size_byte);
     void receiveHandshake(int src_id, int transfer_id_tag);
-    void receiveData(int src_id);
+    void receiveData(const InstructionPayload& ins, int src_id);
 
 private:
     Switch* switch_{nullptr};

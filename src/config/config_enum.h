@@ -29,4 +29,8 @@ BETTER_ENUM(CimASMode, int,  // NOLINT(*-no-recursion, *-explicit-constructor)
             intergroup = 1, intragroup = 2, other = 3)
 DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(CimASMode)
 
+BETTER_ENUM(InstProfilerOperator, int,  // NOLINT(*-no-recursion, *-explicit-constructor)
+            computation = 0, memory = 1, control = 2, transport = 3)
+DECLARE_TYPE_FROM_TO_JSON_FUNCTION_NON_INTRUSIVE(InstProfilerOperator)
+
 }  // namespace cimsim

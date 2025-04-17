@@ -31,9 +31,14 @@ sc_time RAM::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
 
     int process_times = IntDivCeil(payload.size_byte, config_.width_byte);
     double latency;
+    ProfilerTag profiler_tag = {.core_id = core_id_,
+                                .ins_id = payload.ins.ins_id,
+                                .inst_opcode = payload.ins.inst_opcode,
+                                .inst_group_tag = payload.ins.inst_group_tag,
+                                .inst_profiler_operator = InstProfilerOperator::memory};
     if (payload.access_type == +MemoryAccessType::read) {
         latency = process_times * config_.read_latency_cycle * period_ns_;
-        read_energy_counter_.addDynamicEnergyPJ(latency, config_.read_dynamic_power_mW);
+        read_energy_counter_.addDynamicEnergyPJ(latency, config_.read_dynamic_power_mW, profiler_tag);
 
         if (data_mode_ == +DataMode::real_data) {
             payload.data.resize(payload.size_byte);
@@ -41,7 +46,7 @@ sc_time RAM::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
         }
     } else {
         latency = process_times * config_.write_latency_cycle * period_ns_;
-        write_energy_counter_.addDynamicEnergyPJ(latency, config_.write_dynamic_power_mW);
+        write_energy_counter_.addDynamicEnergyPJ(latency, config_.write_dynamic_power_mW, profiler_tag);
 
         if (data_mode_ == +DataMode::real_data) {
             std::copy(payload.data.begin(), payload.data.end(), data_.begin() + payload.address_byte);

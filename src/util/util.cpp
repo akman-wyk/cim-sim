@@ -118,4 +118,10 @@ std::string splitAndGetLastPart(const std::string& original_str, const std::stri
     return parts.back();
 }
 
+void printTab(std::ostream& os, int count) {
+    for (int i = 0; i < count; i++) {
+        os << '\t';
+    }
+}
+
 }  // namespace cimsim

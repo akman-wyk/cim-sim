@@ -32,8 +32,8 @@ MacroGroup::MacroGroup(const sc_module_name &name, const CimUnitConfig &config, 
     for (int i = 0; i < (macro_simulation ? 1 : config_.macro_group_size); i++) {
         auto macro_name = fmt::format("Macro_{}", i);
         bool independent_ipu = config_.value_sparse || i == 0;
-        macro_list_.push_back(
-            std::make_shared<Macro>(macro_name.c_str(), config_, base_info, independent_ipu, cim_unit_energy_counter));
+        macro_list_.push_back(std::make_shared<Macro>(macro_name.c_str(), config_, base_info, independent_ipu,
+                                                      cim_unit_energy_counter, macro_simulation));
     }
 }
 

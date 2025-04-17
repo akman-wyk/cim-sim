@@ -4,6 +4,7 @@
 
 #include "energy_counter.h"
 
+#include "profiler/profiler.h"
 #include "util/reporter.h"
 
 namespace cimsim {
@@ -29,18 +30,21 @@ void EnergyCounter::addDynamicEnergyPJ(double energy) {
     dynamic_energy_ += energy;
 }
 
-void EnergyCounter::addDynamicEnergyPJ(double latency, double power) {
+void EnergyCounter::addDynamicEnergyPJ(double latency, double power, const ProfilerTag& profiler_tag) {
     if (mult_pipeline_stage_) {
         addPipelineStageDynamicEnergyPJ(latency, power);
     } else {
         dynamic_energy_ += latency * power;
     }
-    addActivityTime(latency);
+    addActivityTime(latency, profiler_tag);
 }
 
-void EnergyCounter::addActivityTime(double latency) {
+void EnergyCounter::addActivityTime(double latency, const ProfilerTag& profiler_tag) {
     for (auto& timing_statistic : hardware_timing_statistic_list) {
         timing_statistic->addActivityTime(latency);
+    }
+    if (inst_profiler_ != nullptr) {
+        inst_profiler_->addActivityTime(latency, profiler_tag);
     }
 }
 

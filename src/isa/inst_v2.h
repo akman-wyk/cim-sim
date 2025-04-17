@@ -17,6 +17,8 @@ struct InstV2 {
 
     bool GRP{false}, GRP_I{false}, SP_V{false}, SP_B{false}, GRP_B{false}, OSUM{false}, OSUM_MOV{false};
 
+    std::string inst_group_tag{};
+
     [[nodiscard]] OPCODE_CLASS getOpcodeClass() const;
 
     [[nodiscard]] OPCODE getOpcodeEnum() const;

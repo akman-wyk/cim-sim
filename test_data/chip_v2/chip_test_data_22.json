@@ -16,6 +16,6 @@
   ],
   "expected": {
     "time_ns": 115,
-    "energy_pj": 160
+    "energy_pj": 32360
   }
 }

@@ -28,7 +28,8 @@ std::vector<uint8_t> TransmitSocket::loadGlobal(const InstructionPayload& ins, i
                                                                   .address_byte = address_byte,
                                                                   .size_byte = size_byte,
                                                                   .finish_access = finish_load_});
-    auto network_payload = std::make_shared<NetworkPayload>(NetworkPayload{.src_id = core_id_,
+    auto network_payload = std::make_shared<NetworkPayload>(NetworkPayload{.ins = ins,
+                                                                           .src_id = core_id_,
                                                                            .dst_id = global_memory_switch_id_,
                                                                            .finish_network_trans = &finish_load_trans_,
                                                                            .request_data_size_byte = 1,
@@ -52,7 +53,8 @@ void TransmitSocket::storeGlobal(const InstructionPayload& ins, int address_byte
                                                                   .size_byte = size_byte,
                                                                   .data = std::move(data),
                                                                   .finish_access = finish_store_});
-    auto network_payload = std::make_shared<NetworkPayload>(NetworkPayload{.src_id = core_id_,
+    auto network_payload = std::make_shared<NetworkPayload>(NetworkPayload{.ins = ins,
+                                                                           .src_id = core_id_,
                                                                            .dst_id = global_memory_switch_id_,
                                                                            .finish_network_trans = &finish_store_trans_,
                                                                            .request_data_size_byte = size_byte,
@@ -64,7 +66,7 @@ void TransmitSocket::storeGlobal(const InstructionPayload& ins, int address_byte
     LOG(fmt::format("core id: {}, store global data end, pc: {}", core_id_, ins.pc));
 }
 
-void TransmitSocket::sendHandshake(int dst_id, int transfer_id_tag) {
+void TransmitSocket::sendHandshake(const InstructionPayload& ins, int dst_id, int transfer_id_tag) {
     expected_receiver_core_id_ = dst_id;
     expected_transfer_id_tag_ = transfer_id_tag;
     LOG(fmt::format("core id: {}, send handshake start, dst_id: {}, transfer_id_tag: {}", core_id_, dst_id,
@@ -76,7 +78,8 @@ void TransmitSocket::sendHandshake(int dst_id, int transfer_id_tag) {
                                                                        .status = DataTransferStatus::sender_ready,
                                                                        .id_tag = transfer_id_tag,
                                                                        .data_size_byte = 0});
-    auto network_payload = std::make_shared<NetworkPayload>(NetworkPayload{.src_id = core_id_,
+    auto network_payload = std::make_shared<NetworkPayload>(NetworkPayload{.ins = ins,
+                                                                           .src_id = core_id_,
                                                                            .dst_id = dst_id,
                                                                            .request_data_size_byte = 1,
                                                                            .request_payload = request,
@@ -91,7 +94,8 @@ void TransmitSocket::sendHandshake(int dst_id, int transfer_id_tag) {
     expected_transfer_id_tag_ = -1;
 }
 
-void TransmitSocket::sendData(int dst_id, int transfer_id_tag, int dst_address_byte, int data_size_byte) {
+void TransmitSocket::sendData(const InstructionPayload& ins, int dst_id, int transfer_id_tag, int dst_address_byte,
+                              int data_size_byte) {
     LOG(fmt::format("core id: {}, send data start, dst_id: {}, transfer_id_tag: {}", core_id_, dst_id,
                     transfer_id_tag));
     auto resuest = std::make_shared<DataTransferInfo>(DataTransferInfo{.sender_id = core_id_,
@@ -100,7 +104,8 @@ void TransmitSocket::sendData(int dst_id, int transfer_id_tag, int dst_address_b
                                                                        .status = DataTransferStatus::send_data,
                                                                        .id_tag = transfer_id_tag,
                                                                        .data_size_byte = data_size_byte});
-    auto network_payload = std::make_shared<NetworkPayload>(NetworkPayload{.src_id = core_id_,
+    auto network_payload = std::make_shared<NetworkPayload>(NetworkPayload{.ins = ins,
+                                                                           .src_id = core_id_,
                                                                            .dst_id = dst_id,
                                                                            .request_data_size_byte = data_size_byte,
                                                                            .request_payload = resuest,
@@ -123,7 +128,7 @@ void TransmitSocket::receiveHandshake(int src_id, int transfer_id_tag) {
     expected_sender_core_id_ = -1;
 }
 
-void TransmitSocket::receiveData(int src_id) {
+void TransmitSocket::receiveData(const InstructionPayload& ins, int src_id) {
     auto data_transfer_response =
         std::make_shared<DataTransferInfo>(DataTransferInfo{.sender_id = src_id,
                                                             .receiver_id = core_id_,
@@ -131,7 +136,8 @@ void TransmitSocket::receiveData(int src_id) {
                                                             .status = DataTransferStatus::receiver_ready,
                                                             .id_tag = receiver_waiting_sender_map[src_id],
                                                             .data_size_byte = 0});
-    auto network_payload = std::make_shared<NetworkPayload>(NetworkPayload{.src_id = core_id_,
+    auto network_payload = std::make_shared<NetworkPayload>(NetworkPayload{.ins = ins,
+                                                                           .src_id = core_id_,
                                                                            .dst_id = src_id,
                                                                            .request_data_size_byte = 1,
                                                                            .request_payload = data_transfer_response,

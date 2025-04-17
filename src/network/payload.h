@@ -17,6 +17,8 @@ BETTER_ENUM(NetworkTransferMode, int,  // NOLINT(*-explicit-constructor)
             transport, only_send)
 
 struct NetworkPayload {
+    InstructionPayload ins{};
+
     int src_id;
     int dst_id;
 

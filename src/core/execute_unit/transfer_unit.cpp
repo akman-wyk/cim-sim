@@ -117,7 +117,8 @@ void GlobalTransferDataPath::processIssue() {
         auto& payload = exec_socket_.payload;
 
         if (payload.ins_info->type == +TransferType::send) {
-            transmit_socket_.sendHandshake(payload.ins_info->dst_id, payload.ins_info->transfer_id_tag);
+            transmit_socket_.sendHandshake(payload.ins_info->ins, payload.ins_info->dst_id,
+                                           payload.ins_info->transfer_id_tag);
         } else if (payload.ins_info->type == +TransferType::receive) {
             transmit_socket_.receiveHandshake(payload.ins_info->src_id, payload.ins_info->transfer_id_tag);
         }
@@ -139,7 +140,7 @@ void GlobalTransferDataPath::processReadStage() {
         int address_byte = payload.ins_info->src_start_address_byte;
         int size_byte = payload.ins_info->data_size_byte;
         if (auto type = payload.ins_info->type; type == +TransferType::receive) {
-            transmit_socket_.receiveData(payload.ins_info->src_id);
+            transmit_socket_.receiveData(payload.ins_info->ins, payload.ins_info->src_id);
         } else if (type == +TransferType::global_load) {
             transmit_socket_.loadGlobal(payload.ins_info->ins, address_byte, size_byte);
         } else {
@@ -164,8 +165,8 @@ void GlobalTransferDataPath::processWriteStage() {
         int address_byte = payload.ins_info->dst_start_address_byte;
         int size_byte = payload.ins_info->data_size_byte;
         if (auto type = payload.ins_info->type; type == +TransferType::send) {
-            transmit_socket_.sendData(payload.ins_info->dst_id, payload.ins_info->transfer_id_tag, address_byte,
-                                      size_byte);
+            transmit_socket_.sendData(payload.ins_info->ins, payload.ins_info->dst_id,
+                                      payload.ins_info->transfer_id_tag, address_byte, size_byte);
         } else if (type == +TransferType::global_store) {
             transmit_socket_.storeGlobal(payload.ins_info->ins, address_byte, size_byte, {});
         } else {

@@ -41,7 +41,7 @@ namespace cimsim {
 
 #define CIMSIM_JSON_FROM_WITH_DEFAULT(v1)                              \
     if (!nlohmann_json_j.is_null() && nlohmann_json_j.contains(#v1)) { \
-        from_json(nlohmann_json_j[#v1], nlohmann_json_t.v1);      \
+        from_json(nlohmann_json_j[#v1], nlohmann_json_t.v1);           \
     } else {                                                           \
         nlohmann_json_t.v1 = nlohmann_json_default_obj.v1;             \
     }
@@ -66,7 +66,7 @@ namespace cimsim {
         }                                                                     \
     }
 
-#define JSON_VALUE_ENUM(t, field, key)                    \
+#define JSON_VALUE_ENUM(t, field, key)                 \
     if (j.contains(key)) {                             \
         from_json(j[key].get<std::string>(), t.field); \
     } else {                                           \
@@ -475,7 +475,8 @@ namespace cimsim {
 #define DEFINE_EXECUTE_INS_PAYLOAD_CONSTRUCTOR(Type, ...)                                                           \
     Type() = default;                                                                                               \
     Type(InstructionPayload ins, CIM_PASTE(CIM_PAYLOAD_CONSTRUCTOR_DEFINE_PARAMETER, DELIMITER_COMMA, __VA_ARGS__)) \
-        : ExecuteInsPayload(ins), CIM_PASTE(CIM_PAYLOAD_CONSTRUCTOR_ASSIGN_MEMBER, DELIMITER_COMMA, __VA_ARGS__) {} \
+        : ExecuteInsPayload(std::move(ins))                                                                         \
+        , CIM_PASTE(CIM_PAYLOAD_CONSTRUCTOR_ASSIGN_MEMBER, DELIMITER_COMMA, __VA_ARGS__) {}                         \
     Type(const Type& another)                                                                                       \
         : ExecuteInsPayload(another.ins)                                                                            \
         , CIM_PASTE(CIM_PAYLOAD_COPY_CONSTRUCTOR_MEMBER, DELIMITER_COMMA, __VA_ARGS__) {}

@@ -18,7 +18,7 @@ public:
     SC_HAS_PROCESS(Macro);
 
     Macro(const sc_module_name& name, const CimUnitConfig& config, const BaseInfo& base_info, bool independent_ipu,
-          EnergyCounter& cim_unit_energy_counter);
+          EnergyCounter& cim_unit_energy_counter, bool macro_simulation = false);
 
     void startExecute(MacroPayload payload);
     void waitUntilFinishIfBusy();

@@ -38,7 +38,12 @@ void ScalarUnit::process() {
         auto functor_found = functor_config_map_.find(payload->op._to_string());
         double dynamic_power_mW = functor_found == functor_config_map_.end() ? config_.default_functor_dynamic_power_mW
                                                                              : functor_found->second->dynamic_power_mW;
-        energy_counter_.addDynamicEnergyPJ(period_ns_, dynamic_power_mW);
+        energy_counter_.addDynamicEnergyPJ(period_ns_, dynamic_power_mW,
+                                           {.core_id = core_id_,
+                                            .ins_id = payload->ins.ins_id,
+                                            .inst_opcode = payload->ins.inst_opcode,
+                                            .inst_group_tag = payload->ins.inst_group_tag,
+                                            .inst_profiler_operator = InstProfilerOperator::control});
 
         // execute instruction
         execute_socket_.waitUntilFinishIfBusy();
