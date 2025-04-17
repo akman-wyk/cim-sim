@@ -165,7 +165,7 @@ std::string InstV2::toJsonString() const {
 }
 
 DEFINE_TYPE_FROM_JSON_FUNCTION_WITH_DEFAULT(InstV2, opcode, rs, rt, rd, re, rf, funct, imm, GRP, GRP_I, SP_V, SP_B,
-                                            GRP_B, OSUM, OSUM_MOV)
+                                            GRP_B, OSUM, OSUM_MOV, inst_group_tag)
 
 void to_json(nlohmann::ordered_json& nlohmann_json_j, const InstV2& nlohmann_json_t) {
     nlohmann_json_j["asm"] = nlohmann_json_t.toString();

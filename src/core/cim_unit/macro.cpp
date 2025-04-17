@@ -11,7 +11,7 @@
 namespace cimsim {
 
 Macro::Macro(const sc_module_name &name, const cimsim::CimUnitConfig &config, const BaseInfo &base_info,
-             bool independent_ipu, EnergyCounter &cim_unit_energy_counter)
+             bool independent_ipu, EnergyCounter &cim_unit_energy_counter, bool macro_simulation)
     : BaseModule(name, base_info)
     , config_(config)
     , macro_size_(config.macro_size)
@@ -26,15 +26,19 @@ Macro::Macro(const sc_module_name &name, const cimsim::CimUnitConfig &config, co
     SC_THREAD(processIPUAndIssue)
 
     // set static energy power
-    constexpr int ipu_cnt = 1;
-    constexpr int sram_cnt = 1;
-    const int post_process_cnt = config_.bit_sparse
-                                     ? macro_size_.row_cnt_per_element * 1 * macro_size_.element_cnt_per_compartment *
-                                           macro_size_.compartment_cnt_per_macro
-                                     : 0;
-    const int adder_tree_cnt = macro_size_.element_cnt_per_compartment;
-    const int shift_adder_cnt = macro_size_.element_cnt_per_compartment;
-    const int result_adder_cnt = macro_size_.element_cnt_per_compartment;
+    int simulation_macro_group_cnt = macro_simulation ? config_.macro_total_cnt / config_.macro_group_size : 1;
+    int simulation_macro_cnt = macro_simulation ? config_.macro_total_cnt : 1;
+
+    const int ipu_cnt = 1 * simulation_macro_group_cnt;
+    const int sram_cnt = 1 * simulation_macro_cnt;
+    const int post_process_cnt =
+        (config_.bit_sparse ? macro_size_.row_cnt_per_element * 1 * macro_size_.element_cnt_per_compartment *
+                                  macro_size_.compartment_cnt_per_macro
+                            : 0) *
+        simulation_macro_cnt;
+    const int adder_tree_cnt = macro_size_.element_cnt_per_compartment * simulation_macro_cnt;
+    const int shift_adder_cnt = macro_size_.element_cnt_per_compartment * simulation_macro_cnt;
+    const int result_adder_cnt = macro_size_.element_cnt_per_compartment * simulation_macro_cnt;
 
     ipu_energy_counter_.setStaticPowerMW(config_.ipu.static_power_mW * ipu_cnt);
     sram_read_.setStaticPower(config_.sram.static_power_mW * sram_cnt);
@@ -112,13 +116,18 @@ void Macro::processIPUAndIssue() {
                                      .simulated_macro_cnt = payload.simulated_macro_cnt};
         MacroSubmodulePayload submodule_payload{.sub_ins_info = std::make_shared<MacroSubInsInfo>(sub_ins_info)};
 
-        if (batch_cnt > 0) {
+        if (config_.bit_sparse && payload.bit_sparse && batch_cnt > 0) {
             int meta_size_byte = config_.bit_sparse_config.mask_bit_width * macro_size_.element_cnt_per_compartment *
                                  macro_size_.compartment_cnt_per_macro / BYTE_TO_BIT;
             double meta_read_dynamic_power_mW = config_.bit_sparse_config.reg_buffer_dynamic_power_mW_per_unit *
                                                 IntDivCeil(meta_size_byte, config_.bit_sparse_config.unit_byte);
             meta_buffer_energy_counter_.addDynamicEnergyPJ(
-                period_ns_, meta_read_dynamic_power_mW * submodule_payload.sub_ins_info->simulated_macro_cnt);
+                period_ns_, meta_read_dynamic_power_mW * submodule_payload.sub_ins_info->simulated_macro_cnt,
+                {.core_id = core_id_,
+                 .ins_id = payload.cim_ins_info.ins_id,
+                 .inst_opcode = payload.cim_ins_info.inst_opcode,
+                 .inst_group_tag = payload.cim_ins_info.inst_group_tag,
+                 .inst_profiler_operator = InstProfilerOperator::memory});
         }
 
         for (int batch = 0; batch < batch_cnt; batch++) {
@@ -130,7 +139,12 @@ void Macro::processIPUAndIssue() {
                                  submodule_payload.batch_info->batch_num));
             double dynamic_power_mW = config_.ipu.dynamic_power_mW;
             double latency = config_.ipu.latency_cycle * period_ns_;
-            ipu_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW * sub_ins_info.simulated_group_cnt);
+            ipu_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW * sub_ins_info.simulated_group_cnt,
+                                                   {.core_id = core_id_,
+                                                    .ins_id = payload.cim_ins_info.ins_id,
+                                                    .inst_opcode = payload.cim_ins_info.inst_opcode,
+                                                    .inst_group_tag = payload.cim_ins_info.inst_group_tag,
+                                                    .inst_profiler_operator = InstProfilerOperator::computation});
             wait(latency, SC_NS);
 
             waitAndStartNextStage(submodule_payload, *(sram_read_.getExecuteSocket()));

@@ -6,6 +6,8 @@
 #include <ostream>
 
 #include "better-enums/enum.h"
+#include "config/config_enum.h"
+#include "isa/isa_v2.h"
 #include "util/macro_scope.h"
 
 namespace cimsim {
@@ -17,6 +19,9 @@ struct InstructionPayload {
     int pc{-1};
     int ins_id{-1};
     ExecuteUnitType unit_type{ExecuteUnitType::none};
+
+    OPCODE inst_opcode{OPCODE::CIM_MVM};
+    std::string_view inst_group_tag{};
 
     [[nodiscard]] bool valid() const {
         return pc != -1 && ins_id != -1;

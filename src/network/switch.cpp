@@ -26,15 +26,22 @@ void Switch::processTransport() {
         CORE_LOG(fmt::format("mode: {}, src: {}, dst: {}, req size: {}, rsp size: {}", mode._to_string(),
                              payload->src_id, payload->dst_id, payload->request_data_size_byte,
                              payload->response_data_size_byte));
-        auto send_delay =
-            network_->transferAndGetDelay(payload->src_id, payload->dst_id, payload->request_data_size_byte);
+
+        ProfilerTag profiler_tag = {.core_id = core_id_,
+                                    .ins_id = payload->ins.ins_id,
+                                    .inst_opcode = payload->ins.inst_opcode,
+                                    .inst_group_tag = payload->ins.inst_group_tag,
+                                    .inst_profiler_operator = InstProfilerOperator::transport};
+
+        auto send_delay = network_->transferAndGetDelay(payload->src_id, payload->dst_id,
+                                                        payload->request_data_size_byte, profiler_tag);
         wait(send_delay);
 
         auto target_switch = network_->getSwitch(payload->dst_id);
         target_switch->receiveHandler(payload);
         if (mode == +NetworkTransferMode::transport) {
-            auto receive_delay =
-                network_->transferAndGetDelay(payload->dst_id, payload->src_id, payload->response_data_size_byte);
+            auto receive_delay = network_->transferAndGetDelay(payload->dst_id, payload->src_id,
+                                                               payload->response_data_size_byte, profiler_tag);
             wait(receive_delay);
         }
 

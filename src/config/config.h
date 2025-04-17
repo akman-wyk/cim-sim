@@ -457,6 +457,23 @@ struct HardwareProfilerConfig {
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(HardwareProfilerConfig)
 };
 
+struct InstProfilerGroupConfig {
+    std::string name{};
+    std::vector<InstProfilerGroupConfig> sub_groups{};
+
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(InstProfilerGroupConfig)
+};
+
+struct InstProfilerConfig {
+    bool single_inst_profiling{false};
+    bool inst_type_profiling{false};
+    bool inst_group_profiling{false};
+
+    std::vector<InstProfilerGroupConfig> inst_groups{};
+
+    DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(InstProfilerConfig)
+};
+
 struct ProfilerConfig {
     bool profiling{false};
     bool report_to_json{false};
@@ -464,6 +481,7 @@ struct ProfilerConfig {
     std::string json_file{};
 
     HardwareProfilerConfig hardware_profiler_config{};
+    InstProfilerConfig inst_profiler_config{};
 
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(ProfilerConfig)
 };

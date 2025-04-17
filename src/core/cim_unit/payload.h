@@ -13,6 +13,9 @@ struct CimInsInfo {
     int ins_pc{-1}, sub_ins_num{-1};
     bool last_sub_ins{false};
     int ins_id{-1};
+
+    OPCODE inst_opcode{OPCODE::CIM_MVM};
+    std::string_view inst_group_tag;
 };
 
 struct MacroPayload {

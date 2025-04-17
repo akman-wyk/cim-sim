@@ -31,4 +31,6 @@ static constexpr int LOG2_CEIL_LOCAL_MEMORY_COUNT_MAX = 32 - __builtin_clz(LOCAL
 
 static constexpr char DUPLICATE_MEMORY_NAME_DELIMITER = '#';
 
+static constexpr int INST_PROFILER_TYPE_COUNT = 4;
+
 }  // namespace cimsim

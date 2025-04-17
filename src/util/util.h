@@ -66,4 +66,6 @@ std::stringstream& operator<<(std::stringstream& out, const std::vector<int>& in
 
 std::string splitAndGetLastPart(const std::string& original_str, const std::string& delimiter);
 
+void printTab(std::ostream& os, int count);
+
 }  // namespace cimsim

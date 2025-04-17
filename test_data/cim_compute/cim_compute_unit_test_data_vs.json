@@ -72,6 +72,6 @@
   "groups_activation_element_col_mask_": [255, 255, 255, 255],
   "expected": {
     "time_ns": 210,
-    "energy_pj": 280650
+    "energy_pj": 365280
   }
 }

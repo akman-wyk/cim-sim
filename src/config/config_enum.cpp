@@ -18,4 +18,13 @@ DEFINE_ENUM_FROM_TO_JSON_FUNCTION(SIMDInputType, vector, scalar, other)
 
 DEFINE_ENUM_FROM_TO_JSON_FUNCTION(CimASMode, intergroup, intragroup, other)
 
+void to_json(nlohmann::ordered_json& j, const InstProfilerOperator& m) {
+    j = m._to_string();
+}
+
+void from_json(const nlohmann::ordered_json& j, InstProfilerOperator& m) {
+    const auto str = j.get<std::string>();
+    m = InstProfilerOperator::_from_string(str.c_str());
+}
+
 }  // namespace cimsim

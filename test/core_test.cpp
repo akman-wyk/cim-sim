@@ -62,8 +62,9 @@ int sc_main(int argc, char* argv[]) {
     auto reporter = chip.report(ofs, false);
     ofs.close();
 
+    std::cout << reporter.getTotalEnergyPJ() << std::endl;
     if (DoubleEqual(reporter.getLatencyNs(), test_info.expected.time_ns) &&
-        DoubleEqual(reporter.getDynamicEnergyPJ(), test_info.expected.energy_pj) &&
+        DoubleEqual(reporter.getTotalEnergyPJ(), test_info.expected.energy_pj) &&
         (!test_info.reg_info.check || chip.checkRegValues(0, test_info.reg_info.general_reg_expected_values,
                                                           test_info.reg_info.special_reg_expected_values))) {
         std::cout << "Test Pass" << std::endl;

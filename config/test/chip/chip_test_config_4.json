@@ -1,0 +1,115 @@
+{
+  "chip_config": {
+    "core_cnt": 5,
+    "core_config": {
+      "cim_unit_config": {
+        "macro_total_cnt": 8,
+        "macro_group_size": 2,
+        "macro_size": {
+          "compartment_cnt_per_macro": 16,
+          "element_cnt_per_compartment": 16,
+          "row_cnt_per_element": 1,
+          "bit_width_per_row": 1
+        },
+        "ipu": {
+          "latency_cycle": 1,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0
+        },
+        "sram": {
+          "write_latency_cycle": 1,
+          "read_latency_cycle": 1,
+          "static_power_mW": 1.0,
+          "write_dynamic_power_per_bit_mW": 1.0,
+          "read_dynamic_power_per_bit_mW": 1.0
+        },
+        "adder_tree": {
+          "latency_cycle": 2,
+          "pipeline_stage_cnt": 2,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0
+        },
+        "shift_adder": {
+          "latency_cycle": 1,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0
+        },
+        "result_adder": {
+          "latency_cycle": 1,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0
+        },
+        "value_sparse": false,
+        "value_sparse_config": {
+          "mask_bit_width": 1,
+          "latency_cycle": 1,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0,
+          "output_macro_group_cnt": 1
+        },
+        "bit_sparse": false,
+        "bit_sparse_config": {
+          "mask_bit_width": 3,
+          "latency_cycle": 0,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0,
+          "unit_byte": 96,
+          "reg_buffer_static_power_mW": 1.0,
+          "reg_buffer_dynamic_power_mW_per_unit": 1.0
+        },
+        "input_bit_sparse": false
+      },
+      "local_memory_unit_config": {
+        "memory_list": [
+          {
+            "name": "cim input reg buffer",
+            "type": "reg_buffer",
+            "hardware_config": {
+              "size_byte": 512,
+              "read_max_width_byte": 128,
+              "write_max_width_byte": 128,
+              "rw_min_unit_byte": 128,
+              "static_power_mW": 1.0,
+              "rw_dynamic_power_per_unit_mW": 1,
+              "has_image": true,
+              "image_file": "../test_data/cim_compute/base_input_buffer_image.bin"
+            }
+          },
+          {
+            "name": "local memory",
+            "type": "ram",
+            "hardware_config": {
+              "size_byte": 1024,
+              "width_byte": 128,
+              "write_latency_cycle": 1,
+              "read_latency_cycle": 1,
+              "static_power_mW": 0.0,
+              "write_dynamic_power_mW": 0.0,
+              "read_dynamic_power_mW": 0.0,
+              "has_image": true,
+              "image_file": "../test_data/core/act_col_mask_image.bin"
+            }
+          }
+        ]
+      },
+      "transfer_unit_config": {
+        "pipeline": true
+      }
+    },
+    "network_config": {
+      "bus_width_byte": 16,
+      "network_config_file_path": "../test_data/chip/network_config_1.json"
+    },
+    "address_space_config": [
+      {"name": "cim_unit", "size": 1024},
+      {"name": "cim input reg buffer", "size": 3072},
+      {"name": "local memory", "size": 1024}
+    ]
+  },
+  "sim_config": {
+    "period_ns": 5.0,
+    "sim_mode": "run_one_round",
+    "data_mode": "real_data",
+    "sim_time_ms": 1.0
+  }
+}

@@ -38,7 +38,12 @@ void SIMDFunctorPipelineStage::processExecute() {
 
         double dynamic_power_mW = dynamic_power_per_functor_mW_ * payload.batch_info->batch_vector_len;
         double latency = pipeline_stage_latency_cycle_ * period_ns_;
-        functor_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW);
+        functor_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW,
+                                                   {.core_id = core_id_,
+                                                    .ins_id = payload.ins_info->ins.ins_id,
+                                                    .inst_opcode = payload.ins_info->ins.inst_opcode,
+                                                    .inst_group_tag = payload.ins_info->ins.inst_group_tag,
+                                                    .inst_profiler_operator = InstProfilerOperator::computation});
         wait(latency, SC_NS);
 
         waitAndStartNextStage(payload, *next_stage_socket_);

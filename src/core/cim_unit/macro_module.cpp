@@ -31,7 +31,12 @@ void MacroPipelineStage::processExecute() {
 
         double dynamic_power_mW = get_power_(config_, payload);
         double latency = latency_cycle_ * period_ns_;
-        module_energy_counter_.addDynamicEnergyPJ(std::max(latency, period_ns_), dynamic_power_mW);
+        module_energy_counter_.addDynamicEnergyPJ(std::max(latency, period_ns_), dynamic_power_mW,
+                                                  {.core_id = core_id_,
+                                                   .ins_id = cim_ins_info.ins_id,
+                                                   .inst_opcode = cim_ins_info.inst_opcode,
+                                                   .inst_group_tag = cim_ins_info.inst_group_tag,
+                                                   .inst_profiler_operator = InstProfilerOperator::computation});
         wait(latency, SC_NS);
 
         if (next_stage_socket_ != nullptr && (!last_batch_trigger_next_ || payload.batch_info->last_batch)) {
@@ -79,6 +84,5 @@ void MacroModule::setStaticPower(double power) {
 EnergyCounter* MacroModule::getEnergyCounterPtr() {
     return &module_energy_counter_;
 }
-
 
 }  // namespace cimsim

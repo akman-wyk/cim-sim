@@ -96,7 +96,12 @@ void CimControlUnit::processOutputSum(const CimControlInsPayload &payload) {
     double sum_latency = config_.result_adder.latency_cycle * period_ns_;
     double sum_dynamic_power_mW =
         config_.result_adder.dynamic_power_mW * sum_times_per_group * payload.activation_group_num;
-    result_adder_energy_counter_.addDynamicEnergyPJ(sum_latency, sum_dynamic_power_mW);
+    result_adder_energy_counter_.addDynamicEnergyPJ(sum_latency, sum_dynamic_power_mW,
+                                                    {.core_id = core_id_,
+                                                     .ins_id = payload.ins.ins_id,
+                                                     .inst_opcode = payload.ins.inst_opcode,
+                                                     .inst_group_tag = payload.ins.inst_group_tag,
+                                                     .inst_profiler_operator = InstProfilerOperator::computation});
 
     // need not wait for result adder finish, because result is written to memory instead of registers in result adder
     double sum_stall_ns = (config_.result_adder.latency_cycle - 1) * period_ns_;
@@ -117,7 +122,12 @@ void CimControlUnit::processOutputSumMove(const CimControlInsPayload &payload) {
     double sum_latency = config_.result_adder.latency_cycle * period_ns_;
     double sum_dynamic_power_mW =
         config_.result_adder.dynamic_power_mW * sum_times_per_group * payload.activation_group_num;
-    result_adder_energy_counter_.addDynamicEnergyPJ(sum_latency, sum_dynamic_power_mW);
+    result_adder_energy_counter_.addDynamicEnergyPJ(sum_latency, sum_dynamic_power_mW,
+                                                    {.core_id = core_id_,
+                                                     .ins_id = payload.ins.ins_id,
+                                                     .inst_opcode = payload.ins.inst_opcode,
+                                                     .inst_group_tag = payload.ins.inst_group_tag,
+                                                     .inst_profiler_operator = InstProfilerOperator::computation});
 
     // need not wait for result adder finish, because result is written to memory instead of registers in result adder
     double sum_stall_ns = (config_.result_adder.latency_cycle - 1) * period_ns_;

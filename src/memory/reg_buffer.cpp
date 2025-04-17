@@ -29,12 +29,17 @@ sc_time RegBuffer::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
         return {0.0, SC_NS};
     }
 
+    ProfilerTag profiler_tag = {.core_id = core_id_,
+                                .ins_id = payload.ins.ins_id,
+                                .inst_opcode = payload.ins.inst_opcode,
+                                .inst_group_tag = payload.ins.inst_group_tag,
+                                .inst_profiler_operator = InstProfilerOperator::memory};
     if (payload.access_type == +MemoryAccessType::read) {
         int read_data_size_byte =
             (payload.size_byte <= config_.read_max_width_byte) ? payload.size_byte : config_.read_max_width_byte;
         int read_data_unit_cnt = IntDivCeil(read_data_size_byte, config_.rw_min_unit_byte);
         double read_dynamic_power_mW = config_.rw_dynamic_power_per_unit_mW * read_data_unit_cnt;
-        read_energy_counter_.addDynamicEnergyPJ(period_ns_, read_dynamic_power_mW);
+        read_energy_counter_.addDynamicEnergyPJ(period_ns_, read_dynamic_power_mW, profiler_tag);
 
         if (data_mode_ == +DataMode::real_data) {
             payload.data.resize(payload.size_byte);
@@ -47,7 +52,7 @@ sc_time RegBuffer::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
             (payload.size_byte <= config_.write_max_width_byte) ? payload.size_byte : config_.write_max_width_byte;
         int write_data_unit_cnt = IntDivCeil(write_data_size_byte, config_.rw_min_unit_byte);
         double write_dynamic_power_mW = config_.rw_dynamic_power_per_unit_mW * write_data_unit_cnt;
-        write_energy_counter_.addDynamicEnergyPJ(period_ns_, write_dynamic_power_mW);
+        write_energy_counter_.addDynamicEnergyPJ(period_ns_, write_dynamic_power_mW, profiler_tag);
 
         if (data_mode_ == +DataMode::real_data) {
             std::copy(payload.data.begin(), payload.data.end(), data_.begin() + payload.address_byte);

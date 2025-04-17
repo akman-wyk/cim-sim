@@ -31,6 +31,9 @@ std::shared_ptr<ExecuteInsPayload> DecoderV2::decode(const InstV2& ins, int pc, 
     payload->ins.pc = pc;
     payload->ins.ins_id = ins_id_;
 
+    payload->ins.inst_opcode = ins.getOpcodeEnum();
+    payload->ins.inst_group_tag = ins.inst_group_tag;
+
     // decode to get conflict info
     if (auto found = execute_unit_map_.find(payload->ins.unit_type._to_string()); found == execute_unit_map_.end()) {
         conflict_info = {.ins_id = ins_id_, .unit_type = payload->ins.unit_type};

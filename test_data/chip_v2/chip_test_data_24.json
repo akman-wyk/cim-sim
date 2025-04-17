@@ -1,0 +1,52 @@
+{
+  "comments": "Test for inst profiler",
+  "code": [
+    [
+      {"opcode": 45, "rd": 0, "imm": 8, "asm": "S_LI 8 to $0", "inst_group_tag": "conv.set"},
+      {"opcode": 45, "rd": 1, "imm": 32, "asm": "S_LI 32 to $1", "inst_group_tag": "conv.set"},
+      {"opcode": 45, "rd": 4, "imm": 4, "asm": "S_LI 4 to $4", "inst_group_tag": "conv.set"},
+      {"opcode": 45, "rd": 6, "imm": 128, "asm": "S_LI 128 to $6", "inst_group_tag": "conv.set"},
+      {"opcode": 45, "rd": 16, "imm": 32, "asm": "S_LI 32 to $16", "inst_group_tag": "conv.set"},
+      {"opcode": 45, "rd": 20, "imm": 8, "asm": "S_LI 8 to $20", "inst_group_tag": "conv.set"},
+
+      {"opcode": 44, "rd": 0, "imm": 4096, "asm": "G_LI 4096 to $0", "inst_group_tag": "conv.load_weight"},
+      {"opcode": 44, "rd": 1, "imm": 256, "asm": "G_LI 256 to $1", "inst_group_tag": "conv.load_weight"},
+      {"opcode": 44, "rd": 2, "imm": 0, "asm": "G_LI 0 to $2", "inst_group_tag": "conv.load_weight"},
+      {"opcode": 48, "rs": 0, "rt": 1, "rd": 2, "imm": 0, "asm": "MEM_CPY $0 to $2, size: $1, off: 0, mask: 00", "inst_group_tag": "conv.load_weight"},
+
+      {"opcode": 44, "rd": 1, "imm": 1024, "asm": "G_LI 1024 to $1", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 44, "rd": 2, "imm": 16, "asm": "G_LI 16 to $2", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 44, "rd": 3, "imm": 0, "asm": "G_LI 0 to $3", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 0, "rs": 1, "rt": 2, "re": 3, "GRP": true, "asm": "CIM_MVM $1 $2 $3, flags: GRP", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 44, "rd": 1, "imm": 1040, "asm": "G_LI 1040 to $1", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 44, "rd": 3, "imm": 1, "asm": "G_LI 1 to $3", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 0, "rs": 1, "rt": 2, "re": 3, "GRP": true, "asm": "CIM_MVM $1 $2 $3, flags: GRP", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 44, "rd": 1, "imm": 1056, "asm": "G_LI 1056 to $1", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 44, "rd": 3, "imm": 2, "asm": "G_LI 2 to $3", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 0, "rs": 1, "rt": 2, "re": 3, "GRP": true, "asm": "CIM_MVM $1 $2 $3, flags: GRP", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 44, "rd": 1, "imm": 1072, "asm": "G_LI 1072 to $1", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 44, "rd": 3, "imm": 3, "asm": "G_LI 3 to $3", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 0, "rs": 1, "rt": 2, "re": 3, "GRP": true, "asm": "CIM_MVM $1 $2 $3, flags: GRP", "inst_group_tag": "conv.cim_compute"},
+
+
+      {"opcode": 44, "rd": 0, "imm": 32, "asm": "G_LI 32 to $0", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 44, "rd": 1, "imm": 0, "asm": "G_LI 0 to $1", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 44, "rd": 2, "imm": 2048, "asm": "G_LI 2048 to $2", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 8, "rs": 0, "rt": 1, "rd": 2, "asm": "CIM_OUT $0 $1 to $2, flags:", "inst_group_tag": "conv.cim_compute"},
+
+      {"opcode": 44, "rd": 0, "imm": 2048, "asm": "G_LI 2048 to $0", "inst_group_tag": "conv.quantify"},
+      {"opcode": 44, "rd": 2, "imm": 128, "asm": "G_LI 128 to $2", "inst_group_tag": "conv.quantify"},
+      {"opcode": 44, "rd": 3, "imm": 3072, "asm": "G_LI 3072 to $3", "inst_group_tag": "conv.quantify"},
+      {"opcode": 16, "rs": 0, "rt": 1, "rd": 3, "re": 2, "funct": 0, "asm": "VEC_OP $0 to $3, i_cnt: 1, len: $2, func: 0", "inst_group_tag": "conv.quantify"},
+
+      {"opcode": 44, "rd": 0, "imm": 3072, "asm": "G_LI 3072 to $0", "inst_group_tag": "conv.result_output"},
+      {"opcode": 44, "rd": 1, "imm": 128, "asm": "G_LI 128 to $1", "inst_group_tag": "conv.result_output"},
+      {"opcode": 44, "rd": 2, "imm": 4096, "asm": "G_LI 4096 to $2", "inst_group_tag": "conv.result_output"},
+      {"opcode": 48, "rs": 0, "rt": 1, "rd": 2, "imm": 0, "asm": "MEM_CPY $0 to $2, size: $1, off: 0, mask: 00", "inst_group_tag": "conv.result_output"}
+    ]
+  ],
+  "expected": {
+    "time_ns": 695,
+    "energy_pj": 681895
+  }
+}
