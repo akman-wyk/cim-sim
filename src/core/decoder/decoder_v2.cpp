@@ -202,7 +202,7 @@ std::shared_ptr<ExecuteInsPayload> DecoderV2::decodeSIMDIns(const InstV2& ins) c
     SIMDInsPayload p;
     p.ins.unit_type = ExecuteUnitType::simd;
 
-    auto input_cnt = static_cast<unsigned int>(((ins.opcode >> 2) & 0x11) + 1);
+    auto input_cnt = static_cast<unsigned int>(((ins.opcode >> 2) & 0b11) + 1);
     auto opcode = static_cast<unsigned int>(ins.funct);
 
     int i1_addr = reg_unit_->readRegister(ins.rs, false);
@@ -225,6 +225,8 @@ std::shared_ptr<ExecuteInsPayload> DecoderV2::decodeSIMDIns(const InstV2& ins) c
     if (ins_cfg == nullptr || func_cfg == nullptr) {
         std::cerr << fmt::format("No match {}, Invalid SIMD instruction: \n{}",
                                  (ins_cfg == nullptr ? "inst" : "functor"), p.toString());
+        std::cerr << fmt::format("ins opcode: {}, input cnt: {}, funct: {}", ins.opcode, input_cnt, opcode);
+
         return std::make_shared<ExecuteInsPayload>(InstructionPayload{.unit_type = ExecuteUnitType::none});
     }
     p.ins_cfg = ins_cfg;

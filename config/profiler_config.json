@@ -1,18 +1,18 @@
 {
-  "profiling": true,
+  "profiling": false,
   "report_to_json": true,
   "json_flat": true,
   "json_file": "../report/profiling.json",
   "hardware_profiler_config": {
-    "profiling": true,
-    "record_timing_segments": true,
+    "profiling": false,
+    "record_timing_segments": false,
     "each_core_profiling": false,
     "report_level_cnt_": 2
   },
   "inst_profiler_config": {
     "single_inst_profiling": false,
     "inst_type_profiling": false,
-    "inst_group_profiling": true,
+    "inst_group_profiling": false,
     "inst_groups": [
       {
         "name": "conv",

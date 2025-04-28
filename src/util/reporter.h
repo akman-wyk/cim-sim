@@ -96,6 +96,9 @@ public:
 
     void setOPCount(double OP_count);
 
+    void setExecTime(double exec_time);
+    [[nodiscard]] double getExecTime() const;
+
 private:
     double latency_{0.0};        // ms
     double average_power_{0.0};  // mW
@@ -104,11 +107,13 @@ private:
     double TOPS_per_W_{0.0};
     int OP_count_{0};
 
+    double exec_time_{0.0};  // s
+
     std::string module_name_;
     EnergyReporter energy_reporter_;
 
     NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Reporter, latency_, average_power_, total_energy_, TOPS_, TOPS_per_W_,
-                                                OP_count_, module_name_, energy_reporter_)
+                                                OP_count_, exec_time_, module_name_, energy_reporter_)
 };
 
 }  // namespace cimsim

@@ -1,5 +1,5 @@
 {
-  "data_root_dir": "/mnt/d/code/cim-sim/dense/16",
+  "data_root_dir": "/mnt/d/code/cim-sim/dense",
   "report_root_dir": "/mnt/d/code/cim-sim/report",
   "network": "EfficientNet",
   "OP_count": 54460928,
@@ -8,27 +8,27 @@
   "test_case_config": [
     {
       "test": true,
-      "test_case_name": "dense",
-      "config_file_path": "../config/0p8V/config_base.json",
-      "report_file_name": "base.txt"
+      "test_case_name": "16",
+      "config_file_path": "../config/2025paper/config_16_base.json",
+      "report_file_name": "16_base.txt"
     },
     {
-      "test": false,
-      "test_case_name": "bit_sparse",
-      "config_file_path": "../config/0p8V/config_bs.json",
-      "report_file_name": "bs.txt"
+      "test": true,
+      "test_case_name": "32",
+      "config_file_path": "../config/2025paper/config_32_base.json",
+      "report_file_name": "32_base.txt"
     },
     {
-      "test": false,
-      "test_case_name": "value_sparse",
-      "config_file_path": "../config/0p8V/config_vs.json",
-      "report_file_name": "vs.txt"
+      "test": true,
+      "test_case_name": "48",
+      "config_file_path": "../config/2025paper/config_48_base.json",
+      "report_file_name": "48_base.txt"
     },
     {
-      "test": false,
-      "test_case_name": "bit_value_sparse",
-      "config_file_path": "../config/0p8V/config_bs_vs.json",
-      "report_file_name": "bs_vs.txt"
+      "test": true,
+      "test_case_name": "64",
+      "config_file_path": "../config/2025paper/config_64_base.json",
+      "report_file_name": "64_base.txt"
     }
   ],
 
@@ -103,22 +103,5 @@
     {"sub_dir_name": "115_linear"}
   ],
 
-  "compare": false,
-  "compare_config": [
-    {
-      "compare": true,
-      "test_case_1": "dense",
-      "test_case_2": "bit_sparse"
-    },
-    {
-      "compare": true,
-      "test_case_1": "dense",
-      "test_case_2": "value_sparse"
-    },
-    {
-      "compare": true,
-      "test_case_1": "dense",
-      "test_case_2": "bit_value_sparse"
-    }
-  ]
+  "compare": false
 }

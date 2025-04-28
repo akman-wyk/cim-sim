@@ -23,8 +23,7 @@ std::vector<EnergyReportItem> EnergyReporterCompare::getEnergyReportItem(const s
     std::string total_energy_str = fmt::format("{:.3f}pJ ({:.3f})", total_energy_diff, total_energy_radio);
     std::string static_energy_str = fmt::format("{:.3f}pJ ({:.3f})", static_energy_diff, static_energy_radio);
     std::string dynamic_energy_str = fmt::format("{:.3f}pJ ({:.3f})", dynamic_energy_diff, dynamic_energy_radio);
-    items.emplace_back(
-        EnergyReportItem{name, total_energy_str, static_energy_str, dynamic_energy_str});
+    items.emplace_back(EnergyReportItem{name, total_energy_str, static_energy_str, dynamic_energy_str});
 
     for (auto& [sub_module_name, sub_module] : sub_modules) {
         auto sub_module_items = sub_module.getEnergyReportItem(sub_module_name, indent_level + 1);
@@ -49,9 +48,9 @@ void ReporterCompare::report(std::ostream& os, bool detail) {
 
     if (detail) {
         auto energy_report_items = energy_reporter_compare.getEnergyReportItem(module_name, 0);
-        energy_report_items.insert(energy_report_items.begin(),
-                                   EnergyReportItem{"module", "total diff(radio)", "static diff(radio)",
-                                                    "dynamic diff(radio)"});
+        energy_report_items.insert(
+            energy_report_items.begin(),
+            EnergyReportItem{"module", "total diff(radio)", "static diff(radio)", "dynamic diff(radio)"});
 
         unsigned int name_width = 0, total_width = 0, static_width = 0, dynamic_width = 0;
         for (const auto& [name, total_energy, static_energy, dynamic_energy] : energy_report_items) {
@@ -73,9 +72,7 @@ void ReporterCompare::report(std::ostream& os, bool detail) {
 }
 
 EnergyReporter::EnergyReporter(double total_energy, double static_energy, double dynamic_energy)
-    : total_energy_(total_energy)
-    , static_energy_(static_energy)
-    , dynamic_energy_(dynamic_energy) {}
+    : total_energy_(total_energy), static_energy_(static_energy), dynamic_energy_(dynamic_energy) {}
 
 EnergyReporter::EnergyReporter(const EnergyCounter& energy_counter)
     : total_energy_(energy_counter.getTotalEnergyPJ())
@@ -109,8 +106,7 @@ std::vector<EnergyReportItem> EnergyReporter::getEnergyReportItem(const std::str
                                                 (all_energy == 0.0 ? 0.0 : (static_energy_ / all_energy) * 100));
     std::string dynamic_energy_str = fmt::format("{:.3f}pJ ({:.2f}%)", dynamic_energy_,
                                                  (all_energy == 0.0 ? 0.0 : (dynamic_energy_ / all_energy) * 100));
-    items.emplace_back(
-        EnergyReportItem{name, total_energy_str, static_energy_str, dynamic_energy_str});
+    items.emplace_back(EnergyReportItem{name, total_energy_str, static_energy_str, dynamic_energy_str});
 
     for (auto& [sub_module_name, sub_module] : sub_modules_) {
         auto sub_module_items =
@@ -162,6 +158,7 @@ void Reporter::report(std::ostream& os, bool detail) {
     os << fmt::format("  - {:<20}{:.4f}\n", "TOPS:", TOPS_);
     os << fmt::format("  - {:<20}{:.4f}\n", "TOPS/W:", TOPS_per_W_);
     os << fmt::format("  - {:<20}{}\n", "OP_count:", OP_count_);
+    os << fmt::format("  - {:<20}{} s\n", "Running time:", exec_time_);
 
     if (detail) {
         os << "Energy report form:\n";
@@ -171,8 +168,8 @@ void Reporter::report(std::ostream& os, bool detail) {
 
 void Reporter::reportEnergyForm(std::ostream& os) {
     auto energy_report_items = energy_reporter_.getEnergyReportItem(module_name_, total_energy_, latency_ * 1e6, 0);
-    energy_report_items.insert(energy_report_items.begin(), EnergyReportItem{"module", "total energy", "static energy",
-                                                                             "dynamic energy"});
+    energy_report_items.insert(energy_report_items.begin(),
+                               EnergyReportItem{"module", "total energy", "static energy", "dynamic energy"});
 
     unsigned int name_width = 0, total_width = 0, static_width = 0, dynamic_width = 0;
     for (const auto& [name, total_energy, static_energy, dynamic_energy] : energy_report_items) {
@@ -216,6 +213,8 @@ Reporter& Reporter::operator+=(const Reporter& another) {
     TOPS_per_W_ = (average_power_ == 0.0 ? 0.0 : (TOPS_ / (average_power_ / 1e3)));
 
     energy_reporter_.accumulate(another.energy_reporter_);
+
+    exec_time_ += another.exec_time_;
 
     return *this;
 }
@@ -271,6 +270,14 @@ void Reporter::setOPCount(double OP_count) {
     this->OP_count_ = static_cast<int>(OP_count);
     this->TOPS_ = (latency_ == 0.0 ? 0.0 : (1.0 * OP_count / (latency_ / 1e3) / TERA));
     this->TOPS_per_W_ = (average_power_ == 0.0 ? 0.0 : (TOPS_ / (average_power_ / 1e3)));
+}
+
+void Reporter::setExecTime(double exec_time) {
+    exec_time_ = exec_time;
+}
+
+double Reporter::getExecTime() const {
+    return exec_time_;
 }
 
 #undef MAX

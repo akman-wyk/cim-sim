@@ -4,6 +4,8 @@
 
 #include "layer_simulator.h"
 
+#include <chrono>
+
 #include "argparse/argparse.hpp"
 #include "constant.h"
 #include "fmt/format.h"
@@ -43,11 +45,15 @@ void LayerSimulator::run() {
     std::cout << "Build finish" << std::endl;
 
     std::cout << "Start Simulation" << std::endl;
+    auto start = std::chrono::high_resolution_clock::now();
     if (config_.sim_config.sim_mode == +SimMode::run_until_time) {
         sc_start(config_.sim_config.sim_time_ms, SC_MS);
     } else {
         sc_start();
     }
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> duration = end - start;
+    exec_time_ = duration.count();
     std::cout << "Simulation Finish" << std::endl;
 }
 
@@ -65,6 +71,7 @@ void LayerSimulator::report(std::ostream& os, const std::string& report_json_fil
     os << fmt::format(sub_line, "data mode:", config_.sim_config.data_mode._to_string());
 
     auto reporter = chip_->report(os, report_every_core_energy);
+    reporter.setExecTime(exec_time_);
 
     if (!report_json_file.empty()) {
         nlohmann::json report_json = reporter;

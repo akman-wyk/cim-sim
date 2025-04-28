@@ -15,7 +15,7 @@ namespace cimsim {
 #define CHECK_REG_FAILED      5
 
 const std::string TEMP_REPORT_DIR_NAME = "temp";
-const std::string CODE_FILE_NAME = "final_code.json";
+const std::string CODE_FILE_NAME = "flat_code.json";
 const std::string GLOBAL_IMAGE_FILE_NAME = "global_image";
 const std::string EXPECTED_INS_STAT_FILE_NAME = "stats.json";
 const std::string EXPECTED_REG_FILE_NAME = "regs.json";

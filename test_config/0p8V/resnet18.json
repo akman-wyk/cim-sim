@@ -1,5 +1,5 @@
 {
-  "data_root_dir": "/mnt/d/code/cim-sim/data",
+  "data_root_dir": "/mnt/d/code/cim-sim/dense/16",
   "report_root_dir": "/mnt/d/code/cim-sim/report",
   "network": "ResNet18",
   "OP_count": 1110845440,
@@ -13,31 +13,31 @@
       "report_file_name": "base.txt"
     },
     {
-      "test": true,
+      "test": false,
       "test_case_name": "bit_sparse",
       "config_file_path": "../config/0p8V/config_bs.json",
       "report_file_name": "bs.txt"
     },
     {
-      "test": true,
+      "test": false,
       "test_case_name": "value_sparse",
       "config_file_path": "../config/0p8V/config_vs.json",
       "report_file_name": "vs.txt"
     },
     {
-      "test": true,
+      "test": false,
       "test_case_name": "bit_value_sparse",
       "config_file_path": "../config/0p8V/config_bs_vs.json",
       "report_file_name": "bs_vs.txt"
     },
     {
-      "test": true,
+      "test": false,
       "test_case_name": "bit_value_sparse_0p2",
       "config_file_path": "../config/0p8V/config_bs_vs.json",
       "report_file_name": "bs_vs_0p2.txt"
     },
     {
-      "test": true,
+      "test": false,
       "test_case_name": "bit_value_sparse_0p4",
       "config_file_path": "../config/0p8V/config_bs_vs.json",
       "report_file_name": "bs_vs_0p4.txt"
@@ -68,7 +68,7 @@
     {"sub_dir_name": "29_linear"}
   ],
 
-  "compare": true,
+  "compare": false,
   "compare_config": [
     {
       "compare": true,
