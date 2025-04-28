@@ -101,7 +101,7 @@ void CimControlUnit::processOutputSum(const CimControlInsPayload &payload) {
                                                      .ins_id = payload.ins.ins_id,
                                                      .inst_opcode = payload.ins.inst_opcode,
                                                      .inst_group_tag = payload.ins.inst_group_tag,
-                                                     .inst_profiler_operator = InstProfilerOperator::computation});
+                                                     .inst_profiler_operator = "result_adder"});
 
     // need not wait for result adder finish, because result is written to memory instead of registers in result adder
     double sum_stall_ns = (config_.result_adder.latency_cycle - 1) * period_ns_;
@@ -127,7 +127,7 @@ void CimControlUnit::processOutputSumMove(const CimControlInsPayload &payload) {
                                                      .ins_id = payload.ins.ins_id,
                                                      .inst_opcode = payload.ins.inst_opcode,
                                                      .inst_group_tag = payload.ins.inst_group_tag,
-                                                     .inst_profiler_operator = InstProfilerOperator::computation});
+                                                     .inst_profiler_operator = "result_adder"});
 
     // need not wait for result adder finish, because result is written to memory instead of registers in result adder
     double sum_stall_ns = (config_.result_adder.latency_cycle - 1) * period_ns_;

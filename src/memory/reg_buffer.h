@@ -15,7 +15,8 @@ class RegBuffer : public MemoryHardware {
 public:
     SC_HAS_PROCESS(RegBuffer);
 
-    RegBuffer(const sc_module_name& name, const RegBufferConfig& config, const BaseInfo& base_info);
+    RegBuffer(const sc_module_name& name, const std::string& mem_name, const RegBufferConfig& config,
+              const BaseInfo& base_info);
 
     sc_time accessAndGetDelay(MemoryAccessPayload& payload) override;
 
@@ -27,6 +28,7 @@ private:
 
 private:
     const RegBufferConfig& config_;
+    const std::string& mem_name_;
 
     std::vector<uint8_t> data_;
 

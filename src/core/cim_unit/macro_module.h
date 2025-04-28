@@ -18,7 +18,8 @@ public:
     SC_HAS_PROCESS(MacroPipelineStage);
 
     MacroPipelineStage(const sc_module_name& name, const BaseInfo& base_info, const CimUnitConfig& config,
-                       MacroDynamicPowerFunc get_power, int latency_cycle, EnergyCounter& module_energy_counter);
+                       MacroDynamicPowerFunc get_power, int latency_cycle, EnergyCounter& module_energy_counter,
+                       const std::string& module_name);
 
     [[noreturn]] void processExecute();
 
@@ -34,6 +35,7 @@ private:
     int latency_cycle_;
 
     EnergyCounter& module_energy_counter_;
+    const std::string& module_name_;
 };
 
 class MacroModule : public BaseModule {

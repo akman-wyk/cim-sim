@@ -11,12 +11,13 @@ namespace cimsim {
 
 MacroPipelineStage::MacroPipelineStage(const sc_module_name& name, const BaseInfo& base_info,
                                        const CimUnitConfig& config, MacroDynamicPowerFunc get_power, int latency_cycle,
-                                       EnergyCounter& module_energy_counter)
+                                       EnergyCounter& module_energy_counter, const std::string& module_name)
     : BaseModule(name, base_info)
     , config_(config)
     , get_power_(get_power)
     , latency_cycle_(latency_cycle)
-    , module_energy_counter_(module_energy_counter) {
+    , module_energy_counter_(module_energy_counter)
+    , module_name_(module_name) {
     SC_THREAD(processExecute)
 }
 
@@ -36,7 +37,7 @@ void MacroPipelineStage::processExecute() {
                                                    .ins_id = cim_ins_info.ins_id,
                                                    .inst_opcode = cim_ins_info.inst_opcode,
                                                    .inst_group_tag = cim_ins_info.inst_group_tag,
-                                                   .inst_profiler_operator = InstProfilerOperator::computation});
+                                                   .inst_profiler_operator = module_name_});
         wait(latency, SC_NS);
 
         if (next_stage_socket_ != nullptr && (!last_batch_trigger_next_ || payload.batch_info->last_batch)) {
@@ -52,12 +53,12 @@ MacroModule::MacroModule(const sc_module_name& name, const BaseInfo& base_info, 
     : BaseModule(name, base_info), module_energy_counter_(pipeline_stage_cnt > 1) {
     int pipeline_stage_latency_cycle = latency_cycle / pipeline_stage_cnt;
     stage_list_.emplace_back(std::make_shared<MacroPipelineStage>(
-        "pipeline_0", base_info, config, get_power, pipeline_stage_latency_cycle, module_energy_counter_));
+        "pipeline_0", base_info, config, get_power, pipeline_stage_latency_cycle, module_energy_counter_, getName()));
 
     for (int i = 1; i < pipeline_stage_cnt; i++) {
         auto stage_ptr =
             std::make_shared<MacroPipelineStage>(fmt::format("pipeline_{}", i).c_str(), base_info, config, get_power,
-                                                 pipeline_stage_latency_cycle, module_energy_counter_);
+                                                 pipeline_stage_latency_cycle, module_energy_counter_, getName());
         stage_list_[i - 1]->next_stage_socket_ = &(stage_ptr->exec_socket_);
         stage_list_.emplace_back(stage_ptr);
     }

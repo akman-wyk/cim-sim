@@ -31,7 +31,7 @@ void Switch::processTransport() {
                                     .ins_id = payload->ins.ins_id,
                                     .inst_opcode = payload->ins.inst_opcode,
                                     .inst_group_tag = payload->ins.inst_group_tag,
-                                    .inst_profiler_operator = InstProfilerOperator::transport};
+                                    .inst_profiler_operator = "transport"};
 
         auto send_delay = network_->transferAndGetDelay(payload->src_id, payload->dst_id,
                                                         payload->request_data_size_byte, profiler_tag);

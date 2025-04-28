@@ -49,7 +49,7 @@ public:
     SC_HAS_PROCESS(SIMDFunctorPipelineStage);
 
     SIMDFunctorPipelineStage(const sc_module_name& name, const BaseInfo& base_info, const SIMDFunctorConfig& config,
-                             EnergyCounter& functor_energy_counter);
+                             EnergyCounter& functor_energy_counter, const std::string& functor_name);
 
     SIMDStageSocket* getExecuteSocket();
     void setNextStageSocket(SIMDStageSocket* next_stage_socket);
@@ -64,6 +64,7 @@ private:
     SIMDStageSocket* next_stage_socket_{nullptr};
 
     EnergyCounter& functor_energy_counter_;
+    const std::string& functor_name_;
 };
 
 class SIMDFunctor : public BaseModule {

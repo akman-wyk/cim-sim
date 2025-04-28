@@ -15,7 +15,7 @@ class RAM : public MemoryHardware {
 public:
     SC_HAS_PROCESS(RAM);
 
-    RAM(const sc_module_name& name, const RAMConfig& config, const BaseInfo& base_info);
+    RAM(const sc_module_name& name, const std::string& mem_name, const RAMConfig& config, const BaseInfo& base_info);
 
     sc_time accessAndGetDelay(MemoryAccessPayload& payload) override;
 
@@ -27,6 +27,7 @@ private:
 
 private:
     const RAMConfig& config_;
+    const std::string& mem_name_;
 
     std::vector<uint8_t> data_;
 

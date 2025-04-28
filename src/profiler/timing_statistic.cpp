@@ -123,20 +123,23 @@ void to_json(nlohmann::ordered_json& j, const HardwareTimingStatistic& t) {
     }
 }
 
-InstTimingStatistic::InstTimingStatistic(std::string name)
-    : name_(std::move(name))
-    , timing_statistics_{TimingStatistic{true}, TimingStatistic{true}, TimingStatistic{true}, TimingStatistic{true}} {}
+InstTimingStatistic::InstTimingStatistic(std::string name) : name_(std::move(name)) {}
 
-void InstTimingStatistic::addActivityTime(double latency, InstProfilerOperator inst_profiler_operator) {
-    timing_statistics_[inst_profiler_operator._to_integral()].addActivityTime(latency);
+void InstTimingStatistic::addActivityTime(double latency, const std::string& inst_profiler_operator) {
+    if (timing_statistic_map_.count(inst_profiler_operator) == 0) {
+        auto timing_statistic = std::make_shared<TimingStatistic>(true);
+        timing_statistic_map_.emplace(inst_profiler_operator, timing_statistic);
+        timing_statistic_list_.emplace_back(inst_profiler_operator, timing_statistic);
+    }
+    timing_statistic_map_[inst_profiler_operator]->addActivityTime(latency);
     if (parent_ != nullptr) {
         parent_->addActivityTime(latency, inst_profiler_operator);
     }
 }
 
 void InstTimingStatistic::finishRun() {
-    for (auto& timing_statistic : timing_statistics_) {
-        timing_statistic.finishRun();
+    for (auto& [_, timing_statistic] : timing_statistic_list_) {
+        timing_statistic->finishRun();
     }
 }
 
@@ -155,10 +158,10 @@ void InstTimingStatistic::report(std::ostream& ofs, int level, double total_late
     auto leaf_name = splitAndGetLastPart(name_, ".");
     printTab(ofs, level);
     ofs << fmt::format("{}: \n", leaf_name);
-    for (int i = 0; i < INST_PROFILER_TYPE_COUNT; i++) {
+    for (auto& [inst_op, timing_statistic] : timing_statistic_list_) {
         printTab(ofs, level + 1);
-        ofs << fmt::format("{}: ", InstProfilerOperator::_from_integral(i)._to_string());
-        timing_statistics_[i].report(ofs, total_latency);
+        ofs << fmt::format("{}: ", inst_op);
+        timing_statistic->report(ofs, total_latency);
         ofs << '\n';
     }
 
@@ -172,8 +175,8 @@ const std::string& InstTimingStatistic::getName() const {
 }
 
 void to_json(nlohmann::ordered_json& j, const InstTimingStatistic& t) {
-    for (int i = 0; i < INST_PROFILER_TYPE_COUNT; i++) {
-        j[InstProfilerOperator::_from_integral(i)._to_string()] = t.timing_statistics_[i];
+    for (auto& [inst_op, timing_statistic] : t.timing_statistic_list_) {
+        j[inst_op] = *timing_statistic;
     }
 
     if (!Profiler::json_flat) {

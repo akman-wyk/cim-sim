@@ -9,8 +9,8 @@
 
 namespace cimsim {
 
-RAM::RAM(const sc_module_name &name, const RAMConfig &config, const BaseInfo &base_info)
-    : MemoryHardware(name, base_info), config_(config) {
+RAM::RAM(const sc_module_name &name, const std::string &mem_name, const RAMConfig &config, const BaseInfo &base_info)
+    : MemoryHardware(name, base_info), config_(config), mem_name_(mem_name) {
     if (data_mode_ == +DataMode::real_data) {
         initialData();
     }
@@ -31,14 +31,14 @@ sc_time RAM::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
 
     int process_times = IntDivCeil(payload.size_byte, config_.width_byte);
     double latency;
-    ProfilerTag profiler_tag = {.core_id = core_id_,
-                                .ins_id = payload.ins.ins_id,
-                                .inst_opcode = payload.ins.inst_opcode,
-                                .inst_group_tag = payload.ins.inst_group_tag,
-                                .inst_profiler_operator = InstProfilerOperator::memory};
     if (payload.access_type == +MemoryAccessType::read) {
         latency = process_times * config_.read_latency_cycle * period_ns_;
-        read_energy_counter_.addDynamicEnergyPJ(latency, config_.read_dynamic_power_mW, profiler_tag);
+        read_energy_counter_.addDynamicEnergyPJ(latency, config_.read_dynamic_power_mW,
+                                                {.core_id = core_id_,
+                                                 .ins_id = payload.ins.ins_id,
+                                                 .inst_opcode = payload.ins.inst_opcode,
+                                                 .inst_group_tag = payload.ins.inst_group_tag,
+                                                 .inst_profiler_operator = mem_name_ + "_read"});
 
         if (data_mode_ == +DataMode::real_data) {
             payload.data.resize(payload.size_byte);
@@ -46,7 +46,12 @@ sc_time RAM::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
         }
     } else {
         latency = process_times * config_.write_latency_cycle * period_ns_;
-        write_energy_counter_.addDynamicEnergyPJ(latency, config_.write_dynamic_power_mW, profiler_tag);
+        write_energy_counter_.addDynamicEnergyPJ(latency, config_.write_dynamic_power_mW,
+                                                 {.core_id = core_id_,
+                                                  .ins_id = payload.ins.ins_id,
+                                                  .inst_opcode = payload.ins.inst_opcode,
+                                                  .inst_group_tag = payload.ins.inst_group_tag,
+                                                  .inst_profiler_operator = mem_name_ + "_write"});
 
         if (data_mode_ == +DataMode::real_data) {
             std::copy(payload.data.begin(), payload.data.end(), data_.begin() + payload.address_byte);
