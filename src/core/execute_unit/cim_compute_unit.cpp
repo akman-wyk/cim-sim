@@ -127,7 +127,6 @@ void CimComputeUnit::processSubInsCompute(const CimComputeSubInsPayload &sub_ins
                                          : 1;
     int total_activation_macro_cnt =
         cim_unit_->isMacroSimulation() ? total_activation_group_cnt * config_.macro_group_size : 1;
-    std::cout << group_cnt << std::endl;
     for (int group_id = 0; group_id < group_cnt; group_id++) {
         MacroGroupPayload group_payload{.cim_ins_info = sub_ins_payload.cim_ins_info,
                                         .last_group = group_id == group_cnt - 1,
@@ -146,13 +145,12 @@ void CimComputeUnit::processSubInsCompute(const CimComputeSubInsPayload &sub_ins
             (group_id + 1) % config_.value_sparse_config.output_macro_group_cnt == 0) {
             double dynamic_power_mW = config_.value_sparse_config.dynamic_power_mW;
             double latency = config_.value_sparse_config.latency_cycle * period_ns_;
-            value_sparse_network_energy_counter_.addDynamicEnergyPJ(
-                latency, dynamic_power_mW,
-                {.core_id = core_id_,
-                 .ins_id = payload.ins.ins_id,
-                 .inst_opcode = payload.ins.inst_opcode,
-                 .inst_group_tag = payload.ins.inst_group_tag,
-                 .inst_profiler_operator = InstProfilerOperator::computation});
+            value_sparse_network_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW,
+                                                                    {.core_id = core_id_,
+                                                                     .ins_id = payload.ins.ins_id,
+                                                                     .inst_opcode = payload.ins.inst_opcode,
+                                                                     .inst_group_tag = payload.ins.inst_group_tag,
+                                                                     .inst_profiler_operator = "value_sparse"});
             wait(latency, SC_NS);
         }
     }
@@ -225,7 +223,7 @@ void CimComputeUnit::readBitSparseMetaSubmodule() {
                                                         .ins_id = payload.ins.ins_id,
                                                         .inst_opcode = payload.ins.inst_opcode,
                                                         .inst_group_tag = payload.ins.inst_group_tag,
-                                                        .inst_profiler_operator = InstProfilerOperator::memory});
+                                                        .inst_profiler_operator = "meta_buffer_write"});
 
         read_bit_sparse_meta_socket_.finish();
     }

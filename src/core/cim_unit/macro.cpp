@@ -127,7 +127,7 @@ void Macro::processIPUAndIssue() {
                  .ins_id = payload.cim_ins_info.ins_id,
                  .inst_opcode = payload.cim_ins_info.inst_opcode,
                  .inst_group_tag = payload.cim_ins_info.inst_group_tag,
-                 .inst_profiler_operator = InstProfilerOperator::memory});
+                 .inst_profiler_operator = "meta_buffer_read"});
         }
 
         for (int batch = 0; batch < batch_cnt; batch++) {
@@ -144,7 +144,7 @@ void Macro::processIPUAndIssue() {
                                                     .ins_id = payload.cim_ins_info.ins_id,
                                                     .inst_opcode = payload.cim_ins_info.inst_opcode,
                                                     .inst_group_tag = payload.cim_ins_info.inst_group_tag,
-                                                    .inst_profiler_operator = InstProfilerOperator::computation});
+                                                    .inst_profiler_operator = "ipu"});
             wait(latency, SC_NS);
 
             waitAndStartNextStage(submodule_payload, *(sram_read_.getExecuteSocket()));

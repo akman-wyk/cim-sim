@@ -486,6 +486,12 @@
           "config_file": "config/test/chip/chip_test_config_4.json",
           "instruction_file": "test_data/chip_v2/chip_test_data_23.json",
           "report_file": "report/Chip_test_report.txt"
+        },
+        {
+          "comments": "Test for inst profiling",
+          "config_file": "config/test/chip/chip_test_config_5.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_24.json",
+          "report_file": "report/Chip_test_report.txt"
         }
       ]
     }

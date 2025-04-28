@@ -70,7 +70,7 @@ class InstTimingStatistic {
 public:
     explicit InstTimingStatistic(std::string name);
 
-    void addActivityTime(double latency, InstProfilerOperator inst_profiler_operator);
+    void addActivityTime(double latency, const std::string& inst_profiler_operator);
     void finishRun();
 
     void addSub(const std::shared_ptr<InstTimingStatistic>& sub);
@@ -84,7 +84,8 @@ public:
 private:
     std::string name_;
 
-    TimingStatistic timing_statistics_[INST_PROFILER_TYPE_COUNT];
+    std::unordered_map<std::string, std::shared_ptr<TimingStatistic>> timing_statistic_map_{};
+    std::vector<std::pair<std::string, std::shared_ptr<TimingStatistic>>> timing_statistic_list_{};
 
     std::shared_ptr<InstTimingStatistic> parent_{nullptr};
     std::vector<std::shared_ptr<InstTimingStatistic>> sub_list_{};

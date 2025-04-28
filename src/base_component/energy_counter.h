@@ -22,7 +22,7 @@ struct ProfilerTag {
     int ins_id{0};
     OPCODE inst_opcode{OPCODE::CIM_MVM};
     const std::string_view& inst_group_tag;
-    InstProfilerOperator inst_profiler_operator{InstProfilerOperator::computation};
+    const std::string& inst_profiler_operator;
 };
 
 class EnergyCounter {

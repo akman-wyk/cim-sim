@@ -39,7 +39,8 @@ public:
     SC_HAS_PROCESS(ReduceFunctorPipelineStage);
 
     ReduceFunctorPipelineStage(const sc_module_name& name, const BaseInfo& base_info,
-                               const ReduceFunctorConfig& functor_config, EnergyCounter& functor_energy_counter);
+                               const ReduceFunctorConfig& functor_config, EnergyCounter& functor_energy_counter,
+                               const std::string& functor_name);
 
     ReduceStageSocket* getExecuteSocket();
     void setNextStageSocket(ReduceStageSocket* next_stage_socket);
@@ -54,6 +55,7 @@ private:
     ReduceStageSocket* next_stage_socket_{nullptr};
 
     EnergyCounter& functor_energy_counter_;
+    const std::string& functor_name_;
 };
 
 class ReduceFunctor : public BaseModule {

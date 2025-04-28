@@ -12,11 +12,13 @@ namespace cimsim {
 
 SIMDFunctorPipelineStage::SIMDFunctorPipelineStage(const sc_module_name& name, const BaseInfo& base_info,
                                                    const SIMDFunctorConfig& config,
-                                                   EnergyCounter& functor_energy_counter)
+                                                   EnergyCounter& functor_energy_counter,
+                                                   const std::string& functor_name)
     : BaseModule(name, base_info)
     , dynamic_power_per_functor_mW_(config.dynamic_power_per_functor_mW)
     , pipeline_stage_latency_cycle_(config.latency_cycle / config.pipeline_stage_cnt)
-    , functor_energy_counter_(functor_energy_counter) {
+    , functor_energy_counter_(functor_energy_counter)
+    , functor_name_(functor_name) {
     SC_THREAD(processExecute);
 }
 
@@ -43,7 +45,7 @@ void SIMDFunctorPipelineStage::processExecute() {
                                                     .ins_id = payload.ins_info->ins.ins_id,
                                                     .inst_opcode = payload.ins_info->ins.inst_opcode,
                                                     .inst_group_tag = payload.ins_info->ins.inst_group_tag,
-                                                    .inst_profiler_operator = InstProfilerOperator::computation});
+                                                    .inst_profiler_operator = functor_name_});
         wait(latency, SC_NS);
 
         waitAndStartNextStage(payload, *next_stage_socket_);
@@ -57,12 +59,12 @@ SIMDFunctor::SIMDFunctor(const sc_module_name& name, const BaseInfo& base_info, 
     : BaseModule(name, base_info)
     , functor_config_(functor_config)
     , functor_energy_counter_(functor_config_.pipeline_stage_cnt > 1) {
-    stage_list_.emplace_back(
-        std::make_shared<SIMDFunctorPipelineStage>("Pipeline_0", base_info, functor_config_, functor_energy_counter_));
+    stage_list_.emplace_back(std::make_shared<SIMDFunctorPipelineStage>("Pipeline_0", base_info, functor_config_,
+                                                                        functor_energy_counter_, getName()));
 
     for (int i = 1; i < functor_config_.pipeline_stage_cnt; i++) {
-        auto stage_ptr = std::make_shared<SIMDFunctorPipelineStage>(fmt::format("Pipeline_{}", i).c_str(), base_info,
-                                                                    functor_config_, functor_energy_counter_);
+        auto stage_ptr = std::make_shared<SIMDFunctorPipelineStage>(
+            fmt::format("Pipeline_{}", i).c_str(), base_info, functor_config_, functor_energy_counter_, getName());
         stage_list_[i - 1]->setNextStageSocket(stage_ptr->getExecuteSocket());
         stage_list_.emplace_back(stage_ptr);
     }

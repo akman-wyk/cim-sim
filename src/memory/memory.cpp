@@ -12,14 +12,14 @@ namespace cimsim {
 
 Memory::Memory(const sc_module_name& name, const RAMConfig& ram_config, const BaseInfo& base_info)
     : BaseModule(name, base_info), is_mount(false) {
-    hardware_ = new RAM("ram", ram_config, base_info);
+    hardware_ = new RAM("ram", getName(), ram_config, base_info);
     as_offset_ = AddressSapce::getInstance().getMemoryAddressSpaceOffset(std::string{name});
     SC_THREAD(process);
 }
 
 Memory::Memory(const sc_module_name& name, const RegBufferConfig& reg_buffer_config, const BaseInfo& base_info)
     : BaseModule(name, base_info), is_mount(false) {
-    hardware_ = new RegBuffer("reg_buffer", reg_buffer_config, base_info);
+    hardware_ = new RegBuffer("reg_buffer", getName(), reg_buffer_config, base_info);
     as_offset_ = AddressSapce::getInstance().getMemoryAddressSpaceOffset(std::string{name});
     SC_THREAD(process);
 }
@@ -61,7 +61,6 @@ bool Memory::isMount() const {
 EnergyCounter* Memory::getEnergyCounterPtr() {
     return hardware_->getEnergyCounterPtr();
 }
-
 
 void Memory::setMemoryID(int mem_id) {
     hardware_->setMemoryID(mem_id);

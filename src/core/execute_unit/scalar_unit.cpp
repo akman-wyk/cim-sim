@@ -43,7 +43,7 @@ void ScalarUnit::process() {
                                             .ins_id = payload->ins.ins_id,
                                             .inst_opcode = payload->ins.inst_opcode,
                                             .inst_group_tag = payload->ins.inst_group_tag,
-                                            .inst_profiler_operator = InstProfilerOperator::control});
+                                            .inst_profiler_operator = "scalar_unit"});
 
         // execute instruction
         execute_socket_.waitUntilFinishIfBusy();
