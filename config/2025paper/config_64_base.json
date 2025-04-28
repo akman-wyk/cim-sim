@@ -28,8 +28,8 @@
             },
             "functor_cnt": 32,
             "latency_cycle": 1,
-            "static_power_per_functor_mW": 0,
-            "dynamic_power_per_functor_mW": 0
+            "static_power_per_functor_mW": 0.0010695,
+            "dynamic_power_per_functor_mW": 0.0269707
           },
           {
             "name": "multiply-8",
@@ -41,8 +41,8 @@
             },
             "functor_cnt": 32,
             "latency_cycle": 1,
-            "static_power_per_functor_mW": 0,
-            "dynamic_power_per_functor_mW": 0
+            "static_power_per_functor_mW": 0.0026045,
+            "dynamic_power_per_functor_mW": 0.049674
           },
           {
             "name": "quantify",
@@ -55,8 +55,8 @@
             },
             "functor_cnt": 32,
             "latency_cycle": 1,
-            "static_power_per_functor_mW": 0,
-            "dynamic_power_per_functor_mW": 0
+            "static_power_per_functor_mW": 0.0247493,
+            "dynamic_power_per_functor_mW": 0.6187
           },
           {
             "name": "quantify-resadd",
@@ -70,8 +70,8 @@
             },
             "functor_cnt": 32,
             "latency_cycle": 1,
-            "static_power_per_functor_mW": 0,
-            "dynamic_power_per_functor_mW": 0
+            "static_power_per_functor_mW": 0.1967493,
+            "dynamic_power_per_functor_mW": 0.8277
           }
         ],
         "instruction_list": [
@@ -189,17 +189,13 @@
         ]
       },
       "cim_unit_config": {
-        "macro_total_cnt": 16,
-        "macro_group_size": 4,
+        "macro_total_cnt": 64,
+        "macro_group_size": 16,
         "macro_size": {
           "compartment_cnt_per_macro": 16,
           "element_cnt_per_compartment": 2,
           "row_cnt_per_element": 16,
           "bit_width_per_row": 8
-        },
-        "address_space": {
-          "offset_byte": 0,
-          "size_byte": 16384
         },
         "ipu": {
           "latency_cycle": 1,
@@ -209,7 +205,7 @@
         "sram": {
           "write_latency_cycle": 1,
           "read_latency_cycle": 1,
-          "static_power_mW": 1.41E+00,
+          "static_power_mW": 0.0440625,
           "write_dynamic_power_per_bit_mW": 0.19475,
           "read_dynamic_power_per_bit_mW": 0.01393875
         },
@@ -251,7 +247,7 @@
             "name": "blank_memory",
             "type": "ram",
             "hardware_config": {
-              "size_byte": 512,
+              "size_byte": 1024,
               "width_byte": 128,
               "write_latency_cycle": 0,
               "read_latency_cycle": 0,
@@ -264,7 +260,7 @@
             "name": "temp_sum_memory",
             "type": "ram",
             "hardware_config": {
-              "size_byte": 512,
+              "size_byte": 1024,
               "width_byte": 128,
               "write_latency_cycle": 0,
               "read_latency_cycle": 0,
@@ -281,22 +277,22 @@
               "width_byte": 128,
               "write_latency_cycle": 1,
               "read_latency_cycle": 1,
-              "static_power_mW": 2.8825576,
-              "write_dynamic_power_mW": 16.05416,
-              "read_dynamic_power_mW": 16.05416
+              "static_power_mW": 1.5347456,
+              "write_dynamic_power_mW": 41.60656,
+              "read_dynamic_power_mW": 41.60656
             }
           },
           {
             "name": "output_memory",
             "type": "ram",
             "hardware_config": {
-              "size_byte": 262144,
+              "size_byte": 524288,
               "width_byte": 128,
               "write_latency_cycle": 1,
               "read_latency_cycle": 1,
-              "static_power_mW": 2.8825576,
-              "write_dynamic_power_mW": 16.05416,
-              "read_dynamic_power_mW": 16.05416
+              "static_power_mW": 5.60182143,
+              "write_dynamic_power_mW": 49.78,
+              "read_dynamic_power_mW": 49.78
             }
           },
           {
@@ -336,8 +332,8 @@
               "write_latency_cycle": 1,
               "read_latency_cycle": 1,
               "static_power_mW": 0,
-              "write_dynamic_power_mW": 0,
-              "read_dynamic_power_mW": 0,
+              "write_dynamic_power_mW": 500,
+              "read_dynamic_power_mW": 500,
               "has_image": false,
               "image_file": ""
             }
@@ -353,12 +349,12 @@
       "network_config_file_path": "../test_data/chip_v2/network_config_3.json"
     },
     "address_space_config": [
-      {"name": "cim_unit", "size": 8192},
+      {"name": "cim_unit", "size": 32768},
       {"name": "index_memory", "size": 8192},
-      {"name": "blank_memory", "size": 512},
-      {"name": "temp_sum_memory", "size": 512},
+      {"name": "blank_memory", "size": 1024},
+      {"name": "temp_sum_memory", "size": 1024},
       {"name": "input_memory", "size": 131072},
-      {"name": "output_memory", "size": 262144},
+      {"name": "output_memory", "size": 524288},
       {"name": "cim_input_reg_buffer", "size": 1024},
       {"name": "cim_output_reg_buffer", "size": 4096},
       {"name": "global", "size": 33554432}

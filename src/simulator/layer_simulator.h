@@ -38,6 +38,8 @@ private:
     // std::string expected_reg_file_;
     // std::string actual_reg_file_;
     bool check_;
+
+    double exec_time_{};
 };
 
 }  // namespace cimsim

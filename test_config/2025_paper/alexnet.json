@@ -1,0 +1,47 @@
+{
+  "data_root_dir": "/mnt/d/code/cim-sim/dense",
+  "report_root_dir": "/mnt/d/code/cim-sim/report",
+  "network": "AlexNet",
+  "OP_count": 540123136,
+
+  "generate_report": true,
+  "test_case_config": [
+    {
+      "test": true,
+      "test_case_name": "16",
+      "config_file_path": "../config/2025paper/config_16_base.json",
+      "report_file_name": "16_base.txt"
+    },
+    {
+      "test": true,
+      "test_case_name": "32",
+      "config_file_path": "../config/2025paper/config_32_base.json",
+      "report_file_name": "32_base.txt"
+    },
+    {
+      "test": true,
+      "test_case_name": "48",
+      "config_file_path": "../config/2025paper/config_48_base.json",
+      "report_file_name": "48_base.txt"
+    },
+    {
+      "test": true,
+      "test_case_name": "64",
+      "config_file_path": "../config/2025paper/config_64_base.json",
+      "report_file_name": "64_base.txt"
+    }
+  ],
+
+  "layer_config": [
+    {"sub_dir_name": "0_conv"},
+    {"sub_dir_name": "2_conv"},
+    {"sub_dir_name": "4_conv"},
+    {"sub_dir_name": "5_conv"},
+    {"sub_dir_name": "6_conv"},
+    {"sub_dir_name": "8_linear"},
+    {"sub_dir_name": "9_linear"},
+    {"sub_dir_name": "10_linear"}
+  ],
+
+  "compare": false
+}

@@ -4,6 +4,8 @@
 
 #include "network_simulator.h"
 
+#include <chrono>
+
 #include "constant.h"
 #include "systemc.h"
 #include "util/util.h"
@@ -20,7 +22,7 @@ namespace cimsim {
 Reporter test_network(const std::string& data_root_dir, const std::string& report_root_dir, const std::string& network,
                       const TestCaseConfig& test_case_config, const std::vector<LayerConfig>& layer_config,
                       bool& all_tests_passed, double OP_count) {
-    auto data_dir = fmt::format("{}/{}/{}", data_root_dir, network, test_case_config.test_case_name);
+    auto data_dir = fmt::format("{}/{}/{}", data_root_dir, test_case_config.test_case_name, network);
     auto report_dir = fmt::format("{}/{}", report_root_dir, TEMP_REPORT_DIR_NAME);
 
     std::size_t execute_times = layer_config.size();
@@ -29,19 +31,20 @@ Reporter test_network(const std::string& data_root_dir, const std::string& repor
         std::cout << fmt::format("    execute file{}: {}, ", i, layer_config[i].sub_dir_name);
 
         auto code_file = fmt::format("{}/{}/{}", data_dir, layer_config[i].sub_dir_name, CODE_FILE_NAME);
-        auto global_image_file =
-            fmt::format("{}/{}/{}", data_dir, layer_config[i].sub_dir_name, GLOBAL_IMAGE_FILE_NAME);
+        // auto global_image_file =
+        //     fmt::format("{}/{}/{}", data_dir, layer_config[i].sub_dir_name, GLOBAL_IMAGE_FILE_NAME);
         auto report_json_file = fmt::format("{}/report{}.json", report_dir, i);
-        auto expected_ins_stat_file =
-            fmt::format("{}/{}/{}", data_dir, layer_config[i].sub_dir_name, EXPECTED_INS_STAT_FILE_NAME);
-        auto expected_reg_file =
-            fmt::format("{}/{}/{}", data_dir, layer_config[i].sub_dir_name, EXPECTED_REG_FILE_NAME);
-        auto actual_reg_file = fmt::format("{}/{}", report_dir, ACTUAL_REG_FILE_NAME);
+        // auto expected_ins_stat_file =
+        //     fmt::format("{}/{}/{}", data_dir, layer_config[i].sub_dir_name, EXPECTED_INS_STAT_FILE_NAME);
+        // auto expected_reg_file =
+        //     fmt::format("{}/{}/{}", data_dir, layer_config[i].sub_dir_name, EXPECTED_REG_FILE_NAME);
+        // auto actual_reg_file = fmt::format("{}/{}", report_dir, ACTUAL_REG_FILE_NAME);
 
         // execute and generate json file
-        auto cmd = fmt::format("./LayerSimulator {} {} {} {} {} {} -j {} >> ./log.txt 2>&1",
-                               test_case_config.config_file_path, code_file, global_image_file, expected_ins_stat_file,
-                               expected_reg_file, actual_reg_file, report_json_file);
+        std::string profiler_config_file = "../config/profiler_config.json";
+        auto cmd = fmt::format("./LayerSimulator {} {} {} -j {} >> ./log.txt 2>&1", test_case_config.config_file_path,
+                               profiler_config_file, code_file, report_json_file);
+        // std::cout << cmd << std::endl;
         int status = system(cmd.c_str());
         if (status == -1) {
             all_tests_passed = false;
@@ -76,6 +79,7 @@ Reporter test_network(const std::string& data_root_dir, const std::string& repor
         remove(report_json_file.c_str());
     }
 
+    std::cout << "Simulator running time: " << total_reporter.getExecTime() << "s" << std::endl;
     total_reporter.setOPCount(OP_count);
 
     auto total_report_file_path = fmt::format("{}/{}/{}", report_root_dir, network, test_case_config.report_file_name);
