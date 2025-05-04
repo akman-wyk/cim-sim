@@ -235,6 +235,7 @@ struct CimUnitConfig {
     int macro_total_cnt{0};
     int macro_group_size{0};
     CimMacroSizeConfig macro_size{};
+    bool bit_serial{true};
 
     // address space
     std::string name_as_memory{"cim_unit"};

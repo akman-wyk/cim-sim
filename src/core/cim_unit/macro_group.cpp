@@ -104,7 +104,7 @@ void MacroGroup::processIPUAndIssue() {
         MacroGroupSubmodulePayload submodule_payload{
             .sub_ins_info = std::make_shared<MacroGroupSubInsInfo>(MacroGroupSubInsInfo{
                 .cim_ins_info = cim_ins_info, .last_group = payload.last_group, .bit_sparse = payload.bit_sparse})};
-        int batch_count = payload.input_bit_width;
+        int batch_count = config_.bit_serial ? payload.input_bit_width : 1;
         for (int batch = 0; batch < batch_count; batch++) {
             submodule_payload.batch_info = std::make_shared<MacroBatchInfo>(
                 MacroBatchInfo{.batch_num = batch, .last_batch = (batch == batch_count - 1)});

@@ -50,6 +50,7 @@ std::shared_ptr<ExecuteInsPayload> DecoderV2::decodeCimIns(const InstV2& ins) co
         CimComputeInsPayload p;
         p.ins.unit_type = ExecuteUnitType::cim_compute;
 
+        p.batch_cnt = ins.BATCH ? reg_unit_->readRegister(ins.rf, false) : 1;
         p.input_addr_byte = reg_unit_->readRegister(ins.rs, false);
         p.input_len = reg_unit_->readRegister(ins.rt, false);
         p.input_bit_width = reg_unit_->readRegister(SpecialRegId::cim_input_bit_width, true);

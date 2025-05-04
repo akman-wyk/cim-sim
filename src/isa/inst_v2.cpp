@@ -68,7 +68,7 @@ std::string InstV2::toString() const {
     switch (op) {
         case OPCODE::CIM_MVM: {
             ss << fmt::format("${} ${} ${}, flags:", rs, rt, re);
-            TO_STRING_WRITE_FLAGS(GRP, GRP_I, SP_V, SP_B)
+            TO_STRING_WRITE_FLAGS(GRP, GRP_I, SP_V, SP_B, BATCH)
             break;
         }
         case OPCODE::CIM_CFG: {
@@ -157,7 +157,7 @@ std::string InstV2::toJsonString() const {
         default: break;
     }
 
-    INST_V2_TO_JSON_STR_WRITE_FLAGS(GRP, GRP_I, SP_V, SP_B, GRP_B, OSUM, OSUM_MOV)
+    INST_V2_TO_JSON_STR_WRITE_FLAGS(GRP, GRP_I, SP_V, SP_B, BATCH, GRP_B, OSUM, OSUM_MOV)
 
     ss << fmt::format(R"(, "{}": "{}")", "asm", toString());
     ss << "}";
@@ -165,7 +165,7 @@ std::string InstV2::toJsonString() const {
 }
 
 DEFINE_TYPE_FROM_JSON_FUNCTION_WITH_DEFAULT(InstV2, opcode, rs, rt, rd, re, rf, funct, imm, GRP, GRP_I, SP_V, SP_B,
-                                            GRP_B, OSUM, OSUM_MOV, inst_group_tag)
+                                            BATCH, GRP_B, OSUM, OSUM_MOV, inst_group_tag)
 
 void to_json(nlohmann::ordered_json& nlohmann_json_j, const InstV2& nlohmann_json_t) {
     nlohmann_json_j["asm"] = nlohmann_json_t.toString();
@@ -174,7 +174,7 @@ void to_json(nlohmann::ordered_json& nlohmann_json_j, const InstV2& nlohmann_jso
     nlohmann_json_j["opcode_binary"] = fmt::format("0b{}", binary.to_string());
 
     TYPE_TO_JSON_FIELD_ASSIGN(opcode, rs, rt, rd, re, rf, funct, imm)
-    TYPE_TO_JSON_WRITE_FLAGS(GRP, GRP_I, SP_V, SP_B, GRP_B, OSUM, OSUM_MOV)
+    TYPE_TO_JSON_WRITE_FLAGS(GRP, GRP_I, SP_V, SP_B, BATCH, GRP_B, OSUM, OSUM_MOV)
 }
 
 }  // namespace cimsim

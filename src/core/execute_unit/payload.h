@@ -93,6 +93,9 @@ struct ScalarInsPayload : public ExecuteInsPayload {
 };
 
 struct CimComputeInsPayload : public ExecuteInsPayload {
+    // batch
+    int batch_cnt{1};
+
     // input info
     int input_addr_byte{0}, input_len{0}, input_bit_width{0};
 
@@ -111,8 +114,8 @@ struct CimComputeInsPayload : public ExecuteInsPayload {
     bool value_sparse{false};
     int value_sparse_mask_addr_byte{0};
 
-    DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(CimComputeInsPayload, ins, input_addr_byte, input_len, input_bit_width,
-                                         activation_group_num, group_input_step_byte, row, bit_sparse,
+    DEFINE_EXECUTE_INS_PAYLOAD_FUNCTIONS(CimComputeInsPayload, ins, batch_cnt, input_addr_byte, input_len,
+                                         input_bit_width, activation_group_num, group_input_step_byte, row, bit_sparse,
                                          bit_sparse_meta_addr_byte, value_sparse, value_sparse_mask_addr_byte)
 };
 

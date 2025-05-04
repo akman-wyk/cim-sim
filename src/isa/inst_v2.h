@@ -15,7 +15,7 @@ struct InstV2 {
     int rs{-1}, rt{-1}, rd{-1}, re{-1}, rf{-1};
     int funct{0}, imm{0};
 
-    bool GRP{false}, GRP_I{false}, SP_V{false}, SP_B{false}, GRP_B{false}, OSUM{false}, OSUM_MOV{false};
+    bool GRP{false}, GRP_I{false}, SP_V{false}, SP_B{false}, BATCH{false}, GRP_B{false}, OSUM{false}, OSUM_MOV{false};
 
     std::string inst_group_tag{};
 

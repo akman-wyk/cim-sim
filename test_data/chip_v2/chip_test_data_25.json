@@ -1,0 +1,30 @@
+{
+  "comments": "Test for cim compute with batch 1",
+  "code": [
+    [
+      {"opcode": 45, "rd": 0, "imm": 16, "asm": "S_LI 16 to $0", "inst_group_tag": "conv.set"},
+      {"opcode": 45, "rd": 1, "imm": 16, "asm": "S_LI 16 to $1", "inst_group_tag": "conv.set"},
+      {"opcode": 45, "rd": 2, "imm": 16, "asm": "S_LI 16 to $2", "inst_group_tag": "conv.set"},
+      {"opcode": 45, "rd": 4, "imm": 1, "asm": "S_LI 1 to $4", "inst_group_tag": "conv.set"},
+
+      {"opcode": 44, "rd": 1, "imm": 2048, "asm": "G_LI 2048 to $1", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 44, "rd": 2, "imm": 16, "asm": "G_LI 16 to $2", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 44, "rd": 3, "imm": 0, "asm": "G_LI 0 to $3", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 44, "rd": 4, "imm": 4, "asm": "G_LI 4 to $4", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 0, "rs": 1, "rt": 2, "re": 3, "rf": 4, "GRP": true, "BATCH": true, "asm": "CIM_MVM $1 $2 $3 $4, flags: GRP, BATCH", "inst_group_tag": "conv.cim_compute"},
+
+      {"opcode": 44, "rd": 1, "imm": 2560, "asm": "G_LI 2560 to $1", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 44, "rd": 3, "imm": 4, "asm": "G_LI 4 to $3", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 0, "rs": 1, "rt": 2, "re": 3, "rf": 4, "GRP": true, "BATCH": true, "asm": "CIM_MVM $1 $2 $3 $4, flags: GRP, BATCH", "inst_group_tag": "conv.cim_compute"},
+
+      {"opcode": 44, "rd": 0, "imm": 16, "asm": "G_LI 16 to $0", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 44, "rd": 1, "imm": 0, "asm": "G_LI 0 to $1", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 44, "rd": 2, "imm": 3072, "asm": "G_LI 3072 to $2", "inst_group_tag": "conv.cim_compute"},
+      {"opcode": 8, "rs": 0, "rt": 1, "rd": 2, "asm": "CIM_OUT $0 $1 to $2, flags:", "inst_group_tag": "conv.cim_compute"}
+    ]
+  ],
+  "expected": {
+    "time_ns": 115,
+    "energy_pj": 11294.2
+  }
+}
