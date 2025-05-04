@@ -41,20 +41,22 @@ void CimComputeUnit::processIssue() {
         CORE_LOG(fmt::format("Cim compute start, pc: {}", payload->ins.pc));
         ports_.resource_allocate_.write(getDataConflictInfo(*payload));
 
-        process_sub_ins_socket_.waitUntilFinishIfBusy();
-        process_sub_ins_socket_.payload = {
-            .cim_ins_info = {.ins_pc = payload->ins.pc,
-                             .sub_ins_num = 1,
-                             .last_sub_ins = true,
-                             .ins_id = payload->ins.ins_id,
-                             .inst_opcode = payload->ins.inst_opcode,
-                             .inst_group_tag = payload->ins.inst_group_tag},
-            .ins_payload = *payload,
-            .group_max_activation_macro_cnt = cim_unit_->getMacroGroupMaxActivationMacroCount()};
-        process_sub_ins_socket_.start_exec.notify();
+        for (int batch_num = 0; batch_num < payload->batch_cnt; batch_num++) {
+            process_sub_ins_socket_.waitUntilFinishIfBusy();
+            process_sub_ins_socket_.payload = {
+                .cim_ins_info = {.ins_pc = payload->ins.pc,
+                                 .sub_ins_num = batch_num,
+                                 .last_sub_ins = batch_num == payload->batch_cnt - 1,
+                                 .ins_id = payload->ins.ins_id,
+                                 .inst_opcode = payload->ins.inst_opcode,
+                                 .inst_group_tag = payload->ins.inst_group_tag},
+                .ins_payload = getSubInsCimComputeInsPayload(payload, batch_num),
+                .group_max_activation_macro_cnt = cim_unit_->getMacroGroupMaxActivationMacroCount()};
+            process_sub_ins_socket_.start_exec.notify();
 
-        if (!process_sub_ins_socket_.payload.cim_ins_info.last_sub_ins) {
-            wait(next_sub_ins_);
+            if (!process_sub_ins_socket_.payload.cim_ins_info.last_sub_ins) {
+                wait(next_sub_ins_);
+            }
         }
 
         readyForNextExecute();
@@ -250,6 +252,15 @@ ResourceAllocatePayload CimComputeUnit::getDataConflictInfo(const cimsim::CimCom
 
 ResourceAllocatePayload CimComputeUnit::getDataConflictInfo(const std::shared_ptr<ExecuteInsPayload> &payload) {
     return getDataConflictInfo(*std::dynamic_pointer_cast<CimComputeInsPayload>(payload));
+}
+
+CimComputeInsPayload CimComputeUnit::getSubInsCimComputeInsPayload(
+    const std::shared_ptr<CimComputeInsPayload> &ins_payload, int batch_num) {
+    auto sub_ins_payload = *ins_payload;
+    sub_ins_payload.input_addr_byte +=
+        batch_num * IntDivCeil(sub_ins_payload.input_len * sub_ins_payload.input_bit_width, BYTE_TO_BIT);
+    sub_ins_payload.row += batch_num;
+    return sub_ins_payload;
 }
 
 }  // namespace cimsim

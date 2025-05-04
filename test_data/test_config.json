@@ -492,6 +492,18 @@
           "config_file": "config/test/chip/chip_test_config_5.json",
           "instruction_file": "test_data/chip_v2/chip_test_data_24.json",
           "report_file": "report/Chip_test_report.txt"
+        },
+        {
+          "comments": "Test for cim compute with batch 1",
+          "config_file": "config/test/chip/cim_compute_batch_config.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_25.json",
+          "report_file": "report/Chip_test_report.txt"
+        },
+        {
+          "comments": "Test for cim compute with batch 2",
+          "config_file": "config/test/chip/cim_compute_batch_config.json",
+          "instruction_file": "test_data/chip_v2/chip_test_data_26.json",
+          "report_file": "report/Chip_test_report.txt"
         }
       ]
     }

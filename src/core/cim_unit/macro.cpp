@@ -52,9 +52,9 @@ Macro::Macro(const sc_module_name &name, const cimsim::CimUnitConfig &config, co
     }
     if (config_.bit_sparse) {
         cim_unit_energy_counter.addSubEnergyCounter("meta buffer", &meta_buffer_energy_counter_);
+        cim_unit_energy_counter.addSubEnergyCounter("post process", post_process_.getEnergyCounterPtr());
     }
     cim_unit_energy_counter.addSubEnergyCounter("sram read", sram_read_.getEnergyCounterPtr());
-    cim_unit_energy_counter.addSubEnergyCounter("post process", post_process_.getEnergyCounterPtr());
     cim_unit_energy_counter.addSubEnergyCounter("adder tree", adder_tree_.getEnergyCounterPtr());
     cim_unit_energy_counter.addSubEnergyCounter("shift adder", shift_adder_.getEnergyCounterPtr());
     cim_unit_energy_counter.addSubEnergyCounter("result adder", result_adder_.getEnergyCounterPtr());
@@ -190,7 +190,9 @@ std::pair<int, int> Macro::getBatchCountAndActivationCompartmentCount(const Macr
         payload.inputs.begin(), payload.inputs.begin() + valid_input_cnt, [](auto input) { return input != 0; }));
     int batch_num;
     if (data_mode_ == +DataMode::real_data) {
-        if (config_.input_bit_sparse && payload.bit_sparse) {
+        if (!config_.bit_serial) {
+            batch_num = activation_compartment_num == 0 ? 0 : 1;
+        } else if (config_.input_bit_sparse && payload.bit_sparse) {
             batch_num = 0;
             for (int i = 0; i < payload.input_bit_width; i++) {
                 if (std::any_of(payload.inputs.begin(), payload.inputs.begin() + valid_input_cnt,
@@ -202,7 +204,7 @@ std::pair<int, int> Macro::getBatchCountAndActivationCompartmentCount(const Macr
             batch_num = activation_compartment_num == 0 ? 0 : payload.input_bit_width;
         }
     } else {
-        batch_num = payload.input_bit_width;
+        batch_num = config_.bit_serial ? payload.input_bit_width : 1;
     }
 
     return {batch_num, activation_compartment_num};

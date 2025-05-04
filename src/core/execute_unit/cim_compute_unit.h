@@ -49,6 +49,9 @@ private:
     std::vector<std::vector<unsigned long long>> getMacroGroupInputs(int group_id, int addr_byte, int size_byte,
                                                                      const CimComputeSubInsPayload& sub_ins_payload);
 
+    static CimComputeInsPayload getSubInsCimComputeInsPayload(const std::shared_ptr<CimComputeInsPayload>& ins_payload,
+                                                       int batch_num);
+
 private:
     const CimUnitConfig& config_;
     const CimMacroSizeConfig& macro_size_;

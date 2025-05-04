@@ -1,0 +1,209 @@
+{
+  "chip_config": {
+    "core_cnt": 1,
+    "core_config": {
+      "simd_unit_config": {
+        "pipeline": true,
+        "functor_list": [
+          {
+            "name": "quantify",
+            "input_cnt": 2,
+            "data_bit_width": {
+              "input1": 32,
+              "input2": 16,
+              "output": 4
+            },
+            "functor_cnt": 32,
+            "latency_cycle": 1,
+            "static_power_per_functor_mW": 1.0,
+            "dynamic_power_per_functor_mW": 1.0
+          },
+          {
+            "name": "test",
+            "input_cnt": 1,
+            "data_bit_width": {
+              "input1": 8,
+              "output": 8
+            },
+            "functor_cnt": 16,
+            "latency_cycle": 1,
+            "static_power_per_functor_mW": 1.0,
+            "dynamic_power_per_functor_mW": 1.0
+          }
+        ],
+        "instruction_list": [
+          {
+            "name": "vqv",
+            "input_cnt": 2,
+            "opcode": "0x3f",
+            "input1_type": "vector",
+            "input2_type": "vector",
+            "functor_binding_list": [
+              {
+                "input_bit_width": {
+                  "input1": 32,
+                  "input2": 16
+                },
+                "functor_name": "quantify"
+              }
+            ]
+          },
+          {
+            "name": "test",
+            "input_cnt": 1,
+            "opcode": "0x00",
+            "input1_type": "vector",
+            "functor_binding_list": [
+              {
+                "input_bit_width": {
+                  "input1": 8
+                },
+                "functor_name": "test"
+              }
+            ]
+          }
+        ]
+      },
+      "reduce_unit_config": {
+        "pipeline": true,
+        "functor_list": [
+          {
+            "name": "test1",
+            "funct": 0,
+            "input_bit_width": 32,
+            "output_bit_width": 32,
+            "reduce_input_cnt": 32,
+            "latency_cycle": 3,
+            "pipeline_stage_cnt": 3,
+            "static_power_mW": 1.0,
+            "dynamic_power_mW": 1.0
+          },
+          {
+            "name": "test2",
+            "funct": 1,
+            "input_bit_width": 32,
+            "output_bit_width": 32,
+            "reduce_input_cnt": 64,
+            "latency_cycle": 6,
+            "pipeline_stage_cnt": 3,
+            "static_power_mW": 2.0,
+            "dynamic_power_mW": 2.0
+          }
+        ]
+      },
+      "cim_unit_config": {
+        "macro_total_cnt": 4,
+        "macro_group_size": 4,
+        "macro_size": {
+          "compartment_cnt_per_macro": 16,
+          "element_cnt_per_compartment": 2,
+          "row_cnt_per_element": 8,
+          "bit_width_per_row": 16
+        },
+        "bit_serial": false,
+        "ipu": {
+          "latency_cycle": 0,
+          "static_power_mW": 0,
+          "dynamic_power_mW": 0
+        },
+        "sram": {
+          "write_latency_cycle": 1,
+          "read_latency_cycle": 1,
+          "static_power_mW": 1.0,
+          "write_dynamic_power_per_bit_mW": 1e-2,
+          "read_dynamic_power_per_bit_mW": 1e-2
+        },
+        "adder_tree": {
+          "latency_cycle": 2,
+          "pipeline_stage_cnt": 2,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0
+        },
+        "shift_adder": {
+          "latency_cycle": 1,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0
+        },
+        "result_adder": {
+          "latency_cycle": 1,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0
+        },
+        "value_sparse": false,
+        "bit_sparse": false,
+        "input_bit_sparse": false
+      },
+      "local_memory_unit_config": {
+        "memory_list": [
+          {
+            "name": "input memory",
+            "type": "ram",
+            "hardware_config": {
+              "size_byte": 1024,
+              "width_byte": 32,
+              "write_latency_cycle": 1,
+              "read_latency_cycle": 1,
+              "static_power_mW": 1,
+              "write_dynamic_power_mW": 1,
+              "read_dynamic_power_mW": 1,
+              "has_image": false
+            }
+          },
+          {
+            "name": "output memory",
+            "type": "ram",
+            "hardware_config": {
+              "size_byte": 1024,
+              "width_byte": 32,
+              "write_latency_cycle": 1,
+              "read_latency_cycle": 1,
+              "static_power_mW": 1,
+              "write_dynamic_power_mW": 1,
+              "read_dynamic_power_mW": 1,
+              "has_image": false
+            }
+          }
+        ]
+      },
+      "transfer_unit_config": {
+        "pipeline": true
+      }
+    },
+    "global_memory_config": {
+      "global_memory_unit_config": {
+        "memory_list": [
+          {
+            "name": "global",
+            "type": "ram",
+            "hardware_config": {
+              "size_byte": 1024,
+              "width_byte": 16,
+              "write_latency_cycle": 1,
+              "read_latency_cycle": 1,
+              "static_power_mW": 1.0,
+              "write_dynamic_power_mW": 1.0,
+              "read_dynamic_power_mW": 1.0
+            }
+          }
+        ]
+      },
+      "global_memory_switch_id": -1
+    },
+    "network_config": {
+      "bus_width_byte": 16,
+      "network_config_file_path": "../test_data/chip_v2/network_config_4.json"
+    },
+    "address_space_config": [
+      {"name": "cim_unit", "size": 2048},
+      {"name": "input memory", "size": 1024},
+      {"name": "output memory", "size": 1024},
+      {"name": "global", "size": 1024}
+    ]
+  },
+  "sim_config": {
+    "period_ns": 5.0,
+    "sim_mode": "run_one_round",
+    "data_mode": "not_real_data",
+    "sim_time_ms": 1.0
+  }
+}

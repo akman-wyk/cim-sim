@@ -605,7 +605,7 @@ void to_json(nlohmann::ordered_json& j, const CimUnitConfig& t) {
     j["input_bit_sparse"] = t.input_bit_sparse;
 }
 
-DEFINE_TYPE_FROM_JSON_FUNCTION_WITH_DEFAULT(CimUnitConfig, macro_total_cnt, macro_group_size, macro_size,
+DEFINE_TYPE_FROM_JSON_FUNCTION_WITH_DEFAULT(CimUnitConfig, macro_total_cnt, macro_group_size, macro_size, bit_serial,
                                             name_as_memory, ipu, sram, adder_tree, shift_adder, result_adder,
                                             value_sparse, value_sparse_config, bit_sparse, bit_sparse_config,
                                             input_bit_sparse)
