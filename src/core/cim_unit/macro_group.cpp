@@ -15,19 +15,34 @@ MacroGroup::MacroGroup(const sc_module_name &name, const CimUnitConfig &config, 
     : BaseModule(name, base_info)
     , config_(config)
     , macro_size_(config.macro_size)
-    , activation_macro_cnt_(config.macro_group_size)
-    , sram_read_("sram_read", base_info, config_.sram.read_latency_cycle, 1, false)
-    , post_process_("post_process", base_info, config_.bit_sparse ? config_.bit_sparse_config.latency_cycle : 0, 1,
-                    false)
-    , adder_tree_("adder_tree", base_info, config_.adder_tree, false)
-    , shift_adder_("shift_adder", base_info, config_.shift_adder, false)
-    , result_adder_("result_adder", base_info, config_.result_adder, true) {
+    , activation_macro_cnt_(config.macro_group_size) {
     SC_THREAD(processIPUAndIssue)
 
-    sram_read_.bindNextStageSocket(post_process_.getExecuteSocket(), false);
-    post_process_.bindNextStageSocket(adder_tree_.getExecuteSocket(), false);
-    adder_tree_.bindNextStageSocket(shift_adder_.getExecuteSocket(), false);
-    shift_adder_.bindNextStageSocket(result_adder_.getExecuteSocket(), true);
+    // build macro modules
+    sram_read_ = std::make_shared<MacroGroupModule>("sram_read", base_info, config_.sram.read_latency_cycle, 1, false);
+    if (config_.bit_sparse) {
+        post_process_ = std::make_shared<MacroGroupModule>(
+            "post_process", base_info, config_.bit_sparse ? config_.bit_sparse_config.latency_cycle : 0, 1, false);
+    }
+    if (config_.independent_mult) {
+        mult_ = std::make_shared<MacroGroupModule>("mult", base_info, config_.mult, false);
+    }
+    adder_tree_ = std::make_shared<MacroGroupModule>("adder_tree", base_info, config_.adder_tree, false);
+    if (config_.bit_serial) {
+        shift_adder_ = std::make_shared<MacroGroupModule>("shift_adder", base_info, config_.shift_adder, false);
+    }
+    result_adder_ = std::make_shared<MacroGroupModule>("result_adder", base_info, config_.result_adder, true);
+
+    std::vector modules{sram_read_, post_process_, mult_, adder_tree_, shift_adder_};
+    modules.erase(std::remove_if(modules.begin(), modules.end(), [](const auto &ptr) { return ptr == nullptr; }),
+                  modules.end());
+    for (int i = 0; i < modules.size(); i++) {
+        if (i < modules.size() - 1) {
+            modules[i]->bindNextStageSocket(modules[i + 1]->getExecuteSocket(), false);
+        } else {
+            modules[i]->bindNextStageSocket(result_adder_->getExecuteSocket(), true);
+        }
+    }
 
     for (int i = 0; i < (macro_simulation ? 1 : config_.macro_group_size); i++) {
         auto macro_name = fmt::format("Macro_{}", i);
@@ -47,11 +62,11 @@ void MacroGroup::waitUntilFinishIfBusy() {
 }
 
 void MacroGroup::setReleaseResourceFunc(std::function<void(int)> release_resource_func) {
-    result_adder_.setReleaseResourceFunc(std::move(release_resource_func));
+    result_adder_->setReleaseResourceFunc(std::move(release_resource_func));
 }
 
 void MacroGroup::setFinishInsFunc(std::function<void()> finish_ins_func) {
-    result_adder_.setFinishInsFunc(std::move(finish_ins_func));
+    result_adder_->setFinishInsFunc(std::move(finish_ins_func));
 }
 
 void MacroGroup::setMacrosActivationElementColumn(
@@ -90,6 +105,7 @@ void MacroGroup::processIPUAndIssue() {
                                        .row = payload.row,
                                        .input_bit_width = payload.input_bit_width,
                                        .bit_sparse = payload.bit_sparse,
+                                       .input_len = payload.input_len,
                                        .simulated_group_cnt = payload.simulated_group_cnt,
                                        .simulated_macro_cnt = payload.simulated_macro_cnt};
             if (macro_id < payload.macro_inputs.size()) {
@@ -112,9 +128,9 @@ void MacroGroup::processIPUAndIssue() {
             CORE_LOG(fmt::format("{} start ipu and issue, ins pc: {}, sub ins num: {}, batch: {}", getName(),
                                  cim_ins_info.ins_pc, cim_ins_info.sub_ins_num,
                                  submodule_payload.batch_info->batch_num));
-            double latency = config_.ipu.latency_cycle * period_ns_;
+            double latency = config_.bit_serial ? config_.ipu.latency_cycle * period_ns_ : 0;
             wait(latency, SC_NS);
-            waitAndStartNextStage(submodule_payload, *(sram_read_.getExecuteSocket()));
+            waitAndStartNextStage(submodule_payload, *(sram_read_->getExecuteSocket()));
         }
 
         macro_group_socket_.finish();

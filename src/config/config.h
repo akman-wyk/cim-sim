@@ -162,10 +162,10 @@ struct CimMacroSizeConfig {
 };
 
 struct CimModuleConfig {
-    int latency_cycle{1};          // cycle
+    int latency_cycle{0};          // cycle
     int pipeline_stage_cnt{1};     // count of pipeline stages
-    double static_power_mW{1.0};   // mW
-    double dynamic_power_mW{1.0};  // mW
+    double static_power_mW{0.0};   // mW
+    double dynamic_power_mW{0.0};  // mW
 
     [[nodiscard]] bool checkValid(const std::string& module_name) const;
     DECLARE_TYPE_FROM_TO_JSON_FUNCTION_INTRUSIVE(CimModuleConfig)
@@ -236,6 +236,7 @@ struct CimUnitConfig {
     int macro_group_size{0};
     CimMacroSizeConfig macro_size{};
     bool bit_serial{true};
+    bool independent_mult{false};
 
     // address space
     std::string name_as_memory{"cim_unit"};
@@ -245,6 +246,8 @@ struct CimUnitConfig {
     CimModuleConfig ipu{};
     // SRAM module
     CimSRAMConfig sram{};
+    // mult module after SRAM read
+    CimModuleConfig mult{};
     // post process modules, each Element column has one
     CimModuleConfig adder_tree{};
     CimModuleConfig shift_adder{};

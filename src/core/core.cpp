@@ -72,7 +72,7 @@ int Core::getCoreId() const {
 }
 
 [[noreturn]] void Core::processDecode() {
-    wait(period_ns_ - 1, SC_NS);
+    wait(period_ns_ / 2, SC_NS);
 
     std::shared_ptr<ExecuteInsPayload> payload{nullptr};
     while (true) {

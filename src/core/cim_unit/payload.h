@@ -25,6 +25,7 @@ struct MacroPayload {
     int input_bit_width{0};
     bool bit_sparse{false};
 
+    int input_len{0};
     std::vector<unsigned long long> inputs{};
 
     int simulated_group_cnt{1};
@@ -63,6 +64,7 @@ struct MacroGroupPayload {
     bool bit_sparse{false};
 
     // inputs
+    int input_len{0};
     std::vector<std::vector<unsigned long long>> macro_inputs{};
 
     // control

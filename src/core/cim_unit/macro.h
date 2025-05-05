@@ -28,11 +28,13 @@ public:
     int getActivationElementColumnCount() const;
 
     void bindNextModuleSocket(MacroStageSocket* next_module_socket);
+
 private:
     [[noreturn]] void processIPUAndIssue();
 
     static double getSRAMReadDynamicPower(const CimUnitConfig& config, const MacroSubmodulePayload& payload);
     static double getPostProcessDynamicPower(const CimUnitConfig& config, const MacroSubmodulePayload& payload);
+    static double getMultDynamicPower(const CimUnitConfig& config, const MacroSubmodulePayload& payload);
     static double getAdderTreeDynamicPower(const CimUnitConfig& config, const MacroSubmodulePayload& payload);
     static double getShiftAdderDynamicPower(const CimUnitConfig& config, const MacroSubmodulePayload& payload);
     static double getResultAdderDynamicPower(const CimUnitConfig& config, const MacroSubmodulePayload& payload);
@@ -47,11 +49,12 @@ private:
 
     SubmoduleSocket<MacroPayload> macro_socket_{};
 
-    MacroModule sram_read_;
-    MacroModule post_process_;
-    MacroModule adder_tree_;
-    MacroModule shift_adder_;
-    MacroModule result_adder_;
+    std::shared_ptr<MacroModule> sram_read_{nullptr};
+    std::shared_ptr<MacroModule> post_process_{nullptr};
+    std::shared_ptr<MacroModule> mult_{nullptr};
+    std::shared_ptr<MacroModule> adder_tree_{nullptr};
+    std::shared_ptr<MacroModule> shift_adder_{nullptr};
+    std::shared_ptr<MacroModule> result_adder_{nullptr};
 
     EnergyCounter ipu_energy_counter_;
     EnergyCounter meta_buffer_energy_counter_;

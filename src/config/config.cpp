@@ -573,8 +573,8 @@ bool CimUnitConfig::checkValid() const {
     }
 
     if (const bool valid = macro_size.checkValid() && ipu.checkValid("ipu") && sram.checkValid() &&
-                           adder_tree.checkValid("adder_tree") && shift_adder.checkValid("shift_adder") &&
-                           result_adder.checkValid("result_adder") &&
+                           mult.checkValid("mult_module") && adder_tree.checkValid("adder_tree") &&
+                           shift_adder.checkValid("shift_adder") && result_adder.checkValid("result_adder") &&
                            (!value_sparse || value_sparse_config.checkValid()) &&
                            (!bit_sparse || bit_sparse_config.checkValid());
         !valid) {
@@ -591,6 +591,7 @@ void to_json(nlohmann::ordered_json& j, const CimUnitConfig& t) {
     j["macro_size"] = t.macro_size;
     j["ipu"] = t.ipu;
     j["sram"] = t.sram;
+    j["mult"] = t.mult;
     j["adder_tree"] = t.adder_tree;
     j["shift_adder"] = t.shift_adder;
     j["result_adder"] = t.result_adder;
@@ -606,9 +607,9 @@ void to_json(nlohmann::ordered_json& j, const CimUnitConfig& t) {
 }
 
 DEFINE_TYPE_FROM_JSON_FUNCTION_WITH_DEFAULT(CimUnitConfig, macro_total_cnt, macro_group_size, macro_size, bit_serial,
-                                            name_as_memory, ipu, sram, adder_tree, shift_adder, result_adder,
-                                            value_sparse, value_sparse_config, bit_sparse, bit_sparse_config,
-                                            input_bit_sparse)
+                                            independent_mult, name_as_memory, ipu, sram, mult, adder_tree, shift_adder,
+                                            result_adder, value_sparse, value_sparse_config, bit_sparse,
+                                            bit_sparse_config, input_bit_sparse)
 
 // MemoryUnit
 bool RAMConfig::checkValid() const {

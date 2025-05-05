@@ -135,6 +135,7 @@ void CimComputeUnit::processSubInsCompute(const CimComputeSubInsPayload &sub_ins
                                         .row = payload.row,
                                         .input_bit_width = payload.input_bit_width,
                                         .bit_sparse = config_.bit_sparse && payload.bit_sparse,
+                                        .input_len = std::min(payload.input_len, macro_size_.compartment_cnt_per_macro),
                                         .simulated_group_cnt = total_activation_group_cnt,
                                         .simulated_macro_cnt = total_activation_macro_cnt};
         for (int i = 0; i < total_activation_group_cnt; i++) {

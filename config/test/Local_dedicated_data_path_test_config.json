@@ -10,7 +10,38 @@
           "element_cnt_per_compartment": 1,
           "row_cnt_per_element": 1,
           "bit_width_per_row": 1
-        }
+        },
+        "ipu": {
+          "latency_cycle": 1,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0
+        },
+        "sram": {
+          "write_latency_cycle": 1,
+          "read_latency_cycle": 1,
+          "static_power_mW": 1.0,
+          "write_dynamic_power_per_bit_mW": 1.0,
+          "read_dynamic_power_per_bit_mW": 1.0
+        },
+        "adder_tree": {
+          "latency_cycle": 2,
+          "pipeline_stage_cnt": 2,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0
+        },
+        "shift_adder": {
+          "latency_cycle": 1,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0
+        },
+        "result_adder": {
+          "latency_cycle": 1,
+          "static_power_mW": 1.0,
+          "dynamic_power_mW": 1.0
+        },
+        "value_sparse": false,
+        "bit_sparse": false,
+        "input_bit_sparse": false
       },
       "local_memory_unit_config": {
         "memory_list": [
