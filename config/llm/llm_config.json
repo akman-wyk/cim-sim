@@ -1,0 +1,419 @@
+{
+  "chip_config": {
+    "core_cnt": 32,
+    "core_config": {
+      "simd_unit_config": {
+        "pipeline": true,
+        "functor_list": [
+          {
+            "name": "fp_add",
+            "input_cnt": 2,
+            "data_bit_width": {
+              "input1": 16,
+              "input2": 16,
+              "output": 16
+            },
+            "functor_cnt": 32,
+            "latency_cycle": 2,
+            "pipeline_stage_cnt": 2,
+            "static_power_per_functor_mW": 6.97E-04,
+            "dynamic_power_per_functor_mW": 0.4769
+          },
+          {
+            "name": "fp_mul",
+            "input_cnt": 2,
+            "data_bit_width": {
+              "input1": 16,
+              "input2": 16,
+              "output": 16
+            },
+            "functor_cnt": 32,
+            "latency_cycle": 2,
+            "pipeline_stage_cnt": 2,
+            "static_power_per_functor_mW": 8.80E-04            ,
+            "dynamic_power_per_functor_mW": 0.622
+          },
+          {
+            "name": "fp_sqrt",
+            "input_cnt": 1,
+            "data_bit_width": {
+              "input1": 16,
+              "output": 16
+            },
+            "functor_cnt": 32,
+            "latency_cycle": 3,
+            "pipeline_stage_cnt": 3,
+            "static_power_per_functor_mW": 5.63E-04,
+            "dynamic_power_per_functor_mW": 0.513
+          },
+          {
+            "name": "fp_exp",
+            "input_cnt": 1,
+            "data_bit_width": {
+              "input1": 16,
+              "output": 16
+            },
+            "functor_cnt": 1,
+            "latency_cycle": 3,
+            "pipeline_stage_cnt": 3,
+            "static_power_per_functor_mW": 1.98E-03,
+            "dynamic_power_per_functor_mW": 1.053
+          },
+          {
+            "name": "fp_gelu",
+            "input_cnt": 1,
+            "data_bit_width": {
+              "input1": 16,
+              "output": 16
+            },
+            "functor_cnt": 1,
+            "latency_cycle": 3,
+            "pipeline_stage_cnt": 3,
+            "static_power_per_functor_mW": 1.98E-03,
+            "dynamic_power_per_functor_mW": 1.053
+          },
+          {
+            "name": "fp_div",
+            "input_cnt": 2,
+            "data_bit_width": {
+              "input1": 16,
+              "input2": 16,
+              "output": 16
+            },
+            "functor_cnt": 32,
+            "latency_cycle": 6,
+            "pipeline_stage_cnt": 6,
+            "static_power_per_functor_mW": 1.97E-03            ,
+            "dynamic_power_per_functor_mW": 1.612
+          }
+        ],
+        "instruction_list": [
+          {
+            "name": "vv_add",
+            "input_cnt": 2,
+            "opcode": "0x00",
+            "input1_type": "vector",
+            "input2_type": "vector",
+            "functor_binding_list": [
+              {
+                "input_bit_width": {
+                  "input1": 16,
+                  "input2": 16
+                },
+                "functor_name": "fp_add"
+              }
+            ]
+          },
+          {
+            "name": "vv_mul",
+            "input_cnt": 2,
+            "opcode": "0x01",
+            "input1_type": "vector",
+            "input2_type": "vector",
+            "functor_binding_list": [
+              {
+                "input_bit_width": {
+                  "input1": 16,
+                  "input2": 16
+                },
+                "functor_name": "fp_mul"
+              }
+            ]
+          },
+          {
+            "name": "vs_sub",
+            "input_cnt": 2,
+            "opcode": "0x02",
+            "input1_type": "vector",
+            "input2_type": "scalar",
+            "functor_binding_list": [
+              {
+                "input_bit_width": {
+                  "input1": 16,
+                  "input2": 16
+                },
+                "functor_name": "fp_add"
+              }
+            ]
+          },
+          {
+            "name": "vs_add",
+            "input_cnt": 2,
+            "opcode": "0x03",
+            "input1_type": "vector",
+            "input2_type": "scalar",
+            "functor_binding_list": [
+              {
+                "input_bit_width": {
+                  "input1": 16,
+                  "input2": 16
+                },
+                "functor_name": "fp_add"
+              }
+            ]
+          },
+          {
+            "name": "v_sqrt",
+            "input_cnt": 1,
+            "opcode": "0x04",
+            "input1_type": "vector",
+            "functor_binding_list": [
+              {
+                "input_bit_width": {
+                  "input1": 16
+                },
+                "functor_name": "fp_sqrt"
+              }
+            ]
+          },
+          {
+            "name": "v_exp",
+            "input_cnt": 1,
+            "opcode": "0x05",
+            "input1_type": "vector",
+            "functor_binding_list": [
+              {
+                "input_bit_width": {
+                  "input1": 16
+                },
+                "functor_name": "fp_exp"
+              }
+            ]
+          },
+          {
+            "name": "v_gelu",
+            "input_cnt": 1,
+            "opcode": "0x06",
+            "input1_type": "vector",
+            "functor_binding_list": [
+              {
+                "input_bit_width": {
+                  "input1": 16
+                },
+                "functor_name": "fp_gelu"
+              }
+            ]
+          },
+          {
+            "name": "vs_div",
+            "input_cnt": 2,
+            "opcode": "0x07",
+            "input1_type": "vector",
+            "input2_type": "scalar",
+            "functor_binding_list": [
+              {
+                "input_bit_width": {
+                  "input1": 16,
+                  "input2": 16
+                },
+                "functor_name": "fp_div"
+              }
+            ]
+          },
+          {
+            "name": "vs_mul",
+            "input_cnt": 2,
+            "opcode": "0x08",
+            "input1_type": "vector",
+            "input2_type": "scalar",
+            "functor_binding_list": [
+              {
+                "input_bit_width": {
+                  "input1": 16,
+                  "input2": 16
+                },
+                "functor_name": "fp_mul"
+              }
+            ]
+          }
+        ]
+      },
+      "reduce_unit_config": {
+        "pipeline": true,
+        "functor_list": [
+          {
+            "name": "reduce_max",
+            "funct": 9,
+            "input_bit_width": 16,
+            "output_bit_width": 16,
+            "reduce_input_cnt": 32,
+            "latency_cycle": 5,
+            "pipeline_stage_cnt": 5,
+            "static_power_per_functor_mW": 8.80E-04 ,
+            "dynamic_power_per_functor_mW": 0.622
+          },
+          {
+            "name": "reduce_sum",
+            "funct": 10,
+            "input_bit_width": 16,
+            "output_bit_width": 16,
+            "reduce_input_cnt": 16,
+            "latency_cycle": 5,
+            "pipeline_stage_cnt": 5,
+            "static_power_mW": 9.11E-03,
+            "dynamic_power_mW": 6.581
+          }
+        ]
+      },
+      "cim_unit_config": {
+        "macro_total_cnt": 16,
+        "macro_group_size": 1,
+        "macro_size": {
+          "compartment_cnt_per_macro": 16,
+          "element_cnt_per_compartment": 8,
+          "row_cnt_per_element": 256,
+          "_comment": "bit-width-per-weight",
+          "bit_width_per_row": 16
+        },
+        "bit_serial": false,
+        "independent_mult": true,
+        "sram": {
+          "write_latency_cycle": 1,
+          "read_latency_cycle": 1,
+          "_comment": "static_power_mW_per_macro",
+          "static_power_mW": 0.210218667,
+          "write_dynamic_power_per_bit_mW": 0.038486833,
+          "read_dynamic_power_per_bit_mW": 0.038486833
+        },
+        "mult": {
+          "latency_cycle": 2,
+          "pipeline_stage_cnt": 2,
+          "static_power_mW": 8.80E-04,
+          "dynamic_power_mW": 0.622
+        },
+        "adder_tree": {
+          "latency_cycle": 5,
+          "pipeline_stage_cnt": 5,
+          "static_power_mW": 9.11E-03,
+          "dynamic_power_mW": 6.581
+        },
+        "result_adder": {
+          "latency_cycle": 2,
+          "pipeline_stage_cnt": 2,
+          "static_power_per_functor_mW": 6.97E-04,
+          "dynamic_power_per_functor_mW": 0.4769
+        },
+        "value_sparse": false,
+        "bit_sparse": false,
+        "input_bit_sparse": false
+      },
+      "local_memory_unit_config": {
+        "memory_list": [
+          {
+            "name": "transpose_memory",
+            "type": "ram",
+            "hardware_config": {
+              "size_byte": 8192,
+              "width_byte": 32,
+              "write_latency_cycle": 1,
+              "read_latency_cycle": 1,
+              "static_power_mW": 0.144412444              ,
+              "write_dynamic_power_mW": 1.303660444              ,
+              "read_dynamic_power_mW": 20.85856711              ,
+              "has_image": false
+            }
+          },
+          {
+            "name": "input memory",
+            "type": "ram",
+            "hardware_config": {
+              "size_byte": 262144,
+              "width_byte": 32,
+              "write_latency_cycle": 1,
+              "read_latency_cycle": 1,
+              "static_power_mW": 0.180178667              ,
+              "write_dynamic_power_mW": 13.20603289              ,
+              "read_dynamic_power_mW": 13.20603289              ,
+              "has_image": false
+            }
+          },
+          {
+            "name": "output memory",
+            "type": "ram",
+            "hardware_config": {
+              "size_byte": 131072,
+              "width_byte": 32,
+              "write_latency_cycle": 1,
+              "read_latency_cycle": 1,
+              "static_power_mW": 0.093829333              ,
+              "write_dynamic_power_mW": 11.567344              ,
+              "read_dynamic_power_mW": 11.567344              ,
+              "has_image": false
+            }
+          },
+          {
+            "name": "temp_memory_1",
+            "type": "ram",
+            "hardware_config": {
+              "size_byte": 16384,
+              "width_byte": 32,
+              "write_latency_cycle": 1,
+              "read_latency_cycle": 1,
+              "static_power_mW": 0.029665778              ,
+              "write_dynamic_power_mW": 9.935420444       ,
+              "read_dynamic_power_mW": 9.935420444        ,
+              "has_image": false
+            }
+        },
+        {
+            "name": "temp_memory_2",
+            "type": "ram",
+            "hardware_config": {
+              "size_byte": 16384,
+              "width_byte": 32,
+              "write_latency_cycle": 1,
+              "read_latency_cycle": 1,
+              "static_power_mW": 0.029665778              ,
+              "write_dynamic_power_mW": 9.935420444       ,
+              "read_dynamic_power_mW": 9.935420444        ,
+              "has_image": false
+            }
+        }
+        ]
+      },
+      "transfer_unit_config": {
+        "pipeline": true
+      }
+    },
+    "global_memory_config": {
+      "global_memory_unit_config": {
+        "memory_list": [
+          {
+            "name": "global",
+            "type": "ram",
+            "duplicate_cnt": 32,
+            "hardware_config": {
+              "size_byte": 8388608,
+              "width_byte": 32,
+              "write_latency_cycle": 1,
+              "read_latency_cycle": 1,
+              "static_power_mW": 0,
+              "write_dynamic_power_mW": 0,
+              "read_dynamic_power_mW": 0
+            }
+          }
+        ]
+      },
+      "global_memory_switch_id": -1
+    },
+    "network_config": {
+      "bus_width_byte": 16,
+      "network_config_file_path": "../config/llm/32-core-x4y8-flit16.json"
+    },
+    "address_space_config": [
+      {"name": "cim_unit", "size": 1048576},
+      {"name": "transpose_memory", "size": 8192},
+      {"name": "input memory", "size": 262144},
+      {"name": "output memory", "size": 131072},
+      {"name": "temp_memory_1","size":16384},
+      {"name": "temp_memory_2","size":16384},
+      {"name": "global", "size": 8388608}
+    ]
+  },
+  "sim_config": {
+    "period_ns": 1.0,
+    "sim_mode": "run_one_round",
+    "data_mode": "not_real_data",
+    "sim_time_ms": 1.0
+  }
+}
