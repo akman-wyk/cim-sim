@@ -42,11 +42,12 @@ private:
     SubmoduleSocket<MacroGroupPayload> macro_group_socket_{};
 
     // modules in MacroGroup, for controlling
-    MacroGroupModule sram_read_;
-    MacroGroupModule post_process_;
-    MacroGroupModule adder_tree_;
-    MacroGroupModule shift_adder_;
-    MacroGroupModule result_adder_;
+    std::shared_ptr<MacroGroupModule> sram_read_{nullptr};
+    std::shared_ptr<MacroGroupModule> post_process_{nullptr};
+    std::shared_ptr<MacroGroupModule> mult_{nullptr};
+    std::shared_ptr<MacroGroupModule> adder_tree_{nullptr};
+    std::shared_ptr<MacroGroupModule> shift_adder_{nullptr};
+    std::shared_ptr<MacroGroupModule> result_adder_{nullptr};
 };
 
 }  // namespace cimsim
