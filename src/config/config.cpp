@@ -891,8 +891,8 @@ DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(CoreConfig, control_unit_config, 
 
 // NetworkConfig
 bool NetworkConfig::checkValid() const {
-    if (const bool valid = bus_width_byte > 0 && !network_config_file_path.empty(); !valid) {
-        std::cerr << "NetworkConfig not valid, 'bus_width_byte' must be positive and 'network_config_file_path' must "
+    if (const bool valid = bus_width_byte > 0 && static_power_mW >= 0.0 && !network_config_file_path.empty(); !valid) {
+        std::cerr << "NetworkConfig not valid, 'bus_width_byte' must be positive, 'static_power_mW' must be non-negative and 'network_config_file_path' must "
                      "not be empty"
                   << std::endl;
         return false;
@@ -900,7 +900,7 @@ bool NetworkConfig::checkValid() const {
     return true;
 }
 
-DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(NetworkConfig, bus_width_byte, network_config_file_path);
+DEFINE_TYPE_FROM_TO_JSON_FUNCTION_WITH_DEFAULT(NetworkConfig, bus_width_byte, static_power_mW, network_config_file_path);
 
 bool GlobalMemoryConfig::checkValid() const {
     if (!global_memory_unit_config.checkValid()) {

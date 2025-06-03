@@ -12,6 +12,7 @@ namespace cimsim {
 Network::Network(std::string name, const NetworkConfig& config, const SimConfig& sim_config)
     : config_(config), sim_config_(sim_config), name_(std::move(name)) {
     readLatencyEnergyFile(config.network_config_file_path);
+    energy_counter_.setStaticPowerMW(config.static_power_mW);
 }
 
 sc_time Network::transferAndGetDelay(int src_id, int dst_id, int data_size_byte, const ProfilerTag& profiler_tag) {
