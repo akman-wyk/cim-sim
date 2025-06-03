@@ -380,6 +380,7 @@ struct CoreConfig {
 
 struct NetworkConfig {
     int bus_width_byte{16};
+    double static_power_mW{0.0};   // mW
 
     std::string network_config_file_path{"./network_config.json"};
 
