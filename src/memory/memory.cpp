@@ -39,7 +39,7 @@ Memory::~Memory() {
 
 void Memory::access(std::shared_ptr<MemoryAccessPayload> payload) {
     access_queue_.emplace(std::move(payload));
-    start_process_.notify();
+    start_process_.notify(SC_ZERO_TIME);
 }
 
 int Memory::getAddressSpaceOffset() const {

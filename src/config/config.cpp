@@ -542,6 +542,10 @@ int CimUnitConfig::getByteWidth() const {
     return IntDivCeil(getBitWidth(), BYTE_TO_BIT);
 }
 
+int CimUnitConfig::getMacroBitWidth() const {
+    return macro_size.bit_width_per_row * macro_size.element_cnt_per_compartment;
+}
+
 std::string CimUnitConfig::getMemoryName() const {
     return name_as_memory;
 }

@@ -266,6 +266,7 @@ struct CimUnitConfig {
     [[nodiscard]] int getByteSize() const;
     [[nodiscard]] int getBitWidth() const;
     [[nodiscard]] int getByteWidth() const;
+    [[nodiscard]] int getMacroBitWidth() const;
     [[nodiscard]] std::string getMemoryName() const;
 
     [[nodiscard]] bool checkValid() const;

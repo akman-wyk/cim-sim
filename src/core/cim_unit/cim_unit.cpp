@@ -16,6 +16,7 @@ CimUnit::CimUnit(const sc_module_name& name, const CimUnitConfig& config, const 
     , cim_byte_size_(config_.getByteSize())
     , cim_bit_width_(config_.getBitWidth())
     , cim_byte_width_(config_.getByteWidth())
+    , macro_bit_width_(config_.getMacroBitWidth())
     , config_group_cnt_(config_.macro_total_cnt / config_.macro_group_size)
     , macro_simulation_(base_info.sim_config.data_mode == +DataMode::not_real_data && !config_.bit_sparse &&
                         !config_.input_bit_sparse && !config_.value_sparse) {
@@ -55,23 +56,29 @@ sc_time CimUnit::accessAndGetDelay(MemoryAccessPayload& payload) {
     int process_times = IntDivCeil(payload_bit_size, cim_bit_width_);
     double latency;
     if (payload.access_type == +MemoryAccessType::read) {
-        double dynamic_power_mW = config_.sram.read_dynamic_power_per_bit_mW * cim_bit_width_;
+        double dynamic_energy = config_.sram.read_dynamic_power_per_bit_mW * macro_bit_width_ *
+                                IntDivCeil(payload_bit_size, macro_bit_width_) * config_.sram.read_latency_cycle *
+                                period_ns_;
         latency = config_.sram.read_latency_cycle * period_ns_ * process_times;
-        sram_read_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW,
-                                                     {.core_id = core_id_,
-                                                      .ins_id = payload.ins.ins_id,
-                                                      .inst_opcode = payload.ins.inst_opcode,
-                                                      .inst_group_tag = payload.ins.inst_group_tag,
-                                                      .inst_profiler_operator = getName() + "_read"});
+
+        sram_read_energy_counter_.addDynamicEnergyPJ(dynamic_energy);
+        sram_read_energy_counter_.addActivityTime(latency, {.core_id = core_id_,
+                                                            .ins_id = payload.ins.ins_id,
+                                                            .inst_opcode = payload.ins.inst_opcode,
+                                                            .inst_group_tag = payload.ins.inst_group_tag,
+                                                            .inst_profiler_operator = getName() + "_read"});
     } else {
-        double dynamic_power_mW = config_.sram.write_dynamic_power_per_bit_mW * cim_bit_width_;
+        double dynamic_energy = config_.sram.write_dynamic_power_per_bit_mW * macro_bit_width_ *
+                                IntDivCeil(payload_bit_size, macro_bit_width_) * config_.sram.write_latency_cycle *
+                                period_ns_;
         latency = config_.sram.write_latency_cycle * period_ns_ * process_times;
-        sram_write_energy_counter_.addDynamicEnergyPJ(latency, dynamic_power_mW,
-                                                      {.core_id = core_id_,
-                                                       .ins_id = payload.ins.ins_id,
-                                                       .inst_opcode = payload.ins.inst_opcode,
-                                                       .inst_group_tag = payload.ins.inst_group_tag,
-                                                       .inst_profiler_operator = getName() + "_write"});
+
+        sram_write_energy_counter_.addDynamicEnergyPJ(dynamic_energy);
+        sram_write_energy_counter_.addActivityTime(latency, {.core_id = core_id_,
+                                                             .ins_id = payload.ins.ins_id,
+                                                             .inst_opcode = payload.ins.inst_opcode,
+                                                             .inst_group_tag = payload.ins.inst_group_tag,
+                                                             .inst_profiler_operator = getName() + "_write"});
     }
 
     return {latency, SC_NS};

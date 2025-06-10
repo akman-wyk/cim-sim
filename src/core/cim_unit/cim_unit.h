@@ -47,6 +47,7 @@ private:
     const int cim_byte_size_;
     const int cim_bit_width_;
     const int cim_byte_width_;
+    const int macro_bit_width_;
 
     int config_group_cnt_;
     bool macro_simulation_;  // whether to user one actual macro to simulate all logic macros in one core
