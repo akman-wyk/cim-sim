@@ -68,7 +68,6 @@ void TransmitSocket::storeGlobal(const InstructionPayload& ins, int address_byte
 
 void TransmitSocket::sendHandshake(const InstructionPayload& ins, int dst_id, int transfer_id_tag) {
     expected_receiver_core_id_ = dst_id;
-    expected_transfer_id_tag_ = transfer_id_tag;
     LOG(fmt::format("core id: {}, send handshake start, dst_id: {}, transfer_id_tag: {}", core_id_, dst_id,
                     transfer_id_tag));
 
@@ -91,7 +90,6 @@ void TransmitSocket::sendHandshake(const InstructionPayload& ins, int dst_id, in
     LOG(fmt::format("core id: {}, send handshake end, dst_id: {}, transfer_id_tag: {}", core_id_, dst_id,
                     transfer_id_tag));
     expected_receiver_core_id_ = -1;
-    expected_transfer_id_tag_ = -1;
 }
 
 void TransmitSocket::sendData(const InstructionPayload& ins, int dst_id, int transfer_id_tag, int dst_address_byte,
@@ -117,15 +115,21 @@ void TransmitSocket::sendData(const InstructionPayload& ins, int dst_id, int tra
 
 void TransmitSocket::receiveHandshake(int src_id, int transfer_id_tag) {
     expected_sender_core_id_ = src_id;
+    expected_transfer_id_tag_ = transfer_id_tag;
     LOG(fmt::format("core id: {}, receive handshake start, src_id: {}, transfer_id_tag: {}", core_id_, src_id,
                     transfer_id_tag));
 
     if (auto found = receiver_waiting_sender_map.find(src_id);
-        found == receiver_waiting_sender_map.end() || found->second != transfer_id_tag) {
+        found == receiver_waiting_sender_map.end() || found->second == -1) {
         wait(receiver_wait_sender_ready_);
+    } else if (found->second != transfer_id_tag) {
+        throw std::runtime_error(
+            fmt::format("TransferUnit: send-recv not match, sender (Core {}) transfer id: {}, receiver (Core {}) transfer id: {}",
+                        src_id, found->second, core_id_, transfer_id_tag));
     }
 
     expected_sender_core_id_ = -1;
+    expected_transfer_id_tag_ = -1;
 }
 
 void TransmitSocket::receiveData(const InstructionPayload& ins, int src_id) {
@@ -172,10 +176,17 @@ void TransmitSocket::switchReceiveHandler(const std::shared_ptr<NetworkPayload>&
         auto sender_core_id = data_transfer_payload->sender_id;
         if (status == +DataTransferStatus::sender_ready) {
             // remote core send handshake
-            receiver_waiting_sender_map[sender_core_id] = data_transfer_payload->id_tag;
             if (sender_core_id == expected_sender_core_id_) {
                 // this core already execute recv and is waiting for remote core
-                receiver_wait_sender_ready_.notify(SC_ZERO_TIME);
+                if (expected_transfer_id_tag_ == data_transfer_payload->id_tag) {
+                    receiver_wait_sender_ready_.notify(SC_ZERO_TIME);
+                } else {
+                    throw std::runtime_error(fmt::format(
+                        "TransferUnit: send-recv not match, sender (Core {}) transfer id: {}, receiver (Core {}) transfer id: {}",
+                        sender_core_id, data_transfer_payload->id_tag, core_id_, expected_transfer_id_tag_));
+                }
+            } else {
+                receiver_waiting_sender_map[sender_core_id] = data_transfer_payload->id_tag;
             }
         } else if (status == +DataTransferStatus::send_data) {
             receiver_wait_data_ready_.notify(SC_ZERO_TIME);
@@ -184,7 +195,6 @@ void TransmitSocket::switchReceiveHandler(const std::shared_ptr<NetworkPayload>&
         // remote core recv this core
         auto receiver_core_id = data_transfer_payload->receiver_id;
         if (receiver_core_id == expected_receiver_core_id_ &&
-            data_transfer_payload->id_tag == expected_transfer_id_tag_ &&
             data_transfer_payload->status == +DataTransferStatus::receiver_ready) {
             sender_wait_receiver_ready_.notify(SC_ZERO_TIME);
         } else {

@@ -9,3 +9,5 @@ report
 doc/test.md
 doc/debug.md
 thirdparty
+*.zip
+*.pdf

@@ -160,7 +160,12 @@ std::shared_ptr<InstTimingStatistic> InstProfiler::getInstTypeTimingStatistic(co
 }
 
 std::shared_ptr<InstTimingStatistic> InstProfiler::getInstGroupTimingStatistic(const ProfilerTag& profiler_tag) {
-    return timing_statistic_map_[std::string{profiler_tag.inst_group_tag}];
+    auto found = timing_statistic_map_.find(std::string{profiler_tag.inst_group_tag});
+    if (found == timing_statistic_map_.end()) {
+        throw std::runtime_error(fmt::format("InstProfiler: inst_group_tag '{}' not exist in profiling config",
+                                             profiler_tag.inst_group_tag));
+    }
+    return found->second;
 }
 
 bool Profiler::json_flat = false;
@@ -198,6 +203,10 @@ void Profiler::report(std::ostream& ofs, double total_latency) {
 }
 
 void Profiler::bindHardware(EnergyCounter* chip_energy_counter, std::vector<std::shared_ptr<Core>>& core_list) {
+    if (!config_.profiling) {
+        return;
+    }
+
     if (config_.hardware_profiler_config.profiling) {
         hardware_profiler_.bindEnergyCounter("Chip", chip_energy_counter, nullptr);
         if (config_.hardware_profiler_config.each_core_profiling) {
