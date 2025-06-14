@@ -7,6 +7,10 @@ set(CMAKE_CXX_STANDARD 17 CACHE STRING "Use C++ 17")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 
+# 显式告诉 CMake 处理 .s 文件为汇编带预处理
+set(CMAKE_ASM_COMPILER ${CMAKE_C_COMPILER})
+set(CMAKE_ASM_FLAGS "${CMAKE_C_FLAGS} -x assembler-with-cpp")
+
 # dependency
 add_subdirectory(thirdparty/fmt)
 add_subdirectory(thirdparty/systemc)
