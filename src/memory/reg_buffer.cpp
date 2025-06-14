@@ -42,7 +42,10 @@ sc_time RegBuffer::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
                                                  .inst_group_tag = payload.ins.inst_group_tag,
                                                  .inst_profiler_operator = mem_name_ + "_read"});
 
-        if (data_mode_ == +DataMode::real_data) {
+        if (data_mode_ == +DataMode::real_data || payload.ins.unit_type == +ExecuteUnitType::scalar) {
+            if (data_.empty()) {
+                initialData();
+            }
             payload.data.resize(payload.size_byte);
             std::copy_n(data_.begin() + payload.address_byte, payload.size_byte, payload.data.begin());
         }
@@ -60,7 +63,10 @@ sc_time RegBuffer::accessAndGetDelay(cimsim::MemoryAccessPayload &payload) {
                                                   .inst_group_tag = payload.ins.inst_group_tag,
                                                   .inst_profiler_operator = mem_name_ + "write"});
 
-        if (data_mode_ == +DataMode::real_data) {
+        if (data_mode_ == +DataMode::real_data || payload.ins.unit_type == +ExecuteUnitType::scalar) {
+            if (data_.empty()) {
+                initialData();
+            }
             std::copy(payload.data.begin(), payload.data.end(), data_.begin() + payload.address_byte);
         }
 
